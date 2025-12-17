@@ -21,11 +21,11 @@ wheels/
 *.egg
 
 # Virtual environments
-.env
-.venv
-env/
+.venv/
 venv/
+env/
 ENV/
+.python-version
 
 # IDE
 .idea/
@@ -33,6 +33,8 @@ ENV/
 *.swp
 *.swo
 *~
+*.sublime-project
+*.sublime-workspace
 
 # Testing
 .pytest_cache/
@@ -40,12 +42,21 @@ ENV/
 htmlcov/
 .tox/
 .nox/
+coverage.xml
+*.cover
+.hypothesis/
 
 # Mypy
 .mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Ruff
+.ruff_cache/
 
 # Chroma vector database
 chroma_db/
+*.chroma/
 
 # Logs
 *.log
@@ -54,10 +65,61 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+ehthumbs.db
+Desktop.ini
 
-# Local configuration (keep .env.example)
+# ============================================
+# SECURITY: Environment and API Keys
+# ============================================
+# IMPORTANT: Never commit these files!
+.env
+.env.*
+!.env.example
 .env.local
 .env.*.local
+*.env
+
+# API Keys and secrets
+secrets/
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+credentials.json
+*-credentials.json
+service-account*.json
+*_secret*.json
+
+# OpenAI and other API keys
+openai.key
+anthropic.key
+.api_keys
+api_keys.txt
+api_keys.json
 
 # Poetry
 poetry.lock
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Distribution / packaging
+*.manifest
+*.spec
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Specify feature system (internal)
+.speckit/features/*/
+
+# Local development data
+data/
+indexed_docs/
+test_output/
+!CLAUDE.md
+!AGENTS.md
+!.claude/
+!.opencode/
+

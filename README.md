@@ -1,102 +1,140 @@
-Phase 1
+# Doc-Serve
 
-1. Build System: Use Poetry for dependency and environment management.
-2. REST API: Use FastAPI to create the RESTful interface. This will expose endpoints for querying the indexed documents.
-3. Indexing and Vector Store: Use LlamaIndex for indexing the documents, applying context-aware chunking via RecursiveCharacterTextSplitter. Use Chroma as the vector store, which is thread-safe and suited for concurrent requests.
-4. Embedding Model: Use OpenAI’s latest embedding model, which as of now is “text-embedding-3-large” (or whichever the latest model is at the time). This model will convert text chunks into embeddings for indexing and querying.
-5. LLM for Summarization: Use Claude 4.5 Haiku for generating summaries of documents and surrounding chunks. This helps enable context-aware chunking and enhances the quality of the retrieval.
-6. Tokenizer/Embedding Generation: Use OpenAI’s tokenizer (such as tiktoken) for tokenization, which is thread-safe for concurrent use. The embedding model will use this tokenization under the hood when generating vectors.
-7. Claude Skill Integration: Add a Claude skill that interfaces with the REST API, allowing you to query the vector store during generation tasks. This enables dynamic look-ups from the indexed corpus while generating content.
-8. Chunk Sizes: For context-aware chunking, consider a base chunk size of around 512 to 1024 tokens, with overlap of around 50 to 100 tokens. You can adjust these sizes after testing with your specific documents.
+A RAG-based (Retrieval-Augmented Generation) document indexing and semantic search system. Doc-Serve enables AI assistants and applications to query domain-specific documentation using natural language.
 
-This combination gives you a powerful, scalable stack for indexing, embedding, querying, and generating context-aware results via a REST API.
+## Overview
 
-Mono repo 
+Doc-Serve is a monorepo containing three packages:
 
-```markdown
-/
-   docs/ 
-   doc-serve-skill/
-   doc-serve-server/
-   doc-svr-ctl/ (Command line interface to doc-server)
-   
-   
+| Package | Description |
+|---------|-------------|
+| **doc-serve-server** | FastAPI REST API for document indexing and semantic search |
+| **doc-svr-ctl** | Command-line interface for managing the server |
+| **doc-serve-skill** | Claude Code skill for AI-powered documentation queries |
+
+## Features
+
+- **Semantic Search**: Query documents using natural language with OpenAI embeddings
+- **Vector Store**: ChromaDB for efficient similarity search
+- **Context-Aware Chunking**: Intelligent document splitting with overlap
+- **REST API**: Full OpenAPI-documented REST interface
+- **CLI Tool**: Comprehensive command-line management
+- **Claude Integration**: Native Claude Code skill for AI workflows
+
+## Quick Start
+
+### Prerequisites
+
+- Python 3.10+
+- Poetry (dependency management)
+- OpenAI API key
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/spillwave/doc-serve.git
+cd doc-serve
+
+# Install the server
+cd doc-serve-server
+poetry install
+
+# Install the CLI (optional, in another terminal)
+cd ../doc-svr-ctl
+poetry install
 ```
 
-1. command-line tool, called something like "docserver," that takes a path to a folder containing documents and a port number to run on. This launches folder.
-2. When it starts, it indexes all the documents in that folder, using OpenAI embeddings and stores them in the Chroma vector store.
-3. The tool will expose health endpoints—likely something like a /health or /status route—to indicate if it's up, if indexing is in progress, or if it's finished and ready for querying.
-4. The skill will know how to check this health endpoint to see whether the docserver is running. If not, it can spin it up with the proper folder path and port.
-5. Once indexing is complete and the server is ready, the skill can query the vector store over HTTP, sending text queries and getting back relevant document chunks or summaries.
-6. Everything will be running locally, so it stays efficient and fast.
-7. There is a doc-svr-cli to query the DB and test it easily, and turn it off. Add dirs to index, etc. 
-8. Doc-serve-server exposes OpenAPI schema 
+### Configuration
 
-It is a fully self-contained system that the skill can start, check, and query as needed. This design gives you flexibility and scalability.
+Create a `.env` file in `doc-serve-server/`:
 
-Phase 2
+```bash
+OPENAI_API_KEY=your-openai-api-key
+API_HOST=127.0.0.1
+API_PORT=8000
+DEBUG=false
+```
 
-Yes, you can add BM25-style keyword search alongside vector search, and LlamaIndex actually has first-class support for that plus hybrid retrieval.[developers.llamaindex+1](https://developers.llamaindex.ai/python/examples/retrievers/bm25_retriever/)
+### Running the Server
 
-## BM25 and hybrid in LlamaIndex
+```bash
+cd doc-serve-server
+poetry run doc-serve
+```
 
-- LlamaIndex ships a `BM25Retriever` that runs classic sparse retrieval (BM25) over your corpus.[llamaindexxx.readthedocs+1](https://llamaindexxx.readthedocs.io/en/latest/examples/retrievers/bm25_retriever.html)
-- You can pair that with a standard vector retriever (your Chroma-backed index) and either:
-    - Expose them as separate modes (keyword vs semantic), or
-    - Wrap them in a “hybrid” or “fusion” retriever that merges BM25 and vector results (often via reciprocal rank fusion or weighted scores).[llamaindex+2](https://www.llamaindex.ai/blog/llamaindex-enhancing-retrieval-performance-with-alpha-tuning-in-hybrid-search-in-rag-135d0c9b8a00)
+The server starts at `http://127.0.0.1:8000` with interactive docs at `/docs`.
 
-Conceptually you end up with:
+### Using the CLI
 
-- Dense retriever: semantic similarity over embeddings (your current Chroma + OpenAI embeddings).
-- Sparse retriever: BM25 over raw text.
-- Hybrid retriever: calls both, merges ranked lists, returns a unified set of nodes.[trulens+2](https://www.trulens.org/cookbook/frameworks/llamaindex/llama_index_hybrid_retriever/)
+```bash
+# Check server status
+doc-svr-ctl status
 
-## Where BM25 actually lives
+# Index documents
+doc-svr-ctl index /path/to/documents
 
-- LlamaIndex can do BM25 internally with `BM25Retriever` over its document store (no external search engine required).[developers.llamaindex+1](https://developers.llamaindex.ai/python/examples/retrievers/bm25_retriever/)
-- Some vector backends (e.g., Milvus, Qdrant) and newer Chroma “sparse search” features also expose BM25-like sparse vectors or full-text/BM25 integrations, which LlamaIndex can use via their hybrid vector store integrations.[milvus+2](https://milvus.io/docs/llamaindex_milvus_full_text_search.md)
+# Query the index
+doc-svr-ctl query "how to configure authentication"
 
-With your current design (LlamaIndex + Chroma):
+# Reset the index
+doc-svr-ctl reset --yes
+```
 
-- Keep Chroma for dense vectors.
-- Add a `BM25Retriever` over the same `Document`/`Node` objects (LlamaIndex’s internal store).
-- Create a hybrid retriever that combines:
-    - `VectorIndexRetriever` (Chroma-backed)
-    - `BM25Retriever` (keyword/BM25)[stackoverflow+1](https://stackoverflow.com/questions/77027805/how-to-add-fulltext-search-to-llamaindex)
+## Architecture
 
-## How you’d expose it in your REST API
+```
+doc-serve/
+├── doc-serve-server/     # FastAPI server
+│   └── src/
+│       ├── api/          # REST endpoints
+│       ├── config/       # Settings management
+│       ├── indexing/     # Document processing
+│       ├── models/       # Pydantic models
+│       ├── services/     # Business logic
+│       └── storage/      # Vector store
+├── doc-svr-ctl/          # CLI tool
+│   └── src/
+│       ├── client/       # API client
+│       └── commands/     # CLI commands
+├── doc-serve-skill/      # Claude skill
+│   └── doc-serve/
+│       └── SKILL.md      # Skill definition
+└── docs/                 # Documentation
+```
 
-You could define something like:
+## API Endpoints
 
-- `mode=vector` → only dense retrieval
-- `mode=bm25` → pure keyword/BM25
-- `mode=hybrid` (default) → fusion of both lists, N results per type then merged and reranked.[llamaindex+1](https://www.llamaindex.ai/blog/llamaindex-enhancing-retrieval-performance-with-alpha-tuning-in-hybrid-search-in-rag-135d0c9b8a00)
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/health` | GET | Health check |
+| `/health/status` | GET | Detailed indexing status |
+| `/query` | POST | Semantic search |
+| `/query/count` | GET | Document count |
+| `/index` | POST | Start indexing |
+| `/index/add` | POST | Add documents incrementally |
+| `/index` | DELETE | Clear index |
 
-This gives your Claude skill three knobs:
+## Documentation
 
-- “Fuzzy semantic” (vector)
-- “Exact keyword” (BM25)
-- “Best of both” (hybrid)
+- [User Guide](docs/USER_GUIDE.md) - How to use Doc-Serve
+- [Developer Guide](docs/DEVELOPERS_GUIDE.md) - Setup and contribution guide
+- [API Reference](doc-serve-skill/doc-serve/references/api_reference.md) - Full API documentation
+- [Original Spec](docs/ORIGINAL_SPEC.md) - Original project specification
 
-All backed by the same underlying indexed corpus and context-aware chunking.
+## Technology Stack
 
-1. https://developers.llamaindex.ai/python/examples/retrievers/bm25_retriever/
-2. https://stackoverflow.com/questions/77027805/how-to-add-fulltext-search-to-llamaindex
-3. https://llamaindexxx.readthedocs.io/en/latest/examples/retrievers/bm25_retriever.html
-4. https://www.llamaindex.ai/blog/llamaindex-enhancing-retrieval-performance-with-alpha-tuning-in-hybrid-search-in-rag-135d0c9b8a00
-5. https://www.trulens.org/cookbook/frameworks/llamaindex/llama_index_hybrid_retriever/
-6. https://www.trulens.org/examples/frameworks/llama_index/llama_index_hybrid_retriever/
-7. https://milvus.io/docs/llamaindex_milvus_full_text_search.md
-8. https://www.trychroma.com/project/sparse-vector-search
-9. https://developers.llamaindex.ai/python/examples/vector_stores/qdrant_hybrid/
-10. https://github.com/run-llama/llama_index/discussions/9837
-11. https://www.linkedin.com/posts/trychroma_chroma-now-supports-sparse-vector-search-activity-7389395636674232320-JVgi
-12. https://builder.aws.com/content/2vMeX91f1Cb4rcDm4tBPzYJmRtl/building-an-enterprise-knowledge-rag-platform-with-llamaindex-and-amazon-bedrock
-13. https://www.linkedin.com/learning/hands-on-ai-rag-using-llamaindex/hybrid-retrieval
-14. https://docs.haystack.deepset.ai/docs/retrievers
-15. https://github.com/run-llama/llama_index/issues/8083
-16. https://interestingengineering.substack.com/p/from-bm25-to-agentic-rag-the-evolution
-17. https://docs.llamaindex.ai/en/v0.10.34/examples/retrievers/bm25_retriever/
-18. https://milvus.io/docs/llamaindex_milvus_hybrid_search.md
-19. https://github.com/chroma-core/chroma/issues/2633
-20. https://docs.llamaindex.ai/en/v0.9.48/examples/retrievers/bm25_retriever.html
+- **Server**: FastAPI + Uvicorn
+- **Vector Store**: ChromaDB
+- **Embeddings**: OpenAI text-embedding-3-large
+- **Indexing**: LlamaIndex
+- **CLI**: Click + Rich
+- **Build System**: Poetry
+
+## License
+
+MIT License - see LICENSE file for details.
+
+## Contributing
+
+See the [Developer Guide](docs/DEVELOPERS_GUIDE.md) for setup instructions and contribution guidelines.
