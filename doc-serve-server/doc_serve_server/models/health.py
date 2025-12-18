@@ -1,6 +1,6 @@
 """Health status models."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Literal, Optional
 
 from pydantic import BaseModel, Field
@@ -18,7 +18,7 @@ class HealthStatus(BaseModel):
         description="Additional status message",
     )
     timestamp: datetime = Field(
-        default_factory=datetime.utcnow,
+        default_factory=lambda: datetime.now(timezone.utc),
         description="Timestamp of the health check",
     )
     version: str = Field(

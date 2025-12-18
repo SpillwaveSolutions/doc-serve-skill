@@ -5,7 +5,7 @@ import logging
 import os
 import uuid
 from collections.abc import Awaitable
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Callable, Optional
 
 from doc_serve_server.indexing import (
@@ -104,7 +104,7 @@ class IndexingService:
                 status=IndexingStatusEnum.INDEXING,
                 is_indexing=True,
                 folder_path=request.folder_path,
-                started_at=datetime.utcnow(),
+                started_at=datetime.now(timezone.utc),
             )
 
         logger.info(f"Starting indexing job {job_id} for {request.folder_path}")
@@ -156,7 +156,7 @@ class IndexingService:
                 logger.warning(f"No documents found in {request.folder_path}")
                 self._state.status = IndexingStatusEnum.COMPLETED
                 self._state.is_indexing = False
-                self._state.completed_at = datetime.utcnow()
+                self._state.completed_at = datetime.now(timezone.utc)
                 return
 
             # Step 2: Chunk documents
@@ -207,7 +207,7 @@ class IndexingService:
 
             # Mark as completed
             self._state.status = IndexingStatusEnum.COMPLETED
-            self._state.completed_at = datetime.utcnow()
+            self._state.completed_at = datetime.now(timezone.utc)
             self._indexed_folders.add(abs_folder_path)
 
             if progress_callback:
