@@ -5,8 +5,8 @@ from pathlib import Path
 
 from fastapi import APIRouter, HTTPException, status
 
-from ...models import IndexRequest, IndexResponse
-from ...services import get_indexing_service
+from doc_serve_server.models import IndexRequest, IndexResponse
+from doc_serve_server.services import get_indexing_service
 
 router = APIRouter()
 

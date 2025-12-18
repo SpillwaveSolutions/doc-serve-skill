@@ -25,7 +25,12 @@ tasks:
   install:
     desc: Install project dependencies
     cmds:
-      - poetry install
+    - poetry install
+
+  install:global:
+    desc: Install as a global CLI tool (editable mode)
+    cmds:
+    - pip install -e .
 
   # ===================
   # CLI Commands

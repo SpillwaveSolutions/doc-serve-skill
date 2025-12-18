@@ -5,9 +5,9 @@ from typing import Literal
 
 from fastapi import APIRouter
 
-from ...models import HealthStatus, IndexingStatus
-from ...services import get_indexing_service
-from ...storage import get_vector_store
+from doc_serve_server.models import HealthStatus, IndexingStatus
+from doc_serve_server.services import get_indexing_service
+from doc_serve_server.storage import get_vector_store
 
 router = APIRouter()
 

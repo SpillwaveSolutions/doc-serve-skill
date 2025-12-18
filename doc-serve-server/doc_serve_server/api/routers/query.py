@@ -2,8 +2,8 @@
 
 from fastapi import APIRouter, HTTPException, status
 
-from ...models import QueryRequest, QueryResponse
-from ...services import get_indexing_service, get_query_service
+from doc_serve_server.models import QueryRequest, QueryResponse
+from doc_serve_server.services import get_indexing_service, get_query_service
 
 router = APIRouter()
 

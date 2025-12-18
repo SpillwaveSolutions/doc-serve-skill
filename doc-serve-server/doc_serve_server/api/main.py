@@ -10,9 +10,10 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .. import __version__
-from ..config import settings
-from ..storage import initialize_vector_store
+from doc_serve_server import __version__
+from doc_serve_server.config import settings
+from doc_serve_server.storage import initialize_vector_store
+
 from .routers import health_router, index_router, query_router
 
 # Configure logging
@@ -98,7 +99,7 @@ def run(
         reload: Enable auto-reload (default: from DEBUG setting)
     """
     uvicorn.run(
-        "src.api.main:app",
+        "doc_serve_server.api.main:app",
         host=host or settings.API_HOST,
         port=port or settings.API_PORT,
         reload=reload if reload is not None else settings.DEBUG,

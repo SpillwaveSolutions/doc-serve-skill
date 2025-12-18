@@ -1,7 +1,7 @@
 """Context-aware text chunking with configurable overlap."""
 
+import hashlib
 import logging
-import uuid
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from typing import Any, Optional
@@ -9,7 +9,8 @@ from typing import Any, Optional
 import tiktoken
 from llama_index.core.node_parser import SentenceSplitter
 
-from ..config import settings
+from doc_serve_server.config import settings
+
 from .document_loader import LoadedDocument
 
 logger = logging.getLogger(__name__)
@@ -127,8 +128,14 @@ class ContextAwareChunker:
         total_chunks = len(text_chunks)
 
         for idx, chunk_text in enumerate(text_chunks):
+            # Generate a stable ID based on source path and chunk index
+            # This helps avoid duplicates if the same folder is indexed again
+            # We use MD5 for speed and stability
+            id_seed = f"{document.source}_{idx}"
+            stable_id = hashlib.md5(id_seed.encode()).hexdigest()
+
             chunk = TextChunk(
-                chunk_id=f"chunk_{uuid.uuid4().hex[:12]}",
+                chunk_id=f"chunk_{stable_id[:16]}",
                 text=chunk_text,
                 source=document.source,
                 chunk_index=idx,

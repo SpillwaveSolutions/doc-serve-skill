@@ -6,7 +6,8 @@ from typing import Optional
 
 from openai import AsyncOpenAI
 
-from ..config import settings
+from doc_serve_server.config import settings
+
 from .chunking import TextChunk
 
 logger = logging.getLogger(__name__)

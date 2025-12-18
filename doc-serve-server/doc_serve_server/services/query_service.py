@@ -4,9 +4,9 @@ import logging
 import time
 from typing import Optional
 
-from ..indexing import EmbeddingGenerator, get_embedding_generator
-from ..models import QueryRequest, QueryResponse, QueryResult
-from ..storage import VectorStoreManager, get_vector_store
+from doc_serve_server.indexing import EmbeddingGenerator, get_embedding_generator
+from doc_serve_server.models import QueryRequest, QueryResponse, QueryResult
+from doc_serve_server.storage import VectorStoreManager, get_vector_store
 
 logger = logging.getLogger(__name__)
 

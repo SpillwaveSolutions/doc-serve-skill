@@ -9,7 +9,7 @@ from typing import Any, Optional
 import chromadb
 from chromadb.config import Settings as ChromaSettings
 
-from ..config import settings
+from doc_serve_server.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -110,19 +110,12 @@ class VectorStoreManager:
 
         Returns:
             Number of documents added.
-
-        Raises:
-            RuntimeError: If the store is not initialized.
-            ValueError: If input lengths don't match.
         """
         if not self.is_initialized:
             raise RuntimeError("Vector store not initialized. Call initialize() first.")
 
         if not (len(ids) == len(embeddings) == len(documents)):
             raise ValueError("ids, embeddings, and documents must have the same length")
-
-        if metadatas and len(metadatas) != len(ids):
-            raise ValueError("metadatas must have the same length as ids")
 
         async with self._lock:
             assert self._collection is not None
@@ -134,6 +127,44 @@ class VectorStoreManager:
             )
 
         logger.debug(f"Added {len(ids)} documents to vector store")
+        return len(ids)
+
+    async def upsert_documents(
+        self,
+        ids: list[str],
+        embeddings: list[list[float]],
+        documents: list[str],
+        metadatas: Optional[list[dict[str, Any]]] = None,
+    ) -> int:
+        """
+        Upsert documents with embeddings to the vector store.
+        If IDs already exist, the content and embeddings will be updated.
+
+        Args:
+            ids: Unique identifiers for each document.
+            embeddings: Embedding vectors for each document.
+            documents: Text content of each document.
+            metadatas: Optional metadata for each document.
+
+        Returns:
+            Number of documents upserted.
+        """
+        if not self.is_initialized:
+            raise RuntimeError("Vector store not initialized. Call initialize() first.")
+
+        if not (len(ids) == len(embeddings) == len(documents)):
+            raise ValueError("ids, embeddings, and documents must have the same length")
+
+        async with self._lock:
+            assert self._collection is not None
+            self._collection.upsert(
+                ids=ids,
+                embeddings=embeddings,  # type: ignore[arg-type]
+                documents=documents,
+                metadatas=metadatas or [{}] * len(ids),  # type: ignore[arg-type]
+            )
+
+        logger.debug(f"Upserted {len(ids)} documents to vector store")
         return len(ids)
 
     async def similarity_search(

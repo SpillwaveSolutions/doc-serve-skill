@@ -52,6 +52,12 @@ tasks:
     cmds:
       - task: cli:install
 
+  install:global:
+    desc: Install all packages globally as CLI tools (using pip editable)
+    cmds:
+      - task: server:install:global
+      - task: cli:install:global
+
   # ===================
   # Development
   # ===================

@@ -2,14 +2,19 @@
 
 import asyncio
 import logging
+import os
 import uuid
 from collections.abc import Awaitable
 from datetime import datetime
 from typing import Any, Callable, Optional
 
-from ..indexing import ContextAwareChunker, DocumentLoader, EmbeddingGenerator
-from ..models import IndexingState, IndexingStatusEnum, IndexRequest
-from ..storage import VectorStoreManager, get_vector_store
+from doc_serve_server.indexing import (
+    ContextAwareChunker,
+    DocumentLoader,
+    EmbeddingGenerator,
+)
+from doc_serve_server.models import IndexingState, IndexingStatusEnum, IndexRequest
+from doc_serve_server.storage import VectorStoreManager, get_vector_store
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +54,7 @@ class IndexingService:
         # Internal state
         self._state = IndexingState()
         self._lock = asyncio.Lock()
-        self._indexed_folders: list[str] = []
+        self._indexed_folders: set[str] = set()
 
     @property
     def state(self) -> IndexingState:
@@ -133,8 +138,14 @@ class IndexingService:
             if progress_callback:
                 await progress_callback(0, 100, "Loading documents...")
 
+            # Normalize folder path to absolute path to avoid duplicates
+            abs_folder_path = os.path.abspath(request.folder_path)
+            logger.info(
+                f"Normalizing indexing path: {request.folder_path} -> {abs_folder_path}"
+            )
+
             documents = await self.document_loader.load_from_folder(
-                request.folder_path,
+                abs_folder_path,
                 recursive=request.recursive,
             )
 
@@ -187,7 +198,7 @@ class IndexingService:
             if progress_callback:
                 await progress_callback(90, 100, "Storing in vector database...")
 
-            await self.vector_store.add_documents(
+            await self.vector_store.upsert_documents(
                 ids=[chunk.chunk_id for chunk in chunks],
                 embeddings=embeddings,
                 documents=[chunk.text for chunk in chunks],
@@ -197,7 +208,7 @@ class IndexingService:
             # Mark as completed
             self._state.status = IndexingStatusEnum.COMPLETED
             self._state.completed_at = datetime.utcnow()
-            self._indexed_folders.append(request.folder_path)
+            self._indexed_folders.add(abs_folder_path)
 
             if progress_callback:
                 await progress_callback(100, 100, "Indexing complete!")
@@ -247,7 +258,7 @@ class IndexingService:
                 else None
             ),
             "error": self._state.error,
-            "indexed_folders": self._indexed_folders.copy(),
+            "indexed_folders": sorted(self._indexed_folders),
         }
 
     async def reset(self) -> None:

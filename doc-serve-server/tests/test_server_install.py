@@ -8,8 +8,8 @@ class TestServerCLI:
     """Test server CLI entry point with Click."""
 
     def test_cli_function_importable(self):
-        """Verify cli() function can be imported from src.api.main."""
-        from src.api.main import cli
+        """Verify cli() function can be imported from doc_serve_server.api.main."""
+        from doc_serve_server.api.main import cli
 
         assert callable(cli), "cli should be a callable function"
 
@@ -17,13 +17,13 @@ class TestServerCLI:
         """Verify cli is a Click command."""
         import click
 
-        from src.api.main import cli
+        from doc_serve_server.api.main import cli
 
         assert isinstance(cli, click.core.Command), "cli should be a Click Command"
 
     def test_help_flag_returns_usage(self):
         """T045: Verify --help returns expected output."""
-        from src.api.main import cli
+        from doc_serve_server.api.main import cli
 
         runner = CliRunner()
         result = runner.invoke(cli, ["--help"])
@@ -36,7 +36,7 @@ class TestServerCLI:
 
     def test_help_shows_options(self):
         """Verify --help lists available options."""
-        from src.api.main import cli
+        from doc_serve_server.api.main import cli
 
         runner = CliRunner()
         result = runner.invoke(cli, ["--help"])
@@ -48,7 +48,7 @@ class TestServerCLI:
 
     def test_version_flag_returns_version(self):
         """T046: Verify --version returns version string."""
-        from src.api.main import cli
+        from doc_serve_server.api.main import cli
 
         runner = CliRunner()
         result = runner.invoke(cli, ["--version"])
@@ -65,8 +65,8 @@ class TestServerEntryPoint:
     """Test server entry point is properly configured and functional."""
 
     def test_run_function_importable(self):
-        """T019: Verify run() function can be imported from src.api.main."""
-        from src.api.main import run
+        """T019: Verify run() function can be imported."""
+        from doc_serve_server.api.main import run
 
         assert callable(run), "run should be a callable function"
 
@@ -74,13 +74,13 @@ class TestServerEntryPoint:
         """Verify FastAPI app can be imported."""
         from fastapi import FastAPI
 
-        from src.api.main import app
+        from doc_serve_server.api.main import app
 
         assert isinstance(app, FastAPI), "app should be a FastAPI instance"
 
     def test_version_importable(self):
         """Verify __version__ can be imported."""
-        from src import __version__
+        from doc_serve_server import __version__
 
         assert __version__ is not None
         assert isinstance(__version__, str)
@@ -92,25 +92,25 @@ class TestServerApp:
 
     def test_app_has_title(self):
         """Verify app has correct title."""
-        from src.api.main import app
+        from doc_serve_server.api.main import app
 
         assert app.title == "Doc-Serve API"
 
     def test_app_has_version(self):
         """Verify app has version."""
-        from src.api.main import app
+        from doc_serve_server.api.main import app
 
         assert app.version == "1.0.0"
 
     def test_app_has_docs_url(self):
         """Verify docs URL is configured."""
-        from src.api.main import app
+        from doc_serve_server.api.main import app
 
         assert app.docs_url == "/docs"
 
     def test_app_has_openapi_url(self):
         """Verify OpenAPI URL is configured."""
-        from src.api.main import app
+        from doc_serve_server.api.main import app
 
         assert app.openapi_url == "/openapi.json"
 
@@ -120,7 +120,7 @@ class TestServerRouters:
 
     def test_health_router_registered(self):
         """Verify health router is included."""
-        from src.api.main import app
+        from doc_serve_server.api.main import app
 
         routes = [route.path for route in app.routes]
         # Check for health-related routes
@@ -129,7 +129,7 @@ class TestServerRouters:
 
     def test_index_router_registered(self):
         """Verify index router is included."""
-        from src.api.main import app
+        from doc_serve_server.api.main import app
 
         routes = [route.path for route in app.routes]
         index_routes = [r for r in routes if "/index" in r]
@@ -137,7 +137,7 @@ class TestServerRouters:
 
     def test_query_router_registered(self):
         """Verify query router is included."""
-        from src.api.main import app
+        from doc_serve_server.api.main import app
 
         routes = [route.path for route in app.routes]
         query_routes = [r for r in routes if "/query" in r]
@@ -152,7 +152,7 @@ class TestServerSmokeTest:
         """T020: Verify server responds to root endpoint."""
         from httpx import ASGITransport, AsyncClient
 
-        from src.api.main import app
+        from doc_serve_server.api.main import app
 
         async with AsyncClient(
             transport=ASGITransport(app=app), base_url="http://test"
@@ -169,7 +169,7 @@ class TestServerSmokeTest:
         """Verify /docs endpoint is accessible."""
         from httpx import ASGITransport, AsyncClient
 
-        from src.api.main import app
+        from doc_serve_server.api.main import app
 
         async with AsyncClient(
             transport=ASGITransport(app=app), base_url="http://test"

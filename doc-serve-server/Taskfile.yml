@@ -5,11 +5,11 @@ version: '3'
 
 vars:
   PROJECT_NAME: doc-serve-server
-  SRC_DIR: src
+  SRC_DIR: doc_serve_server
   TEST_DIR: tests
 
 env:
-  PYTHONPATH: './src:./tests'
+  PYTHONPATH: './doc_serve_server:./tests'
 
 tasks:
   default:
@@ -24,7 +24,12 @@ tasks:
   install:
     desc: Install project dependencies
     cmds:
-      - poetry install
+    - poetry install
+
+  install:global:
+    desc: Install as a global CLI tool (editable mode)
+    cmds:
+    - pip install -e .
 
   # ===================
   # Development

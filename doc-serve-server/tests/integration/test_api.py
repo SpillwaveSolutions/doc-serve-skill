@@ -64,7 +64,7 @@ class TestIndexEndpoints:
         mock_vector_store.is_initialized = True
 
         with patch(
-            "src.services.indexing_service.IndexingService.start_indexing",
+            "doc_serve_server.services.indexing_service.IndexingService.start_indexing",
             new_callable=AsyncMock,
             return_value="job_test123",
         ):
@@ -95,10 +95,12 @@ class TestIndexEndpoints:
     def test_index_documents_conflict_when_indexing(self, client, temp_docs_dir):
         """Test indexing conflict when already in progress."""
         with patch(
-            "src.services.indexing_service.IndexingService.is_indexing",
+            "doc_serve_server.services.indexing_service.IndexingService.is_indexing",
             new_callable=lambda: property(lambda self: True),
         ):
-            with patch("src.services.get_indexing_service") as mock_get_service:
+            with patch(
+                "doc_serve_server.services.get_indexing_service"
+            ) as mock_get_service:
                 mock_service = MagicMock()
                 mock_service.is_indexing = True
                 mock_get_service.return_value = mock_service
@@ -116,11 +118,13 @@ class TestIndexEndpoints:
         mock_vector_store.is_initialized = True
 
         with patch(
-            "src.services.indexing_service.IndexingService.start_indexing",
+            "doc_serve_server.services.indexing_service.IndexingService.start_indexing",
             new_callable=AsyncMock,
             return_value="job_add123",
         ):
-            with patch("src.services.get_indexing_service") as mock_get_service:
+            with patch(
+                "doc_serve_server.services.get_indexing_service"
+            ) as mock_get_service:
                 mock_service = MagicMock()
                 mock_service.is_indexing = False
                 mock_service.start_indexing = AsyncMock(return_value="job_add123")
@@ -139,7 +143,9 @@ class TestIndexEndpoints:
         """Test resetting the index."""
         mock_vector_store.is_initialized = True
 
-        with patch("src.services.get_indexing_service") as mock_get_service:
+        with patch(
+            "doc_serve_server.services.get_indexing_service"
+        ) as mock_get_service:
             mock_service = MagicMock()
             mock_service.is_indexing = False
             mock_service.reset = AsyncMock()
@@ -181,8 +187,8 @@ class TestQueryEndpoints:
         mock_vector_store.similarity_search = AsyncMock(return_value=[mock_result])
 
         with (
-            patch("src.services.get_query_service") as mock_get_service,
-            patch("src.services.get_indexing_service") as mock_get_idx,
+            patch("doc_serve_server.services.get_query_service") as mock_get_service,
+            patch("doc_serve_server.services.get_indexing_service") as mock_get_idx,
         ):
             mock_service = MagicMock()
             mock_service.is_ready.return_value = True
@@ -239,8 +245,8 @@ class TestQueryEndpoints:
         mock_vector_store.is_initialized = True
 
         with (
-            patch("src.services.get_query_service") as mock_get_service,
-            patch("src.services.get_indexing_service") as mock_get_idx,
+            patch("doc_serve_server.services.get_query_service") as mock_get_service,
+            patch("doc_serve_server.services.get_indexing_service") as mock_get_idx,
         ):
             mock_service = MagicMock()
             mock_service.is_ready.return_value = True
@@ -269,8 +275,8 @@ class TestQueryEndpoints:
         mock_vector_store.is_initialized = True
 
         with (
-            patch("src.services.get_query_service") as mock_get_service,
-            patch("src.services.get_indexing_service") as mock_get_idx,
+            patch("doc_serve_server.services.get_query_service") as mock_get_service,
+            patch("doc_serve_server.services.get_indexing_service") as mock_get_idx,
         ):
             mock_service = MagicMock()
             mock_service.is_ready.return_value = True
@@ -300,7 +306,7 @@ class TestQueryEndpoints:
         """Test document count endpoint."""
         mock_vector_store.is_initialized = True
 
-        with patch("src.services.get_query_service") as mock_get_service:
+        with patch("doc_serve_server.services.get_query_service") as mock_get_service:
             mock_service = MagicMock()
             mock_service.is_ready.return_value = True
             mock_service.get_document_count = AsyncMock(return_value=150)

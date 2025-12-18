@@ -4,7 +4,7 @@ version = "1.0.0"
 description = "RAG-based document indexing and query REST API service"
 authors = ["Spillwave Team"]
 readme = "README.md"
-packages = [{include = "src"}]
+packages = [{include = "doc_serve_server"}]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -32,7 +32,8 @@ ruff = "^0.8.0"
 mypy = "^1.13.0"
 
 [tool.poetry.scripts]
-doc-serve = "src.api.main:cli"
+doc-serve = "doc_serve_server.api.main:cli"
+doc-serve-server = "doc_serve_server.api.main:cli"
 
 [build-system]
 requires = ["poetry-core"]

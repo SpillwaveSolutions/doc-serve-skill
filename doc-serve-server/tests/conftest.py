@@ -79,18 +79,20 @@ def mock_vector_store():
 def app_with_mocks(mock_vector_store, mock_embedding_generator):
     """Create FastAPI app with mocked dependencies."""
     with (
-        patch("src.storage.get_vector_store", return_value=mock_vector_store),
         patch(
-            "src.storage.initialize_vector_store",
+            "doc_serve_server.storage.get_vector_store", return_value=mock_vector_store
+        ),
+        patch(
+            "doc_serve_server.storage.initialize_vector_store",
             new_callable=AsyncMock,
             return_value=mock_vector_store,
         ),
         patch(
-            "src.indexing.get_embedding_generator",
+            "doc_serve_server.indexing.get_embedding_generator",
             return_value=mock_embedding_generator,
         ),
     ):
-        from src.api.main import app
+        from doc_serve_server.api.main import app
 
         yield app
 
