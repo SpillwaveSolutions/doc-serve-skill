@@ -24,6 +24,7 @@ class Settings(BaseSettings):
 
     # Chroma Configuration
     CHROMA_PERSIST_DIR: str = "./chroma_db"
+    BM25_INDEX_PATH: str = "./bm25_index"
     COLLECTION_NAME: str = "doc_serve_collection"
 
     # Chunking Configuration

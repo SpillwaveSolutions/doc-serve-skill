@@ -176,6 +176,11 @@ class TestQueryEndpoints:
         self, client, mock_vector_store, mock_embedding_generator
     ):
         """Test successful document query."""
+        from doc_serve_server.services.query_service import get_query_service
+
+        service = get_query_service()
+        service.vector_store = mock_vector_store
+
         mock_vector_store.is_initialized = True
 
         mock_result = MockSearchResult(
@@ -187,8 +192,12 @@ class TestQueryEndpoints:
         mock_vector_store.similarity_search = AsyncMock(return_value=[mock_result])
 
         with (
-            patch("doc_serve_server.services.get_query_service") as mock_get_service,
-            patch("doc_serve_server.services.get_indexing_service") as mock_get_idx,
+            patch(
+                "doc_serve_server.api.routers.query.get_query_service"
+            ) as mock_get_service,
+            patch(
+                "doc_serve_server.api.routers.query.get_indexing_service"
+            ) as mock_get_idx,
         ):
             mock_service = MagicMock()
             mock_service.is_ready.return_value = True
@@ -242,11 +251,20 @@ class TestQueryEndpoints:
         # Note: The mock fixture sets up a ready state. Testing the 503
         # responses requires integration with actual service state management.
         # This test verifies the endpoint accepts valid requests.
+        from doc_serve_server.services.query_service import get_query_service
+
+        service = get_query_service()
+        service.vector_store = mock_vector_store
+
         mock_vector_store.is_initialized = True
 
         with (
-            patch("doc_serve_server.services.get_query_service") as mock_get_service,
-            patch("doc_serve_server.services.get_indexing_service") as mock_get_idx,
+            patch(
+                "doc_serve_server.api.routers.query.get_query_service"
+            ) as mock_get_service,
+            patch(
+                "doc_serve_server.api.routers.query.get_indexing_service"
+            ) as mock_get_idx,
         ):
             mock_service = MagicMock()
             mock_service.is_ready.return_value = True
@@ -272,11 +290,20 @@ class TestQueryEndpoints:
 
     def test_query_service_not_ready_no_index(self, client, mock_vector_store):
         """Test query returns empty results when no documents match."""
+        from doc_serve_server.services.query_service import get_query_service
+
+        service = get_query_service()
+        service.vector_store = mock_vector_store
+
         mock_vector_store.is_initialized = True
 
         with (
-            patch("doc_serve_server.services.get_query_service") as mock_get_service,
-            patch("doc_serve_server.services.get_indexing_service") as mock_get_idx,
+            patch(
+                "doc_serve_server.api.routers.query.get_query_service"
+            ) as mock_get_service,
+            patch(
+                "doc_serve_server.api.routers.query.get_indexing_service"
+            ) as mock_get_idx,
         ):
             mock_service = MagicMock()
             mock_service.is_ready.return_value = True

@@ -12,6 +12,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from doc_serve_server import __version__
 from doc_serve_server.config import settings
+from doc_serve_server.indexing import get_bm25_manager
 from doc_serve_server.storage import initialize_vector_store
 
 from .routers import health_router, index_router, query_router
@@ -36,8 +37,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     try:
         await initialize_vector_store()
         logger.info("Vector store initialized")
+
+        # Initialize BM25 index
+        bm25_manager = get_bm25_manager()
+        bm25_manager.initialize()
+        logger.info("BM25 index manager initialized")
     except Exception as e:
-        logger.error(f"Failed to initialize vector store: {e}")
+        logger.error(f"Failed to initialize services: {e}")
         raise
 
     yield

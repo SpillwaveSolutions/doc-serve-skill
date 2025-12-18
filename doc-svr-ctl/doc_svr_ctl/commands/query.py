@@ -32,23 +32,43 @@ console = Console()
     type=float,
     help="Minimum similarity threshold 0-1 (default: 0.7)",
 )
+@click.option(
+    "-m",
+    "--mode",
+    default="hybrid",
+    type=click.Choice(["vector", "bm25", "hybrid"], case_sensitive=False),
+    help="Retrieval mode (default: hybrid)",
+)
+@click.option(
+    "-a",
+    "--alpha",
+    default=0.5,
+    type=float,
+    help="Weight for hybrid search (1.0 = pure vector, 0.0 = pure bm25, default: 0.5)",
+)
 @click.option("--json", "json_output", is_flag=True, help="Output as JSON")
 @click.option("--full", is_flag=True, help="Show full text content")
+@click.option("--scores", is_flag=True, help="Show individual vector/BM25 scores")
 def query_command(
     query_text: str,
     url: str,
     top_k: int,
     threshold: float,
+    mode: str,
+    alpha: float,
     json_output: bool,
     full: bool,
+    scores: bool,
 ) -> None:
-    """Search indexed documents with natural language query."""
+    """Search indexed documents with natural language or keyword query."""
     try:
         with DocServeClient(base_url=url) as client:
             response = client.query(
                 query_text=query_text,
                 top_k=top_k,
                 similarity_threshold=threshold,
+                mode=mode.lower(),
+                alpha=alpha,
             )
 
             if json_output:
@@ -109,6 +129,23 @@ def query_command(
                 header.append(result.source, style="bold")
                 header.append("  Score: ", style="dim")
                 header.append(f"{result.score:.2%}", style=f"bold {score_color}")
+
+                if scores:
+                    header.append("  [V: ", style="dim")
+                    v_score = result.metadata.get("vector_score") or getattr(
+                        result, "vector_score", None
+                    )
+                    header.append(
+                        f"{v_score:.2f}" if v_score is not None else "N/A", style="dim"
+                    )
+                    header.append(" B: ", style="dim")
+                    b_score = result.metadata.get("bm25_score") or getattr(
+                        result, "bm25_score", None
+                    )
+                    header.append(
+                        f"{b_score:.2f}" if b_score is not None else "N/A", style="dim"
+                    )
+                    header.append("]", style="dim")
 
                 console.print(
                     Panel(

@@ -75,8 +75,44 @@ def mock_vector_store():
     return mock
 
 
+@pytest.fixture(autouse=True)
+def reset_singletons():
+    """Reset service singletons before each test."""
+
+    import doc_serve_server.indexing.bm25_index as bm25_mod
+    import doc_serve_server.services.indexing_service as idx_mod
+    import doc_serve_server.services.query_service as query_mod
+
+    bm25_mod._bm25_manager = None
+    idx_mod._indexing_service = None
+    query_mod._query_service = None
+
+    yield
+
+    bm25_mod._bm25_manager = None
+    idx_mod._indexing_service = None
+    query_mod._query_service = None
+
+
 @pytest.fixture
-def app_with_mocks(mock_vector_store, mock_embedding_generator):
+def mock_bm25_manager():
+    """Mock BM25 manager for unit tests."""
+    mock = MagicMock()
+    mock.is_initialized = True
+    mock.initialize = MagicMock()
+    mock.build_index = MagicMock()
+    mock.get_retriever = MagicMock()
+    mock.reset = MagicMock()
+
+    retriever_mock = AsyncMock()
+    retriever_mock.aretrieve = AsyncMock(return_value=[])
+    mock.get_retriever.return_value = retriever_mock
+
+    return mock
+
+
+@pytest.fixture
+def app_with_mocks(mock_vector_store, mock_embedding_generator, mock_bm25_manager):
     """Create FastAPI app with mocked dependencies."""
     with (
         patch(
@@ -90,6 +126,10 @@ def app_with_mocks(mock_vector_store, mock_embedding_generator):
         patch(
             "doc_serve_server.indexing.get_embedding_generator",
             return_value=mock_embedding_generator,
+        ),
+        patch(
+            "doc_serve_server.indexing.get_bm25_manager",
+            return_value=mock_bm25_manager,
         ),
     ):
         from doc_serve_server.api.main import app

@@ -194,3 +194,10 @@ This is a mandatory step that ensures:
 4. All tests pass with coverage report
 
 Do NOT push code that fails `task before-push`.
+
+## Active Technologies
+- Python 3.10+ + FastAPI, LlamaIndex, ChromaDB, OpenAI, rank-bm25 (100-bm25-hybrid-retrieval)
+- ChromaDB (Vector Store), Local Persistent BM25 Index (LlamaIndex) (100-bm25-hybrid-retrieval)
+
+## Recent Changes
+- 100-bm25-hybrid-retrieval: Added Python 3.10+ + FastAPI, LlamaIndex, ChromaDB, OpenAI, rank-bm25

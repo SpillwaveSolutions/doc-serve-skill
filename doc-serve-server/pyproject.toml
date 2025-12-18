@@ -10,9 +10,11 @@ packages = [{include = "doc_serve_server"}]
 python = "^3.10"
 fastapi = "^0.115.0"
 uvicorn = {extras = ["standard"], version = "^0.32.0"}
-llama-index-core = "^0.12.0"
-llama-index-readers-file = "^0.4.0"
-llama-index-embeddings-openai = "^0.3.0"
+llama-index-core = "^0.14.0"
+llama-index-readers-file = "^0.5.0"
+llama-index-embeddings-openai = "^0.5.0"
+llama-index-retrievers-bm25 = "^0.6.0"
+rank-bm25 = "^0.2.2"
 chromadb = "^0.5.0"
 openai = "^1.57.0"
 anthropic = "^0.40.0"
@@ -21,6 +23,7 @@ pydantic = "^2.10.0"
 pydantic-settings = "^2.6.0"
 python-dotenv = "^1.0.0"
 click = "^8.1.0"
+llama-index-llms-openai = "^0.6.12"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.0"
