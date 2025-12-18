@@ -76,7 +76,7 @@ def format_results(results: dict, query: str) -> str:
     output = []
 
     if "error" in results:
-        output.append(f"Error: {results['error']}")
+        output.append(f"❌ Error: {results['error']}")
         if "detail" in results:
             output.append(f"Detail: {results['detail']}")
         return "\n".join(output)
@@ -84,14 +84,22 @@ def format_results(results: dict, query: str) -> str:
     total = results.get("total_results", 0)
     query_time = results.get("query_time_ms", 0)
 
-    output.append(f"Query: {query}")
-    output.append(f"Found {total} results in {query_time:.1f}ms")
+    output.append(f"🔍 Query: {query}")
+    output.append(f"✅ Found {total} results in {query_time:.1f}ms")
     output.append("-" * 60)
 
     for i, result in enumerate(results.get("results", []), 1):
-        output.append(f"\n[{i}] Source: {result.get('source', 'Unknown')}")
-        output.append(f"    Score: {result.get('score', 0):.2f}")
-        output.append(f"    Text: {result.get('text', '')[:300]}...")
+        source = result.get('source', 'Unknown')
+        # Clean up source path for display
+        display_source = os.path.basename(source) if '/' in source else source
+        output.append(f"\n[{i}] Source: {display_source}")
+        output.append(f"    Full Path: {source}")
+        output.append(f"    Similarity Score: {result.get('score', 0):.4f}")
+        text = result.get('text', '')
+        # Indent text for better readability
+        indented_text = "\n    ".join(text[:500].split("\n"))
+        output.append(f"    Content:\n    {indented_text}...")
+        output.append("-" * 40)
 
     if total == 0:
         output.append("\nNo matching documents found.")
