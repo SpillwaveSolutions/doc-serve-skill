@@ -1,12 +1,10 @@
 ---
 name: doc-serve
 description: |
-  This skill should be used when the user wants to search domain-specific documentation
-  that has been indexed by the Doc-Serve server. It enriches conversation context with
-  relevant information from a specific knowledge domain. Trigger phrases include
-  "search the domain X", "look up in domain X", "find in X docs", or "query X documentation"
-  where X is the name of the indexed domain (e.g., "python", "kubernetes", "api-docs").
-version: 1.0.0
+  Semantic search over indexed documentation. This skill enriches the conversation context with
+  relevant information from specific knowledge domains. It can automatically set up the server,
+  index local folders, and perform semantic queries using CLI tools.
+version: 1.1.0
 category: ai-tools
 triggers:
   - doc-serve
@@ -16,223 +14,66 @@ triggers:
   - look up in domain
   - find in docs
   - search documentation
-  - domain search
-  - semantic search
-  - RAG query
-  - knowledge search
 author: Spillwave
 license: MIT
-tags:
-  - documentation
-  - semantic-search
-  - RAG
-  - knowledge-retrieval
-  - context-enrichment
-  - vector-search
 ---
 
-# Doc-Serve Domain Search
+# Doc-Serve Skill
 
 ## Overview
 
-Doc-Serve enables semantic search over indexed documentation to enrich your context with domain-specific knowledge. When a user wants to learn more about a topic within a specific domain, this skill queries the Doc-Serve server to retrieve the most relevant document chunks.
+`doc-serve` enables semantic search over indexed documentation. It provides context from local knowledge bases (Markdown, PDF, TXT) to help answer questions with domain-specific accuracy.
 
-## When to Use This Skill
+## Capabilities
 
-Use this skill when the user:
-- Says "search the domain X" where X is a domain name (e.g., "search the domain kubernetes")
-- Wants to find information in pre-indexed documentation
-- Needs context from domain-specific knowledge bases
-- Asks to "look up", "find", or "query" documentation
+1. **Automatic Setup**: Can clone the repository and install the global CLI tools if missing.
+2. **Server Management**: Can start and stop the `doc-serve` API server.
+3. **Smart Indexing**: Can index local directories into the semantic database.
+4. **Context Retrieval**: Performs high-accuracy similarity search to retrieve relevant text chunks.
 
-## Workflow Decision Tree
+## When to Use
 
-```
-User Request
-    │
-    ▼
-┌─────────────────────────────────┐
-│ Does request mention "search    │
-│ the domain X" or similar?       │
-└─────────────────────────────────┘
-    │
-    ├─ Yes ──► Extract domain name and query
-    │              │
-    │              ▼
-    │         Check server health (GET /health)
-    │              │
-    │              ├─ Healthy ──► Execute query (POST /query)
-    │              │                   │
-    │              │                   ▼
-    │              │              Return results with sources
-    │              │
-    │              ├─ Indexing ──► Wait or inform user
-    │              │
-    │              └─ Unhealthy ──► Report server status
-    │
-    └─ No ──► This skill may not be applicable
-```
+- When asked to "search the domain X" or "look up X in the docs".
+- When you need accurate information from local technical documentation.
+- When working on a project with its own internal knowledge base.
 
-## Quick Start
+## Workflow
 
-### 1. Check Server Health
-
-Before querying, verify the Doc-Serve server is available:
-
+### 1. Verification
+Before querying, ensure the CLI tools are available.
 ```bash
-curl http://127.0.0.1:8000/health
+doc-svr-ctl --version
 ```
+If missing, clone the repository and run `task install:global`.
 
-Expected response:
-```json
-{
-  "status": "healthy",
-  "message": "Server is running and ready for queries",
-  "version": "1.0.0",
-  "timestamp": "2024-12-15T10:00:00Z"
-}
-```
-
-### 2. Query the Domain
-
-Execute a semantic search:
-
+### 2. Server & Indexing
+Check if the server is running and has data:
 ```bash
-curl -X POST http://127.0.0.1:8000/query \
-  -H "Content-Type: application/json" \
-  -d '{
-    "query": "how to configure authentication",
-    "top_k": 5,
-    "similarity_threshold": 0.7
-  }'
-```
-
-### 3. Interpret Results
-
-Response includes relevant document chunks:
-```json
-{
-  "results": [
-    {
-      "text": "Authentication can be configured using...",
-      "source": "docs/auth/config.md",
-      "score": 0.92,
-      "chunk_id": "chunk_abc123",
-      "metadata": {}
-    }
-  ],
-  "query_time_ms": 45.2,
-  "total_results": 1
-}
-```
-
-## Using the CLI Tool
-
-The `doc-svr-ctl` CLI provides convenient commands:
-
-```bash
-# Check server status
 doc-svr-ctl status
-
-# Query documents
-doc-svr-ctl query "how to configure authentication" --top-k 5
-
-# Get JSON output for programmatic use
-doc-svr-ctl query "deployment strategies" --json
 ```
+If the server is down, start it: `doc-serve &`.
+If the directory needs indexing: `doc-svr-ctl index /path/to/docs`.
 
-## API Reference
-
-### Health Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | Basic health check |
-| `/health/status` | GET | Detailed indexing status |
-
-### Query Endpoints
-
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/query` | POST | Semantic search |
-| `/query/count` | GET | Document count |
-
-### Query Request Parameters
-
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `query` | string | required | Search query text |
-| `top_k` | integer | 5 | Number of results to return |
-| `similarity_threshold` | float | 0.7 | Minimum similarity score (0.0-1.0) |
-
-## Integration Example
-
-When processing a user request like "search the domain kubernetes for pod networking":
-
-1. **Extract domain**: "kubernetes" (identifies the indexed documentation)
-2. **Extract query**: "pod networking"
-3. **Check health**: Verify server is ready
-4. **Execute query**: POST to /query with the search text
-5. **Present results**: Format the relevant chunks with sources
-
-### Python Integration
-
-```python
-import httpx
-
-def search_domain(query: str, top_k: int = 5) -> dict:
-    """Search the indexed domain documentation."""
-    base_url = "http://127.0.0.1:8000"
-
-    # Check health first
-    health = httpx.get(f"{base_url}/health").json()
-    if health["status"] != "healthy":
-        return {"error": f"Server not ready: {health['message']}"}
-
-    # Execute query
-    response = httpx.post(
-        f"{base_url}/query",
-        json={
-            "query": query,
-            "top_k": top_k,
-            "similarity_threshold": 0.7
-        }
-    )
-
-    return response.json()
-
-# Usage
-results = search_domain("pod networking configuration")
-for result in results.get("results", []):
-    print(f"Source: {result['source']}")
-    print(f"Score: {result['score']:.2f}")
-    print(f"Content: {result['text'][:200]}...")
-    print("---")
+### 3. Querying
+Execute the search:
+```bash
+doc-svr-ctl query "your search query" --threshold 0.4 --json
 ```
-
-## Error Handling
-
-| Status Code | Meaning | Action |
-|-------------|---------|--------|
-| 200 | Success | Process results |
-| 400 | Invalid query | Check query is not empty |
-| 503 | Service unavailable | Wait for indexing to complete |
-| 500 | Server error | Check server logs |
 
 ## Best Practices
 
-1. **Always check health first** - Ensure the server is ready before querying
-2. **Use appropriate top_k** - Start with 5 results, adjust based on needs
-3. **Adjust similarity threshold** - Lower for broader results, higher for precision
-4. **Cite sources** - Always include the source file in responses to users
-5. **Handle empty results** - Inform users when no matching documents are found
+- **Threshold Adjustment**: If no results are found, retry with a lower `--threshold` (e.g., 0.2).
+- **Source Citation**: Always mention the source file name in the final answer.
+- **Background Processes**: Run the server in the background to keep the terminal interactive.
+- **Port Conflicts**: If the server fails to start, check for existing processes on port 8000 using `lsof -i :8000`.
 
-## Environment Configuration
+## Example Usage
 
-Set the server URL via environment variable:
+**User**: "What does our documentation say about espresso extraction times?"
 
-```bash
-export DOC_SERVE_URL=http://localhost:8000
-```
+**Skill Execution**:
+1. Run `doc-svr-ctl status` to verify indexing.
+2. Run `doc-svr-ctl query "espresso extraction times" --threshold 0.3 --json`.
+3. Synthesize the response using the returned text chunks.
 
-Or use the default: `http://127.0.0.1:8000`
+**Claude Response**: "According to `espresso_basics.md`, a standard espresso shot should extract in 25-30 seconds. Shorter times lead to sour shots, while longer times result in bitterness."

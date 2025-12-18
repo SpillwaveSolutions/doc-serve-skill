@@ -1,16 +1,17 @@
 """Unit tests for Pydantic models."""
 
-import pytest
 from datetime import datetime
+
+import pytest
 from pydantic import ValidationError
 
-from src.models import (
+from doc_serve_server.models import (
     HealthStatus,
+    IndexingState,
     IndexingStatus,
+    IndexingStatusEnum,
     IndexRequest,
     IndexResponse,
-    IndexingState,
-    IndexingStatusEnum,
     QueryRequest,
     QueryResponse,
     QueryResult,

@@ -127,7 +127,7 @@ Get the total number of indexed document chunks.
 
 ### POST /index
 
-Start indexing documents from a folder.
+Start indexing documents from a folder. The system uses stable IDs based on file paths and chunk indices, meaning re-indexing the same folder will update existing records (upsert) rather than creating duplicates.
 
 **Request Body:**
 
@@ -135,19 +135,17 @@ Start indexing documents from a folder.
 {
   "folder_path": "/path/to/documents",
   "recursive": true,
-  "file_patterns": ["*.md", "*.txt", "*.rst"]
+  "chunk_size": 512,
+  "chunk_overlap": 50
 }
 ```
 
-**Response (202 Accepted):**
-
-```json
-{
-  "job_id": "job_abc123",
-  "status": "started",
-  "message": "Indexing started for /path/to/documents"
-}
-```
+| Parameter | Type | Required | Default | Description |
+|-----------|------|----------|---------|-------------|
+| `folder_path` | string | Yes | - | Absolute or relative path to documents |
+| `recursive` | boolean | No | true | Include subdirectories |
+| `chunk_size` | integer | No | 512 | Target tokens per chunk |
+| `chunk_overlap` | integer | No | 50 | Overlap between chunks |
 
 ---
 
