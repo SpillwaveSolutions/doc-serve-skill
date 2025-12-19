@@ -495,8 +495,12 @@ class CodeChunker:
             section_summary = None
             if self.generate_summaries and chunk_text.strip():
                 try:
-                    section_summary = await self.embedding_generator.generate_summary(chunk_text)
-                    logger.debug(f"Generated summary for chunk {idx}: {section_summary[:50]}...")
+                    section_summary = await self.embedding_generator.generate_summary(
+                        chunk_text
+                    )
+                    logger.debug(
+                        f"Generated summary for chunk {idx}: {section_summary[:50]}..."
+                    )
                 except Exception as e:
                     logger.warning(f"Failed to generate summary for chunk {idx}: {e}")
                     section_summary = ""
