@@ -19,7 +19,7 @@ This guide covers setting up a development environment, understanding the archit
 
 ## Architecture Overview
 
-Doc-Serve is a RAG (Retrieval-Augmented Generation) system for semantic document search.
+Doc-Serve is a RAG (Retrieval-Augmented Generation) system for semantic search across documentation and source code.
 
 ```mermaid
 flowchart TB
@@ -39,10 +39,10 @@ flowchart TB
             QueryService["Query Service"]
         end
 
-        subgraph Indexing["Document Processing"]
-            Loader["Document Loader<br/>(LlamaIndex)"]
-            Chunker["Context-Aware Chunking<br/>(Stable Hash ID)"]
-            Embedder["Embedding Generator"]
+        subgraph Indexing["Content Processing"]
+            Loader["Document & Code Loader<br/>(LlamaIndex + Tree-sitter)"]
+            Chunker["AST-Aware Chunking<br/>(Stable Hash ID)"]
+            Embedder["Embedding Generator<br/>(+ LLM Summaries)"]
         end
 
         subgraph AI["AI Models"]
@@ -55,10 +55,11 @@ flowchart TB
         end
     end
 
-    subgraph Documents["Document Sources"]
+    subgraph Documents["Content Sources"]
         MD["Markdown Files"]
         TXT["Text Files"]
         PDF["PDF Files"]
+        Code["Source Code<br/>10+ Languages"]
     end
 
     CLI -->|HTTP| FastAPI
@@ -164,9 +165,11 @@ This usually means you are running the tool without installing it or the `PYTHON
 
 ---
 
-## Adding Support for New Languages
+## Code Ingestion & Language Support
 
-Doc-Serve's code ingestion (Phase 3) uses tree-sitter for AST-aware code chunking. Adding support for new programming languages is straightforward.
+Doc-Serve supports AST-aware code chunking for 10+ programming languages using tree-sitter. The current implementation includes: **Python, TypeScript, JavaScript, Java, Kotlin, C, C++, Go, Rust, Swift**.
+
+Adding support for new programming languages is straightforward:
 
 ### Recommended Package: tree-sitter-language-pack
 
