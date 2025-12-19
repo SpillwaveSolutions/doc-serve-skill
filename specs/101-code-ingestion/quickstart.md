@@ -23,6 +23,7 @@ Doc-Serve now supports indexing and searching source code alongside documentatio
 
 **JVM/Object-oriented:**
 - **Java** (.java)
+- **Kotlin** (.kt, .kts)
 
 **Modern Systems Languages:**
 - **Go** (.go)
@@ -114,6 +115,9 @@ doc-svr-ctl query "memory allocation" --language cpp --source-type code
 # Java enterprise patterns
 doc-svr-ctl query "dependency injection" --language java --source-type code
 
+# Kotlin Android/data class patterns
+doc-svr-ctl query "sealed class hierarchy" --language kotlin --source-type code
+
 # Go concurrency patterns
 doc-svr-ctl query "goroutine management" --language go --source-type code
 
@@ -181,7 +185,7 @@ doc-svr-ctl index src/ tests/ --include-code --languages python
 
 **Valid Values:**
 - `source-type`: `code`, `doc`, `test`, `all`
-- `language`: `python`, `typescript`, `javascript`, `c`, `cpp`, `java`, `go`, `rust`, `swift`
+- `language`: `python`, `typescript`, `javascript`, `kotlin`, `c`, `cpp`, `java`, `go`, `rust`, `swift`
 - `mode`: `vector`, `bm25`, `hybrid`
 
 ## API Usage
@@ -195,7 +199,7 @@ curl -X POST http://localhost:8000/index/ \
   -d '{
     "paths": ["/path/to/code"],
     "include_code": true,
-    "languages": ["python", "typescript", "javascript", "java"],
+    "languages": ["python", "typescript", "javascript", "kotlin", "java"],
     "exclude_patterns": ["*test*", "node_modules/**", "target/**"],
     "recursive": true
   }'

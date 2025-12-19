@@ -26,7 +26,7 @@ Implement source code ingestion and indexing in Doc-Serve (Phase 3) to create a 
 **Project Type**: Monorepo (extend existing doc-serve-server package)
 **Performance Goals**: Code indexing < 2x document indexing time, query latency < 500ms
 **Constraints**: < 50% storage overhead for BM25 index, maintain backward compatibility, support 10k+ LOC
-**Scale/Scope**: Multi-language codebases (Python, TypeScript, JavaScript, C, C++, Java, Go, Rust, Swift), unified docs+code search
+**Scale/Scope**: Multi-language codebases (Python, TypeScript, JavaScript, Kotlin, C, C++, Java, Go, Rust, Swift), unified docs+code search
 
 ## Constitution Check
 

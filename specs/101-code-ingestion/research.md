@@ -86,6 +86,12 @@ nodes = python_splitter.get_nodes_from_documents(documents)
 - Package declarations and imports preserved
 - Annotations and generics handled correctly
 
+**Kotlin:**
+- Functions and methods kept as complete units
+- Class/data class/object declarations preserved together
+- Extension functions and properties handled correctly
+- Null safety operators and type inference respected
+
 **Go:**
 - Functions and methods kept as complete units
 - Struct types and interfaces preserved together
@@ -195,6 +201,7 @@ pipeline = IngestionPipeline(
 | Python | `tree-sitter-python` | tree-sitter/tree-sitter-python | ✅ Production |
 | JavaScript | `tree-sitter-javascript` | tree-sitter/tree-sitter-javascript | ✅ Production |
 | TypeScript | `tree-sitter-typescript` | tree-sitter/tree-sitter-typescript | ✅ Production |
+| Kotlin | `tree-sitter-kotlin` | fwcd/tree-sitter-kotlin | ✅ Production |
 | C | `tree-sitter-c` | tree-sitter/tree-sitter-c | ✅ Production |
 | C++ | `tree-sitter-cpp` | tree-sitter/tree-sitter-cpp | ✅ Production |
 | Java | `tree-sitter-java` | tree-sitter/tree-sitter-java | ✅ Production |
@@ -532,6 +539,7 @@ class LanguageType(str, Enum):
     PYTHON = "python"
     TYPESCRIPT = "typescript"
     JAVASCRIPT = "javascript"
+    KOTLIN = "kotlin"
     C = "c"
     CPP = "cpp"
     JAVA = "java"
@@ -559,6 +567,7 @@ class SymbolKind(str, Enum):
 | Python | `.py` | `python` |
 | TypeScript | `.ts`, `.tsx` | `typescript` |
 | JavaScript | `.js`, `.jsx` | `javascript` |
+| Kotlin | `.kt`, `.kts` | `kotlin` |
 | C | `.c`, `.h` | `c` |
 | C++ | `.cpp`, `.cxx`, `.cc`, `.hpp`, `.hxx`, `.hh` | `cpp` |
 | Java | `.java` | `java` |
@@ -630,6 +639,8 @@ EXTENSION_TO_LANGUAGE = {
 
     # JVM/Object-oriented
     ".java": "java",
+    ".kt": "kotlin",
+    ".kts": "kotlin",  # Kotlin script files
 
     # Modern systems languages
     ".go": "go",
@@ -684,6 +695,7 @@ tree-sitter-c = "^0.21"
 tree-sitter-cpp = "^0.21"
 # JVM/Object-oriented
 tree-sitter-java = "^0.21"
+tree-sitter-kotlin = "^0.21"
 # Modern languages
 tree-sitter-go = "^0.21"
 tree-sitter-rust = "^0.21"

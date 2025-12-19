@@ -151,7 +151,7 @@ Includes code chunk counts in health status.
   // NEW: Code-specific metrics
   "code_chunks_count": 75,
   "doc_chunks_count": 50,
-  "supported_languages": ["python", "typescript", "javascript", "c", "cpp", "java", "go", "rust", "swift"]
+  "supported_languages": ["python", "typescript", "javascript", "kotlin", "c", "cpp", "java", "go", "rust", "swift"]
 }
 ```
 
@@ -194,7 +194,7 @@ IndexRequest:
       type: array
       items:
         type: string
-        enum: [python, typescript, javascript, c, cpp, java, go, rust, swift]
+        enum: [python, typescript, javascript, kotlin, c, cpp, java, go, rust, swift]
       description: Programming languages to index
     exclude_patterns:
       type: array
@@ -245,7 +245,7 @@ QueryRequest:
       description: Filter by content type
     language:
       type: string
-      enum: [python, typescript, javascript, c, cpp, java, go, rust, swift]
+      enum: [python, typescript, javascript, kotlin, c, cpp, java, go, rust, swift]
       nullable: true
       description: Filter by programming language
   required: [query]
