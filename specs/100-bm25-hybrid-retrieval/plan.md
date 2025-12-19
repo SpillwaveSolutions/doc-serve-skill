@@ -1,11 +1,19 @@
 # Implementation Plan: BM25 & Hybrid Retrieval
 
 **Branch**: `100-bm25-hybrid-retrieval` | **Date**: 2025-12-18 | **Spec**: [specs/100-bm25-hybrid-retrieval/spec.md](spec.md)
+**Status**: ✅ COMPLETED - Merged to main | **PR**: https://github.com/SpillwaveSolutions/doc-serve-skill/pull/2
 **Input**: Feature specification from `/specs/100-bm25-hybrid-retrieval/spec.md`
 
 ## Summary
 
-Implement BM25 keyword search and Hybrid retrieval (combining vector and BM25 scores) using LlamaIndex's `QueryFusionRetriever`. We will use `relative_score` fusion to support a tunable `alpha` parameter (0.0 for pure BM25, 1.0 for pure vector). This feature enhances retrieval quality for technical queries by allowing exact term matching alongside semantic search. We will leverage `BM25Retriever` for sparse search and ensure its persistence on disk to optimize server startup times.
+✅ **COMPLETED**: Implement BM25 keyword search and Hybrid retrieval (combining vector and BM25 scores) using LlamaIndex's `QueryFusionRetriever`. We used `relative_score` fusion to support a tunable `alpha` parameter (0.0 for pure BM25, 1.0 for pure vector). This feature enhances retrieval quality for technical queries by allowing exact term matching alongside semantic search. We leveraged `BM25Retriever` for sparse search and ensured its persistence on disk to optimize server startup times.
+
+**Implementation Results**:
+- ✅ 28/28 SDD tasks completed
+- ✅ 104 tests passing (68.51% server coverage, 76.19% CLI coverage)
+- ✅ Query latency: BM25 <1ms, Hybrid <1.2s
+- ✅ Backward compatible API
+- ✅ Enhanced CLI with `--mode`, `--alpha`, `--scores` options
 
 ## Technical Context
 

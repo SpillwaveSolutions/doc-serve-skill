@@ -2,7 +2,9 @@
 
 **Feature Branch**: `100-bm25-hybrid-retrieval`
 **Created**: 2025-12-18
-**Status**: Draft
+**Completed**: 2025-12-18
+**Status**: ✅ COMPLETED - Merged to main
+**PR**: https://github.com/SpillwaveSolutions/doc-serve-skill/pull/2
 **Input**: Product Roadmap Phase 2
 
 ## User Scenarios & Testing
