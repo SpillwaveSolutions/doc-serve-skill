@@ -720,6 +720,177 @@ tree-sitter-swift = "^0.21"
 
 ---
 
+## 10. Config-Driven Language Support Architecture
+
+### Overview
+
+The current implementation uses hardcoded language support. To enable 160+ languages from tree-sitter-language-pack without code changes, we need a configuration-driven architecture.
+
+### Key Design Decisions
+
+#### 1. Language Configuration File
+
+**File**: `doc-serve-server/config/languages.yaml`
+
+**Structure**:
+```yaml
+# Language Support Configuration
+defaults:
+  chunk_lines: 50
+  chunk_overlap: 20
+  max_chars: 2000
+
+categories:
+  compact:      # Terse languages (C, Go, Rust)
+    chunk_lines: 40
+    chunk_overlap: 15
+  standard:     # Most languages (Python, JS, TS, Java)
+    chunk_lines: 50
+    chunk_overlap: 20
+  verbose:      # Verbose languages (Java, C#)
+    chunk_lines: 80
+    chunk_overlap: 30
+  markup:       # HTML, XML, JSON
+    chunk_lines: 60
+    chunk_overlap: 25
+
+languages:
+  python:
+    extensions: [.py, .pyw, .pyi]
+    key: python
+    category: standard
+    enabled: true
+    exclude_patterns:
+      - "*_test.py"
+      - "test_*.py"
+      - "**/tests/**"
+      - "conftest.py"
+
+  typescript:
+    extensions: [.ts, .tsx]
+    key: typescript
+    category: standard
+    enabled: true
+    exclude_patterns:
+      - "*.spec.ts"
+      - "*.test.ts"
+      - "**/__tests__/**"
+      - "*.d.ts"
+
+# 160+ languages can be added here...
+```
+
+#### 2. LanguageConfig Pydantic Model
+
+**File**: `doc-serve-server/config/language_config.py`
+
+```python
+from pydantic import BaseModel
+from pathlib import Path
+import yaml
+
+class ChunkConfig(BaseModel):
+    chunk_lines: int = 50
+    chunk_overlap: int = 20
+    max_chars: int = 2000
+
+class LanguageEntry(BaseModel):
+    extensions: list[str]
+    key: str                    # tree-sitter-language-pack key
+    category: str = "standard"
+    enabled: bool = True
+    exclude_patterns: list[str] = []
+
+class LanguageConfig(BaseModel):
+    defaults: ChunkConfig
+    categories: dict[str, ChunkConfig]
+    languages: dict[str, LanguageEntry]
+
+    @classmethod
+    def load(cls, path: Path | None = None) -> "LanguageConfig":
+        if path is None:
+            path = Path(__file__).parent / "languages.yaml"
+        with open(path) as f:
+            data = yaml.safe_load(f)
+        return cls(**data)
+
+    def get_enabled_extensions(self) -> set[str]:
+        """Get all enabled file extensions."""
+        exts = set()
+        for lang in self.languages.values():
+            if lang.enabled:
+                exts.update(lang.extensions)
+        return exts
+
+    def extension_to_key(self, language_name: str) -> str | None:
+        """Map language name to tree-sitter key."""
+        lang = self.languages.get(language_name)
+        return lang.key if lang and lang.enabled else None
+```
+
+#### 3. Simplified LanguageDetector
+
+**Updated**: `doc-serve-server/indexing/document_loader.py`
+
+```python
+class LanguageDetector:
+    def __init__(self, config: LanguageConfig | None = None):
+        self.config = config or LanguageConfig.load()
+        self._ext_map = self._build_extension_map()
+
+    def _build_extension_map(self) -> dict[str, str]:
+        """Build extension -> language name mapping from config."""
+        mapping = {}
+        for name, lang in self.config.languages.items():
+            if lang.enabled:
+                for ext in lang.extensions:
+                    mapping[ext.lower()] = name
+        return mapping
+
+    def detect(self, file_path: str) -> str | None:
+        """Detect language from file path."""
+        ext = Path(file_path).suffix.lower()
+        return self._ext_map.get(ext)
+```
+
+#### 4. Runtime Override via Settings
+
+**Updated**: `doc-serve-server/config/settings.py`
+
+```python
+class Settings(BaseSettings):
+    # ... existing settings ...
+
+    # Language configuration overrides
+    LANGUAGE_CONFIG_PATH: str | None = None  # Custom config file path
+    ENABLED_LANGUAGES: list[str] | None = None  # Override enabled languages
+    DISABLED_LANGUAGES: list[str] | None = None  # Disable specific languages
+```
+
+### Benefits
+
+1. **Zero code changes** to add languages - Pure YAML config
+2. **160+ languages ready** - Just enable them in config
+3. **User customizable** - Override via env vars or custom config
+4. **Categorized defaults** - Sensible chunk sizes per language type
+5. **Maintainable** - Single source of truth for language support
+6. **Testable** - Config validation via Pydantic
+
+### Implementation Impact
+
+**Files to Modify**:
+- `config/languages.yaml` - NEW - Language configuration
+- `config/language_config.py` - NEW - Pydantic config loader
+- `indexing/document_loader.py` - Simplify to use config
+- `config/settings.py` - Add override settings
+
+**Migration Path**:
+- Current hardcoded languages become default config
+- Backward compatibility maintained
+- Users can opt into new system via settings
+
+---
+
 ## 9. References
 
 ### LlamaIndex Documentation

@@ -1,4 +1,4 @@
-# Tasks: Code Ingestion
+# Tasks: Source Code Ingestion & Unified Corpus
 
 **Input**: Design documents from `/specs/101-code-ingestion/`
 **Prerequisites**: plan.md, spec.md, research.md, data-model.md, contracts/, quickstart.md
@@ -17,9 +17,9 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [x] T001 Add tree-sitter dependencies for all supported languages to doc-serve-server/pyproject.toml
-- [x] T002 [P] Update doc-serve-server dependencies by running `poetry install` in doc-serve-server/
-- [x] T003 Verify tree-sitter parsers work with test code snippets
+- [ ] T001 Add tree-sitter dependencies for Python, TypeScript, JavaScript to doc-serve-server/pyproject.toml
+- [ ] T002 [P] Update doc-serve-server dependencies by running `poetry install` in doc-serve-server/
+- [ ] T003 Verify tree-sitter parsers work with test code snippets in doc-serve-server/
 
 ---
 
@@ -30,10 +30,10 @@
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
 - [ ] T004 Create CodeChunk dataclass in doc-serve-server/doc_serve_server/indexing/chunking.py
-- [ ] T005 Update ChunkMetadata to support code-specific fields in doc-serve-server/doc_serve_server/indexing/chunking.py
-- [ ] T006 Add language detection utility in doc-serve-server/doc_serve_server/indexing/document_loader.py
+- [ ] T005 Update ChunkMetadata to support code-specific fields (language, symbol_name, start_line, end_line, section_summary) in doc-serve-server/doc_serve_server/indexing/chunking.py
+- [ ] T006 Add language detection utility for file extensions in doc-serve-server/doc_serve_server/indexing/document_loader.py
 - [ ] T007 Update QueryRequest/Result models with source_type and language filters in doc-serve-server/doc_serve_server/models/query.py
-- [ ] T008 Update IndexingRequest model with code parameters in doc-serve-server/doc_serve_server/models/index.py
+- [ ] T008 Update IndexRequest model with include_code, languages, exclude_patterns parameters in doc-serve-server/doc_serve_server/models/index.py
 
 **Checkpoint**: Foundation ready - user story implementation can now begin.
 
@@ -47,11 +47,11 @@
 
 ### Implementation for User Story 1
 
-- [ ] T009 [US1] Extend DocumentLoader.load_files() to support code file extensions in doc-serve-server/doc_serve_server/indexing/document_loader.py
-- [ ] T010 [US1] Add CodeChunker class using LlamaIndex CodeSplitter in doc-serve-server/doc_serve_server/indexing/chunking.py
-- [ ] T011 [US1] Update IndexingService to handle code files with language detection in doc-serve-server/doc_serve_server/services/indexing_service.py
+- [ ] T009 [US1] Extend DocumentLoader.load_files() to support code file extensions (.py, .ts, .tsx, .js, .jsx) in doc-serve-server/doc_serve_server/indexing/document_loader.py
+- [ ] T010 [US1] Add CodeChunker class using LlamaIndex CodeSplitter for AST-aware chunking in doc-serve-server/doc_serve_server/indexing/chunking.py
+- [ ] T011 [US1] Update IndexingService to handle code files with language detection and CodeChunker in doc-serve-server/doc_serve_server/services/indexing_service.py
 - [ ] T012 [US1] Update /index endpoint to accept include_code, languages, exclude_patterns parameters in doc-serve-server/doc_serve_server/api/routers/index.py
-- [ ] T013 [US1] Add health endpoint code chunk counting in doc-serve-server/doc_serve_server/api/routers/health.py
+- [ ] T013 [US1] Add code chunk counting to /health/status endpoint in doc-serve-server/doc_serve_server/api/routers/health.py
 
 **Checkpoint**: User Story 1 is functional - can index code files.
 
@@ -66,7 +66,7 @@
 ### Implementation for User Story 2
 
 - [ ] T014 [US2] Update /query endpoint with source_type and language filtering in doc-serve-server/doc_serve_server/api/routers/query.py
-- [ ] T015 [US2] Update VectorStoreManager.similarity_search() to support ChromaDB where filtering in doc-serve-server/doc_serve_server/storage/vector_store.py
+- [ ] T015 [US2] Update VectorStoreManager.similarity_search() to support ChromaDB where filtering by source_type/language in doc-serve-server/doc_serve_server/storage/vector_store.py
 - [ ] T016 [US2] Update BM25Retriever to support metadata filtering for source_type/language in doc-serve-server/doc_serve_server/indexing/bm25_index.py
 - [ ] T017 [US2] Update QueryService to handle source_type/language filtering in doc-serve-server/doc_serve_server/services/query_service.py
 
@@ -83,9 +83,9 @@
 ### Implementation for User Story 3
 
 - [ ] T018 [US3] Add language validation to QueryRequest model in doc-serve-server/doc_serve_server/models/query.py
-- [ ] T019 [US3] Implement language filtering in VectorStoreManager in doc-serve-server/doc_serve_server/storage/vector_store.py
-- [ ] T020 [US3] Implement language filtering in BM25Retriever in doc-serve-server/doc_serve_server/indexing/bm25_index.py
-- [ ] T021 [US3] Add error handling for invalid language parameters in doc-serve-server/doc_serve_server/api/routers/query.py
+- [ ] T019 [US3] Implement language filtering in VectorStoreManager.similarity_search() in doc-serve-server/doc_serve_server/storage/vector_store.py
+- [ ] T020 [US3] Implement language filtering in BM25Retriever.search() in doc-serve-server/doc_serve_server/indexing/bm25_index.py
+- [ ] T021 [US3] Add error handling for invalid language parameters in /query endpoint in doc-serve-server/doc_serve_server/api/routers/query.py
 
 **Checkpoint**: User Story 3 is functional - can filter by programming language.
 
@@ -101,7 +101,7 @@
 
 - [ ] T022 [US4] Add SummaryExtractor integration to embedding pipeline in doc-serve-server/doc_serve_server/indexing/embedding.py
 - [ ] T023 [US4] Create code-specific summary prompts in doc-serve-server/doc_serve_server/indexing/embedding.py
-- [ ] T024 [US4] Update CodeChunker to optionally generate summaries in doc-serve-server/doc_serve_server/indexing/chunking.py
+- [ ] T024 [US4] Update CodeChunker to optionally generate summaries during chunking in doc-serve-server/doc_serve_server/indexing/chunking.py
 - [ ] T025 [US4] Add summary generation to IndexingService pipeline in doc-serve-server/doc_serve_server/services/indexing_service.py
 
 **Checkpoint**: User Story 4 is functional - code chunks include natural language summaries.
@@ -112,29 +112,46 @@
 
 **Goal**: Ensure code is chunked at logical boundaries using AST parsing
 
-**Independent Test**: Verify code chunks respect function/class boundaries
+**Independent Test**: Index code and verify chunks align with function/class boundaries
 
 ### Implementation for User Story 5
 
-- [ ] T026 [US5] Implement AST boundary detection in CodeChunker in doc-serve-server/doc_serve_server/indexing/chunking.py
-- [ ] T027 [US5] Add symbol name extraction from AST in doc-serve-server/doc_serve_server/indexing/chunking.py
-- [ ] T028 [US5] Add line number tracking for code chunks in doc-serve-server/doc_serve_server/indexing/chunking.py
+- [ ] T026 [US5] Implement AST boundary detection in CodeChunker using tree-sitter in doc-serve-server/doc_serve_server/indexing/chunking.py
+- [ ] T027 [US5] Add symbol name extraction from AST in CodeChunker in doc-serve-server/doc_serve_server/indexing/chunking.py
+- [ ] T028 [US5] Add line number tracking for code chunks in CodeChunker in doc-serve-server/doc_serve_server/indexing/chunking.py
 - [ ] T029 [US5] Update chunking tests to verify AST boundary preservation in doc-serve-server/tests/unit/test_chunking.py
 
 **Checkpoint**: User Story 5 is functional - code chunking respects AST boundaries.
 
 ---
 
-## Phase 8: Polish & Cross-Cutting Concerns
+## Phase 8: User Story 6 - Corpus for Book/Tutorial Generation (Priority: P1)
+
+**Goal**: Create a searchable corpus from SDK source code and documentation for writing tutorials
+
+**Independent Test**: Index AWS CDK source + docs, query for patterns, verify comprehensive results
+
+### Implementation for User Story 6
+
+- [ ] T030 [US6] Verify unified search works for SDK documentation + code in doc-serve-server/doc_serve_server/services/query_service.py
+- [ ] T031 [US6] Test cross-reference queries with SDK examples in doc-serve-server/tests/integration/test_unified_search.py
+- [ ] T032 [US6] Ensure metadata includes file paths and line numbers for citations in doc-serve-server/doc_serve_server/models/query.py
+
+**Checkpoint**: User Story 6 is functional - SDK corpus supports tutorial writing.
+
+---
+
+## Phase 9: Polish & Cross-Cutting Concerns
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T030 [P] Update doc-svr-ctl index command with --include-code, --languages, --exclude-patterns flags in doc-svr-ctl/doc_svr_ctl/commands/index.py
-- [ ] T031 [P] Update doc-svr-ctl query command with --source-type, --language filters in doc-svr-ctl/doc_svr_ctl/commands/query.py
-- [ ] T032 [P] Update README.md and docs/USER_GUIDE.md with code ingestion features
-- [ ] T033 [P] Update doc-serve-skill/doc-serve/references/api_reference.md with new endpoints
-- [ ] T034 Run full test suite: `task pr-qa-gate`
-- [ ] T035 Validate quickstart.md scenarios for code ingestion
+- [ ] T033 [P] Update doc-svr-ctl index command with --include-code, --languages, --exclude-patterns flags in doc-svr-ctl/doc_svr_ctl/commands/index.py
+- [ ] T034 [P] Update doc-svr-ctl query command with --source-type, --language filters in doc-svr-ctl/doc_svr_ctl/commands/query.py
+- [ ] T035 [P] Update README.md and docs/USER_GUIDE.md with code ingestion features
+- [ ] T036 [P] Update doc-serve-skill/doc-serve/references/api_reference.md with new endpoints
+- [ ] T037 [P] Update doc-serve-skill/doc-serve/references/troubleshooting-guide.md with code-specific issues
+- [ ] T038 Run full test suite: `task pr-qa-gate`
+- [ ] T039 Validate quickstart.md scenarios for code ingestion
 
 ---
 
@@ -144,8 +161,8 @@
 
 - **Setup (Phase 1)**: No dependencies - can start immediately
 - **Foundational (Phase 2)**: Depends on Setup completion - BLOCKS all user stories
-- **User Stories (Phase 3-7)**: All depend on Foundational phase completion
-  - US1 and US2 can proceed in parallel (both P1)
+- **User Stories (Phase 3-8)**: All depend on Foundational phase completion
+  - US1, US2, US6 can proceed in parallel (both P1)
   - US3, US4 can proceed after US1/US2 (P2)
   - US5 can proceed after foundational chunking (P3)
 - **Polish (Final Phase)**: Depends on all user stories being complete
@@ -157,6 +174,7 @@
 - **User Story 3 (P2)**: Foundation → Independent filtering capability
 - **User Story 4 (P2)**: Foundation → Independent summarization capability
 - **User Story 5 (P3)**: Foundation → Independent AST chunking improvement
+- **User Story 6 (P1)**: Foundation + US1/US2 → SDK corpus capability
 
 ### Within Each User Story
 
@@ -169,7 +187,7 @@
 
 - All Setup tasks marked [P] can run in parallel
 - All Foundational tasks marked [P] can run in parallel
-- US1 and US2 can be worked on in parallel after Foundation
+- US1, US2, US6 can be worked on in parallel after Foundation
 - US3, US4, US5 can be worked on in parallel after Foundation
 - CLI updates in Polish phase can run in parallel
 - Documentation updates in Polish phase can run in parallel
@@ -192,19 +210,20 @@ Task: "Update doc-svr-ctl query command with --source-type filters"
 
 ## Implementation Strategy
 
-### MVP First (User Stories 1 & 2 Only)
+### MVP First (User Stories 1, 2 & 6 Only)
 
 1. Complete Phase 1: Setup
 2. Complete Phase 2: Foundational (CRITICAL - blocks all stories)
 3. Complete Phase 3: User Story 1 (code indexing)
 4. Complete Phase 4: User Story 2 (unified search)
-5. **STOP and VALIDATE**: Test cross-reference search independently
-6. Deploy/demo MVP with basic code ingestion
+5. Complete Phase 8: User Story 6 (SDK corpus)
+6. **STOP and VALIDATE**: Test cross-reference search independently
+7. Deploy/demo MVP with basic code ingestion
 
 ### Incremental Delivery
 
 1. **Foundation** → Setup + Foundational phases
-2. **MVP** → US1 + US2 (code indexing + unified search)
+2. **MVP** → US1 + US2 + US6 (code indexing + unified search + SDK corpus)
 3. **Enhanced** → US3 + US4 (language filtering + summaries)
 4. **Polished** → US5 + Polish phase (AST chunking + docs)
 
@@ -216,6 +235,7 @@ With multiple developers:
 2. **MVP Sprint**:
    - Developer A: User Story 1 (code indexing)
    - Developer B: User Story 2 (unified search)
+   - Developer C: User Story 6 (SDK corpus validation)
 3. **Enhancement Sprint**:
    - Developer A: User Story 3 (language filtering)
    - Developer B: User Story 4 (summaries)
@@ -230,6 +250,7 @@ With multiple developers:
 - [Story] label maps task to specific user story for traceability
 - Each user story should be independently completable and testable
 - All tasks include exact file paths for implementation
-- MVP scope: US1 + US2 provides core code ingestion + search capability
+- MVP scope: US1 + US2 + US6 provides core code ingestion + search capability
 - Stop at any checkpoint to validate story independently
-- Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence
+- Avoid: vague tasks, same file conflicts, cross-story dependencies that break independence</content>
+<parameter name="filePath">specs/101-code-ingestion/tasks.md

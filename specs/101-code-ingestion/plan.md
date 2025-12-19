@@ -1,108 +1,89 @@
-# Implementation Plan: Code Ingestion
+# Implementation Plan: Source Code Ingestion & Unified Corpus
 
-**Branch**: `101-code-ingestion` | **Date**: 2025-12-18 | **Spec**: [specs/101-code-ingestion/spec.md](spec.md)
+**Branch**: `101-code-ingestion` | **Date**: 2025-12-19 | **Spec**: [specs/101-code-ingestion/spec.md](specs/101-code-ingestion/spec.md)
 **Input**: Feature specification from `/specs/101-code-ingestion/spec.md`
 
 **Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/commands/plan.md` for the execution workflow.
 
 ## Summary
 
-Implement source code ingestion and indexing in Doc-Serve (Phase 3) to create a unified searchable corpus combining documentation and source code. Use LlamaIndex's CodeSplitter for AST-aware chunking with tree-sitter, add SummaryExtractor for natural language descriptions, and extend the current vector/BM25 search architecture to support cross-referencing between docs and code.
+Enable indexing and searching of source code files alongside documentation to create a unified corpus. Implementation uses AST-aware parsing with language-specific chunking strategies, natural language summaries for code chunks, and hybrid search capabilities across both documentation and code.
 
-**Key Components:**
-- CodeSplitter for AST-aware chunking (Python, TypeScript, JavaScript)
-- SummaryExtractor for code descriptions via LLM
-- Unified ChromaDB collection with rich metadata filtering
-- Extended API with source_type and language filtering
-- CLI enhancements for code indexing and filtering
+Technical approach: Extend existing indexing pipeline with CodeSplitter for AST-aware chunking, SummaryExtractor for code descriptions, and unified storage with metadata filtering by language and source type.
 
 ## Technical Context
 
+<!--
+  ACTION REQUIRED: Replace the content in this section with the technical details
+  for the project. The structure here is presented in advisory capacity to guide
+  the iteration process.
+-->
+
 **Language/Version**: Python 3.10+
-**Primary Dependencies**: LlamaIndex (CodeSplitter, SummaryExtractor), tree-sitter parsers (9 languages), ChromaDB
-**Storage**: ChromaDB (unified vector store), Disk-based BM25 index
-**Testing**: pytest with integration tests for code indexing pipeline
-**Target Platform**: Linux server (same as current Doc-Serve deployment)
-**Project Type**: Monorepo (extend existing doc-serve-server package)
-**Performance Goals**: Code indexing < 2x document indexing time, query latency < 500ms
-**Constraints**: < 50% storage overhead for BM25 index, maintain backward compatibility, support 10k+ LOC
-**Scale/Scope**: Multi-language codebases (Python, TypeScript, JavaScript, Kotlin, C, C++, Java, Go, Rust, Swift), unified docs+code search
+**Primary Dependencies**: LlamaIndex (CodeSplitter, SummaryExtractor), tree-sitter (AST parsing), OpenAI/Anthropic (embeddings/summaries)
+**Storage**: ChromaDB vector store (existing)
+**Testing**: pytest with coverage
+**Target Platform**: Linux/macOS server
+**Project Type**: Web application (FastAPI server)
+**Performance Goals**: Indexing time increases < 3x compared to doc-only NEEDS CLARIFICATION
+**Constraints**: Memory usage for large codebases NEEDS CLARIFICATION, preserve existing API contracts
+**Scale/Scope**: Support for monorepo-scale codebases (100k+ LOC) NEEDS CLARIFICATION
 
 ## Constitution Check
 
 *GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.*
 
-1. **Monorepo Modularity**:
-   - Changes restricted to `doc-serve-server` package for core functionality
-   - `doc-serve-skill` and `doc-svr-ctl` benefit from server enhancements without code changes
-   - Dependency flow `ctl/skill → server` maintained
-   - **SUCCESS**: No cross-package changes required
+**Status: PASS** - All core principles satisfied
 
-2. **OpenAPI-First**:
-   - New `/index` parameters (`include_code`, `languages`, `exclude_patterns`) and `/query` filters (`source_type`, `language`) will be added to Pydantic models
-   - Schema changes will be reflected in `/docs` endpoint automatically
-   - **SUCCESS**: Extends existing API without breaking changes
+- **Monorepo Modularity**: ✅ Adds functionality to server package only
+- **OpenAPI-First**: ✅ Will extend existing API spec with new parameters (include_code, source_type, language)
+- **Test-Alongside**: ✅ Tests will be implemented alongside features
+- **Observability**: ✅ Health endpoints will be extended to track code_chunks count
+- **Simplicity**: ✅ Complexity justified by core value proposition (unified doc+code search)
 
-3. **Test-Alongside**:
-   - Unit tests for CodeSplitter integration and metadata extraction
-   - Integration tests for full code indexing pipeline
-   - Contract tests for new API parameters
-   - **SUCCESS**: All tests will be included in implementation PR
-
-4. **Observability**:
-   - Health endpoints will track code chunk counts alongside document chunks
-   - New metadata fields (language, symbol_name, etc.) will be logged
-   - Query performance metrics will include code search timing
-   - **SUCCESS**: Maintains observability principles
-
-5. **Simplicity**:
-   - Uses LlamaIndex CodeSplitter instead of custom AST parsing
-   - Leverages existing ChromaDB filtering for source_type/language queries
-   - Builds on existing vector/BM25 search infrastructure
-   - **SUCCESS**: Minimal new abstractions, extends existing patterns
+**API Changes Required**: Extend `/index` and `/query` endpoints in OpenAPI spec
 
 ## Project Structure
 
 ### Documentation (this feature)
 
 ```text
-specs/101-code-ingestion/
+specs/[###-feature]/
 ├── plan.md              # This file (/speckit.plan command output)
-├── spec.md              # User stories and acceptance criteria
-├── research.md          # Technical research and decisions (Phase 0)
-├── data-model.md        # Entity relationships and schemas (Phase 1)
-├── quickstart.md        # Usage examples and setup (Phase 1)
-├── contracts/           # API specifications (Phase 1)
-└── tasks.md             # Implementation tasks (Phase 2 - /speckit.tasks)
+├── research.md          # Phase 0 output (/speckit.plan command)
+├── data-model.md        # Phase 1 output (/speckit.plan command)
+├── quickstart.md        # Phase 1 output (/speckit.plan command)
+├── contracts/           # Phase 1 output (/speckit.plan command)
+└── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
 ```
 
-### Source Code (extends existing monorepo structure)
+### Source Code (repository root)
 
 ```text
 doc-serve-server/
 ├── doc_serve_server/
-│   ├── indexing/           # EXTENDED: CodeChunker, code loading
-│   │   ├── document_loader.py    # Add load_code_files()
-│   │   ├── chunking.py           # Add CodeChunker class
-│   │   └── embedding.py          # SummaryExtractor integration
-│   ├── models/             # EXTENDED: Code metadata schemas
-│   │   └── query.py              # Add source_type, language filters
-│   ├── services/           # EXTENDED: Code indexing pipeline
-│   │   └── indexing_service.py   # Add code indexing support
-│   └── api/routers/        # EXTENDED: New API parameters
-│       └── query.py              # Add filtering endpoints
-├── tests/                 # EXTENDED: Code indexing tests
-│   ├── unit/                    # CodeChunker, metadata extraction
-│   └── integration/             # Full code indexing pipeline
-└── pyproject.toml         # EXTENDED: tree-sitter dependencies
-
-doc-svr-ctl/               # EXTENDED: CLI code support
-└── doc_svr_ctl/commands/
-    ├── index.py                 # --include-code, --languages flags
-    └── query.py                 # --source-type, --language filters
+│   ├── indexing/           # EXTENDED: Add code parsing capabilities
+│   │   ├── code_parser.py         # NEW: AST-aware code parsing
+│   │   ├── code_splitter.py       # NEW: Language-aware chunking
+│   │   └── summary_extractor.py   # NEW: Code summarization
+│   ├── models/             # EXTENDED: Add code-related models
+│   │   ├── code.py                # NEW: CodeChunk, CodeMetadata models
+│   │   └── query.py               # EXTENDED: Add language/source filters
+│   ├── services/           # EXTENDED: Add code indexing services
+│   │   ├── code_indexing_service.py # NEW: Code indexing orchestration
+│   │   └── query_service.py        # EXTENDED: Unified doc+code search
+│   └── storage/            # EXTENDED: Code chunk storage
+│       └── vector_store.py         # EXTENDED: Multi-source collection support
+├── tests/
+│   ├── integration/
+│   │   ├── test_code_indexing.py  # NEW: Code indexing tests
+│   │   └── test_unified_search.py # NEW: Cross-reference search tests
+│   └── unit/
+│       ├── test_code_parser.py    # NEW: Parser unit tests
+│       └── test_code_splitter.py  # NEW: Splitter unit tests
 ```
 
-**Structure Decision**: Extends existing monorepo packages rather than creating new ones. Code ingestion is a server-side feature that enhances the core indexing/querying capabilities, so it belongs in `doc-serve-server`. CLI enhancements are additive features in `doc-svr-ctl`. This maintains the constitution's monorepo modularity principle.
+**Structure Decision**: Extends existing server package structure. Code parsing added to indexing/, models to models/, services to services/. No new packages required - maintains monorepo modularity principle.
 
 ## Complexity Tracking
 
@@ -110,5 +91,6 @@ doc-svr-ctl/               # EXTENDED: CLI code support
 
 | Violation | Why Needed | Simpler Alternative Rejected Because |
 |-----------|------------|-------------------------------------|
-| [e.g., 4th project] | [current need] | [why 3 projects insufficient] |
-| [e.g., Repository pattern] | [specific problem] | [why direct DB access insufficient] |
+| ~1000+ lines of new code | AST-aware parsing enables logical code chunking and cross-reference search | Regex-based parsing would lose semantic understanding of code structure and fail to chunk at function/class boundaries |
+| Multi-language support (Python, TS/JS) | Core requirement for unified corpus across tech stacks | Single-language support would limit the unified search value proposition |
+| LLM-powered summarization | Improves semantic search retrieval for code queries | Keyword-only search would miss conceptual matches between natural language questions and code implementations |

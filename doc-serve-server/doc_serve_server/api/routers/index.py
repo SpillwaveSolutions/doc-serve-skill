@@ -74,6 +74,11 @@ async def index_documents(request: IndexRequest) -> IndexResponse:
             chunk_size=request.chunk_size,
             chunk_overlap=request.chunk_overlap,
             recursive=request.recursive,
+            include_code=request.include_code,
+            supported_languages=request.supported_languages,
+            code_chunk_strategy=request.code_chunk_strategy,
+            include_patterns=request.include_patterns,
+            exclude_patterns=request.exclude_patterns,
         )
         job_id = await indexing_service.start_indexing(resolved_request)
     except Exception as e:
@@ -138,6 +143,11 @@ async def add_documents(request: IndexRequest) -> IndexResponse:
             chunk_size=request.chunk_size,
             chunk_overlap=request.chunk_overlap,
             recursive=request.recursive,
+            include_code=request.include_code,
+            supported_languages=request.supported_languages,
+            code_chunk_strategy=request.code_chunk_strategy,
+            include_patterns=request.include_patterns,
+            exclude_patterns=request.exclude_patterns,
         )
         job_id = await indexing_service.start_indexing(resolved_request)
     except Exception as e:
