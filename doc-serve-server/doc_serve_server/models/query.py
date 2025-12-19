@@ -3,7 +3,9 @@
 from enum import Enum
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+from ..indexing.document_loader import LanguageDetector
 
 
 class QueryMode(str, Enum):
@@ -62,6 +64,25 @@ class QueryRequest(BaseModel):
         description="Filter by specific file paths (supports wildcards)",
         examples=[["docs/*.md"], ["src/**/*.py"]],
     )
+
+    @field_validator('languages')
+    @classmethod
+    def validate_languages(cls, v):
+        """Validate that provided languages are supported."""
+        if v is None:
+            return v
+
+        detector = LanguageDetector()
+        supported_languages = detector.get_supported_languages()
+
+        invalid_languages = [lang for lang in v if lang not in supported_languages]
+        if invalid_languages:
+            raise ValueError(
+                f"Unsupported languages: {invalid_languages}. "
+                f"Supported languages: {supported_languages}"
+            )
+
+        return v
 
     model_config = {
         "json_schema_extra": {
