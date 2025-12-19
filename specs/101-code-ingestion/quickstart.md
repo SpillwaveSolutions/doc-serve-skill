@@ -12,9 +12,22 @@ Doc-Serve now supports indexing and searching source code alongside documentatio
 
 ## Supported Languages
 
+**Scripting/High-level Languages:**
 - **Python** (.py)
 - **TypeScript** (.ts, .tsx)
 - **JavaScript** (.js, .jsx)
+
+**Systems Languages:**
+- **C** (.c, .h)
+- **C++** (.cpp, .cxx, .cc, .hpp, .hxx, .hh)
+
+**JVM/Object-oriented:**
+- **Java** (.java)
+
+**Modern Systems Languages:**
+- **Go** (.go)
+- **Rust** (.rs)
+- **Swift** (.swift)
 
 ## Basic Code Indexing
 
@@ -38,13 +51,33 @@ doc-svr-ctl index /path/to/fullstack/app \
   --exclude-patterns "node_modules/**,*.test.*,__pycache__/**"
 ```
 
+### Index a Systems Project
+
+```bash
+# Index C/C++ codebase with Go microservices
+doc-svr-ctl index /path/to/systems/project \
+  --include-code \
+  --languages c,cpp,go \
+  --exclude-patterns "build/**,*.o,*.a"
+```
+
+### Index a Polyglot Application
+
+```bash
+# Index Java backend, TypeScript frontend, Rust utilities
+doc-svr-ctl index /path/to/polyglot/app \
+  --include-code \
+  --languages java,typescript,rust \
+  --exclude-patterns "target/**,node_modules/**,*.class"
+```
+
 ### Index with Documentation
 
 ```bash
 # Index both docs and code together
 doc-svr-ctl index /path/to/project \
   --include-code \
-  --languages python,typescript \
+  --languages python,typescript,javascript \
   --recursive
 ```
 
@@ -74,6 +107,21 @@ doc-svr-ctl query "component lifecycle" --language typescript --source-type code
 
 # JavaScript utilities
 doc-svr-ctl query "array manipulation" --language javascript --source-type code
+
+# C/C++ system calls
+doc-svr-ctl query "memory allocation" --language cpp --source-type code
+
+# Java enterprise patterns
+doc-svr-ctl query "dependency injection" --language java --source-type code
+
+# Go concurrency patterns
+doc-svr-ctl query "goroutine management" --language go --source-type code
+
+# Rust ownership patterns
+doc-svr-ctl query "borrow checker" --language rust --source-type code
+
+# Swift iOS development
+doc-svr-ctl query "view controller lifecycle" --language swift --source-type code
 ```
 
 ### Cross-Reference Search
@@ -133,7 +181,7 @@ doc-svr-ctl index src/ tests/ --include-code --languages python
 
 **Valid Values:**
 - `source-type`: `code`, `doc`, `test`, `all`
-- `language`: `python`, `typescript`, `javascript`
+- `language`: `python`, `typescript`, `javascript`, `c`, `cpp`, `java`, `go`, `rust`, `swift`
 - `mode`: `vector`, `bm25`, `hybrid`
 
 ## API Usage
@@ -147,8 +195,8 @@ curl -X POST http://localhost:8000/index/ \
   -d '{
     "paths": ["/path/to/code"],
     "include_code": true,
-    "languages": ["python", "typescript"],
-    "exclude_patterns": ["*test*", "node_modules/**"],
+    "languages": ["python", "typescript", "javascript", "java"],
+    "exclude_patterns": ["*test*", "node_modules/**", "target/**"],
     "recursive": true
   }'
 ```
@@ -156,15 +204,22 @@ curl -X POST http://localhost:8000/index/ \
 ### Query with Filters
 
 ```bash
-# Search code only
+# Search Python code only
 curl -X POST http://localhost:8000/query/ \
   -H "Content-Type: application/json" \
   -d '{
     "query": "database connection",
     "source_type": "code",
-    "language": "python",
-    "mode": "hybrid",
-    "alpha": 0.5
+    "language": "python"
+  }'
+
+# Search C++ code for memory management
+curl -X POST http://localhost:8000/query/ \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "memory allocation",
+    "source_type": "code",
+    "language": "cpp"
   }'
 
 # Cross-reference search

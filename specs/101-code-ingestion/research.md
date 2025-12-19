@@ -74,6 +74,36 @@ nodes = python_splitter.get_nodes_from_documents(documents)
 - Exported symbols (`export function`, `export class`) respected
 - JSX trees kept intact, not split mid-expression
 
+**C/C++:**
+- Functions and methods kept as complete units
+- Struct/class definitions preserved together
+- Preprocessor directives (#include, #define) grouped with related code
+- Template instantiations and specializations handled appropriately
+
+**Java:**
+- Methods grouped within class boundaries
+- Inner classes kept with their containing classes
+- Package declarations and imports preserved
+- Annotations and generics handled correctly
+
+**Go:**
+- Functions and methods kept as complete units
+- Struct types and interfaces preserved together
+- Package declarations and imports maintained
+- Goroutines and channel operations respected
+
+**Rust:**
+- Functions and impl blocks kept together
+- Struct/enum/trait definitions preserved
+- Macro invocations and derive attributes handled
+- Async functions and lifetime annotations respected
+
+**Swift:**
+- Functions and methods kept as complete units
+- Class/struct/enum definitions preserved together
+- Protocol conformance and extensions handled
+- Property observers and computed properties respected
+
 ### Recommended Configuration for Doc-Serve
 
 ```python
@@ -160,11 +190,17 @@ pipeline = IngestionPipeline(
 
 ### Official Language Packages
 
-| Language | PyPI Package | Grammar Repo |
-|----------|--------------|--------------|
-| Python | `tree-sitter-python` | tree-sitter/tree-sitter-python |
-| JavaScript | `tree-sitter-javascript` | tree-sitter/tree-sitter-javascript |
-| TypeScript | `tree-sitter-typescript` | tree-sitter/tree-sitter-typescript |
+| Language | PyPI Package | Grammar Repo | Status |
+|----------|--------------|--------------|--------|
+| Python | `tree-sitter-python` | tree-sitter/tree-sitter-python | ✅ Production |
+| JavaScript | `tree-sitter-javascript` | tree-sitter/tree-sitter-javascript | ✅ Production |
+| TypeScript | `tree-sitter-typescript` | tree-sitter/tree-sitter-typescript | ✅ Production |
+| C | `tree-sitter-c` | tree-sitter/tree-sitter-c | ✅ Production |
+| C++ | `tree-sitter-cpp` | tree-sitter/tree-sitter-cpp | ✅ Production |
+| Java | `tree-sitter-java` | tree-sitter/tree-sitter-java | ✅ Production |
+| Go | `tree-sitter-go` | tree-sitter/tree-sitter-go | ✅ Production |
+| Rust | `tree-sitter-rust` | tree-sitter/tree-sitter-rust | ✅ Production |
+| Swift | `tree-sitter-swift` | tree-sitter/tree-sitter-swift | ✅ Production |
 
 **Note:** TypeScript package contains two grammars: `typescript` and `tsx`.
 
@@ -306,12 +342,15 @@ results = collection.query(
 
 Hybrid search (Phase 2) is particularly valuable for code:
 
-| Query Type | Best Strategy |
-|------------|---------------|
-| Exact function name | BM25 (keyword) |
-| Error code lookup | BM25 (keyword) |
-| "How to authenticate" | Vector (semantic) |
-| "UserService implementation" | Hybrid |
+| Query Type | Best Strategy | Language Examples |
+|------------|---------------|-------------------|
+| Exact function name | BM25 (keyword) | `authenticate_user`, `malloc`, `println` |
+| Error code lookup | BM25 (keyword) | `HTTP_404`, `ENOENT`, `NullPointerException` |
+| API endpoint patterns | BM25 (keyword) | `GET /api/users`, `@GetMapping`, `app.get()` |
+| "How to authenticate" | Vector (semantic) | Cross-language authentication patterns |
+| "UserService implementation" | Hybrid | Find class + usage examples |
+| "Memory management" | Hybrid | C malloc + Rust ownership patterns |
+| "HTTP client setup" | Hybrid | curl in C + requests in Python |
 
 **Example hybrid query:**
 ```python
@@ -493,6 +532,12 @@ class LanguageType(str, Enum):
     PYTHON = "python"
     TYPESCRIPT = "typescript"
     JAVASCRIPT = "javascript"
+    C = "c"
+    CPP = "cpp"
+    JAVA = "java"
+    GO = "go"
+    RUST = "rust"
+    SWIFT = "swift"
     MARKDOWN = "markdown"
 
 class SymbolKind(str, Enum):
@@ -514,6 +559,12 @@ class SymbolKind(str, Enum):
 | Python | `.py` | `python` |
 | TypeScript | `.ts`, `.tsx` | `typescript` |
 | JavaScript | `.js`, `.jsx` | `javascript` |
+| C | `.c`, `.h` | `c` |
+| C++ | `.cpp`, `.cxx`, `.cc`, `.hpp`, `.hxx`, `.hh` | `cpp` |
+| Java | `.java` | `java` |
+| Go | `.go` | `go` |
+| Rust | `.rs` | `rust` |
+| Swift | `.swift` | `swift` |
 
 ### Default Exclude Patterns
 
@@ -558,17 +609,33 @@ DEFAULT_EXCLUDE_PATTERNS = [
 
 ```python
 EXTENSION_TO_LANGUAGE = {
+    # Python
     ".py": "python",
-    ".ts": "typescript",
-    ".tsx": "typescript",  # TSX uses typescript parser
+
+    # JavaScript/TypeScript
     ".js": "javascript",
     ".jsx": "javascript",  # JSX uses javascript parser
-}
+    ".ts": "typescript",
+    ".tsx": "typescript",  # TSX uses typescript parser
 
-def detect_language(file_path: str) -> str | None:
-    """Detect programming language from file extension."""
-    ext = Path(file_path).suffix.lower()
-    return EXTENSION_TO_LANGUAGE.get(ext)
+    # Systems languages
+    ".c": "c",
+    ".h": "c",  # Header files
+    ".cpp": "cpp",
+    ".cxx": "cpp",
+    ".cc": "cpp",
+    ".hpp": "cpp",
+    ".hxx": "cpp",
+    ".hh": "cpp",
+
+    # JVM/Object-oriented
+    ".java": "java",
+
+    # Modern systems languages
+    ".go": "go",
+    ".rs": "rust",
+    ".swift": "swift",
+}
 ```
 
 ---
@@ -608,9 +675,19 @@ def detect_language(file_path: str) -> str | None:
 # pyproject.toml additions
 [tool.poetry.dependencies]
 tree-sitter = "^0.21"
+# Core languages
 tree-sitter-python = "^0.21"
 tree-sitter-javascript = "^0.21"
-# tree-sitter-typescript requires building - evaluate
+tree-sitter-typescript = "^0.21"
+# Systems languages
+tree-sitter-c = "^0.21"
+tree-sitter-cpp = "^0.21"
+# JVM/Object-oriented
+tree-sitter-java = "^0.21"
+# Modern languages
+tree-sitter-go = "^0.21"
+tree-sitter-rust = "^0.21"
+tree-sitter-swift = "^0.21"
 ```
 
 **Note:** LlamaIndex's `CodeSplitter` handles tree-sitter internally; direct dependency may not be needed if using only `CodeSplitter`.
