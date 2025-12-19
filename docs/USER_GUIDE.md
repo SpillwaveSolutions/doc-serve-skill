@@ -61,16 +61,26 @@ doc-svr-ctl reset --yes
 
 ## Querying Knowledge
 
-Once indexed, you can perform semantic searches.
+Doc-Serve supports three search modes:
+1. **Semantic Search (Vector)**: Finds content with similar meaning.
+2. **Keyword Search (BM25)**: Finds exact word matches (best for function names, error codes).
+3. **Hybrid Search**: Combines both (recommended default).
 
-### Basic Query
+### Basic Query (Hybrid)
 ```bash
 doc-svr-ctl query "how do I configure the system?"
 ```
 
+### Search Modes
+- `--mode hybrid`: (Default) Blends semantic and keyword results.
+- `--mode vector`: Pure semantic search.
+- `--mode bm25`: Pure keyword matching.
+
 ### Refining Results
 - `--top-k N`: Return top N results (default: 5).
-- `--threshold F`: Minimum similarity score between 0.0 and 1.0 (default: 0.7). Lower this if you get no results.
+- `--threshold F`: Minimum similarity score between 0.0 and 1.0 (default: 0.7).
+- `--alpha F`: In hybrid mode, weight between vector and bm25. `1.0` is pure vector, `0.0` is pure bm25 (default: 0.5).
+- `--scores`: Display individual vector and BM25 scores for each result.
 
 ### Programmatic Output
 Use the `--json` flag to get raw data for piping into other tools like `jq`:

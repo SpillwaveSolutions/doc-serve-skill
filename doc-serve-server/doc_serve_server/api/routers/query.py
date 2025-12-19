@@ -1,9 +1,13 @@
 """Query endpoints for semantic search."""
 
+import logging
+
 from fastapi import APIRouter, HTTPException, status
 
 from doc_serve_server.models import QueryRequest, QueryResponse
 from doc_serve_server.services import get_indexing_service, get_query_service
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -12,17 +16,19 @@ router = APIRouter()
     "/",
     response_model=QueryResponse,
     summary="Query Documents",
-    description="Perform semantic search on indexed documents.",
+    description="Perform semantic, keyword, or hybrid search on indexed documents.",
 )
 async def query_documents(request: QueryRequest) -> QueryResponse:
     """
-    Execute a semantic search query on indexed documents.
+    Execute a search query on indexed documents.
 
     Args:
         request: QueryRequest containing:
             - query: The search query text
             - top_k: Number of results to return (default: 5)
             - similarity_threshold: Minimum similarity score (default: 0.7)
+            - mode: Retrieval mode (vector, bm25, hybrid)
+            - alpha: Weight for hybrid search (1.0=vector, 0.0=bm25)
 
     Returns:
         QueryResponse containing:

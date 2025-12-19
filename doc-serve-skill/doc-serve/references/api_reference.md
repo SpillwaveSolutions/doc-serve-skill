@@ -67,7 +67,9 @@ Execute a semantic search on indexed documents.
 {
   "query": "how to configure pod networking",
   "top_k": 5,
-  "similarity_threshold": 0.7
+  "similarity_threshold": 0.7,
+  "mode": "hybrid",
+  "alpha": 0.5
 }
 ```
 
@@ -76,6 +78,8 @@ Execute a semantic search on indexed documents.
 | `query` | string | Yes | - | Search query text |
 | `top_k` | integer | No | 5 | Number of results (1-100) |
 | `similarity_threshold` | float | No | 0.7 | Minimum similarity (0.0-1.0) |
+| `mode` | string | No | hybrid | Retrieval mode (`vector`, `bm25`, `hybrid`) |
+| `alpha` | float | No | 0.5 | Hybrid weight (1.0=vector, 0.0=bm25) |
 
 **Response:**
 
@@ -86,6 +90,8 @@ Execute a semantic search on indexed documents.
       "text": "Pod networking in Kubernetes allows...",
       "source": "docs/kubernetes/networking.md",
       "score": 0.92,
+      "vector_score": 0.92,
+      "bm25_score": 0.85,
       "chunk_id": "chunk_abc123",
       "metadata": {
         "page": 1,

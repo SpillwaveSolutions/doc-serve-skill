@@ -8,15 +8,20 @@ from collections.abc import Awaitable
 from datetime import datetime, timezone
 from typing import Any, Callable, Optional
 
+from llama_index.core.schema import TextNode
+
 from doc_serve_server.indexing import (
+    BM25IndexManager,
     ContextAwareChunker,
     DocumentLoader,
     EmbeddingGenerator,
+    get_bm25_manager,
 )
 from doc_serve_server.models import IndexingState, IndexingStatusEnum, IndexRequest
 from doc_serve_server.storage import VectorStoreManager, get_vector_store
 
 logger = logging.getLogger(__name__)
+
 
 # Type alias for progress callback
 ProgressCallback = Callable[[int, int, str], Awaitable[None]]
@@ -36,6 +41,7 @@ class IndexingService:
         document_loader: Optional[DocumentLoader] = None,
         chunker: Optional[ContextAwareChunker] = None,
         embedding_generator: Optional[EmbeddingGenerator] = None,
+        bm25_manager: Optional[BM25IndexManager] = None,
     ):
         """
         Initialize the indexing service.
@@ -45,14 +51,22 @@ class IndexingService:
             document_loader: Document loader instance.
             chunker: Text chunker instance.
             embedding_generator: Embedding generator instance.
+            bm25_manager: BM25 index manager instance.
         """
         self.vector_store = vector_store or get_vector_store()
         self.document_loader = document_loader or DocumentLoader()
         self.chunker = chunker or ContextAwareChunker()
         self.embedding_generator = embedding_generator or EmbeddingGenerator()
+        self.bm25_manager = bm25_manager or get_bm25_manager()
 
         # Internal state
-        self._state = IndexingState()
+        self._state = IndexingState(
+            current_job_id="",
+            folder_path="",
+            started_at=None,
+            completed_at=None,
+            error=None,
+        )
         self._lock = asyncio.Lock()
         self._indexed_folders: set[str] = set()
 
@@ -105,6 +119,8 @@ class IndexingService:
                 is_indexing=True,
                 folder_path=request.folder_path,
                 started_at=datetime.now(timezone.utc),
+                completed_at=None,
+                error=None,
             )
 
         logger.info(f"Starting indexing job {job_id} for {request.folder_path}")
@@ -205,9 +221,24 @@ class IndexingService:
                 metadatas=[chunk.metadata for chunk in chunks],
             )
 
+            # Step 5: Build BM25 index
+            if progress_callback:
+                await progress_callback(95, 100, "Building BM25 index...")
+
+            nodes = [
+                TextNode(
+                    text=chunk.text,
+                    id_=chunk.chunk_id,
+                    metadata=chunk.metadata,
+                )
+                for chunk in chunks
+            ]
+            self.bm25_manager.build_index(nodes)
+
             # Mark as completed
             self._state.status = IndexingStatusEnum.COMPLETED
             self._state.completed_at = datetime.now(timezone.utc)
+            self._state.is_indexing = False
             self._indexed_folders.add(abs_folder_path)
 
             if progress_callback:
@@ -222,6 +253,7 @@ class IndexingService:
             logger.error(f"Indexing job {job_id} failed: {e}")
             self._state.status = IndexingStatusEnum.FAILED
             self._state.error = str(e)
+            self._state.is_indexing = False
             raise
 
         finally:
@@ -265,7 +297,14 @@ class IndexingService:
         """Reset the indexing service and vector store."""
         async with self._lock:
             await self.vector_store.reset()
-            self._state = IndexingState()
+            self.bm25_manager.reset()
+            self._state = IndexingState(
+                current_job_id="",
+                folder_path="",
+                started_at=None,
+                completed_at=None,
+                error=None,
+            )
             self._indexed_folders.clear()
             logger.info("Indexing service reset")
 

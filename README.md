@@ -14,7 +14,9 @@ Doc-Serve is a monorepo containing three packages:
 
 ## Features
 
-- **Semantic Search**: Query documents using natural language with OpenAI embeddings
+- **Hybrid Search**: Combines semantic meaning (Vector) with exact keyword matching (BM25)
+- **Semantic Search**: Natural language queries using OpenAI embeddings
+- **Keyword Search**: Precise term matching for technical documentation
 - **Vector Store**: ChromaDB for efficient similarity search
 - **Context-Aware Chunking**: Intelligent document splitting with overlap
 - **REST API**: Full OpenAPI-documented REST interface
@@ -141,7 +143,9 @@ doc-serve/
 - [User Guide](docs/USER_GUIDE.md) - How to use Doc-Serve
 - [Developer Guide](docs/DEVELOPERS_GUIDE.md) - Setup and contribution guide
 - [API Reference](doc-serve-skill/doc-serve/references/api_reference.md) - Full API documentation
-- [Original Spec](docs/ORIGINAL_SPEC.md) - Original project specification
+- [Product Roadmap](docs/roadmaps/product-roadmap.md) - Future plans and features
+- [Spec Mapping](docs/spec_mapping.md) - Mapping of specs to features
+
 
 ## Technology Stack
 

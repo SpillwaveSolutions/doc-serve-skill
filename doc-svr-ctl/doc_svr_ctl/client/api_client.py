@@ -60,6 +60,8 @@ class QueryResult:
     score: float
     chunk_id: str
     metadata: dict[str, Any]
+    vector_score: Optional[float] = None
+    bm25_score: Optional[float] = None
 
 
 @dataclass
@@ -205,6 +207,8 @@ class DocServeClient:
         query_text: str,
         top_k: int = 5,
         similarity_threshold: float = 0.7,
+        mode: str = "hybrid",
+        alpha: float = 0.5,
     ) -> QueryResponse:
         """
         Query indexed documents.
@@ -213,6 +217,8 @@ class DocServeClient:
             query_text: Search query.
             top_k: Number of results to return.
             similarity_threshold: Minimum similarity score.
+            mode: Retrieval mode (vector, bm25, hybrid).
+            alpha: Hybrid search weighting (1.0=vector, 0.0=bm25).
 
         Returns:
             QueryResponse with matching results.
@@ -224,6 +230,8 @@ class DocServeClient:
                 "query": query_text,
                 "top_k": top_k,
                 "similarity_threshold": similarity_threshold,
+                "mode": mode,
+                "alpha": alpha,
             },
         )
 
@@ -234,6 +242,8 @@ class DocServeClient:
                 score=r["score"],
                 chunk_id=r["chunk_id"],
                 metadata=r.get("metadata", {}),
+                vector_score=r.get("vector_score"),
+                bm25_score=r.get("bm25_score"),
             )
             for r in data.get("results", [])
         ]

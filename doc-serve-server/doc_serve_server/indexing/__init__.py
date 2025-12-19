@@ -1,12 +1,18 @@
 """Indexing pipeline components for document processing."""
 
-from .chunking import ContextAwareChunker
-from .document_loader import DocumentLoader
-from .embedding import EmbeddingGenerator, get_embedding_generator
+from doc_serve_server.indexing.bm25_index import BM25IndexManager, get_bm25_manager
+from doc_serve_server.indexing.chunking import ContextAwareChunker
+from doc_serve_server.indexing.document_loader import DocumentLoader
+from doc_serve_server.indexing.embedding import (
+    EmbeddingGenerator,
+    get_embedding_generator,
+)
 
 __all__ = [
     "DocumentLoader",
     "ContextAwareChunker",
     "EmbeddingGenerator",
     "get_embedding_generator",
+    "BM25IndexManager",
+    "get_bm25_manager",
 ]

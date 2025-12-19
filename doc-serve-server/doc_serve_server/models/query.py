@@ -1,8 +1,17 @@
 """Query request and response models."""
 
-from typing import Any
+from enum import Enum
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
+
+
+class QueryMode(str, Enum):
+    """Retrieval modes."""
+
+    VECTOR = "vector"
+    BM25 = "bm25"
+    HYBRID = "hybrid"
 
 
 class QueryRequest(BaseModel):
@@ -26,6 +35,16 @@ class QueryRequest(BaseModel):
         le=1.0,
         description="Minimum similarity score (0-1)",
     )
+    mode: QueryMode = Field(
+        default=QueryMode.HYBRID,
+        description="Retrieval mode (vector, bm25, hybrid)",
+    )
+    alpha: float = Field(
+        default=0.5,
+        ge=0.0,
+        le=1.0,
+        description="Weight for hybrid search (1.0 = pure vector, 0.0 = pure bm25)",
+    )
 
     model_config = {
         "json_schema_extra": {
@@ -34,6 +53,8 @@ class QueryRequest(BaseModel):
                     "query": "How do I configure authentication?",
                     "top_k": 5,
                     "similarity_threshold": 0.7,
+                    "mode": "hybrid",
+                    "alpha": 0.5,
                 }
             ]
         }
@@ -45,7 +66,13 @@ class QueryResult(BaseModel):
 
     text: str = Field(..., description="The chunk text content")
     source: str = Field(..., description="Source file path")
-    score: float = Field(..., ge=0.0, le=1.0, description="Similarity score (0-1)")
+    score: float = Field(..., description="Primary score (rank or similarity)")
+    vector_score: Optional[float] = Field(
+        default=None, description="Score from vector search"
+    )
+    bm25_score: Optional[float] = Field(
+        default=None, description="Score from BM25 search"
+    )
     chunk_id: str = Field(..., description="Unique chunk identifier")
     metadata: dict[str, Any] = Field(
         default_factory=dict, description="Additional metadata"
@@ -79,6 +106,8 @@ class QueryResponse(BaseModel):
                             "text": "Authentication is configured via...",
                             "source": "docs/auth.md",
                             "score": 0.92,
+                            "vector_score": 0.92,
+                            "bm25_score": 0.85,
                             "chunk_id": "chunk_abc123",
                             "metadata": {"chunk_index": 0},
                         }
