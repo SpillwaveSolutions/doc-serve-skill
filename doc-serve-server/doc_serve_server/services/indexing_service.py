@@ -229,6 +229,9 @@ class IndexingService:
                         code_by_language[lang] = []
                     code_by_language[lang].append(doc)
 
+                # Track total code documents processed across all languages
+                total_code_processed = 0
+
                 for lang, lang_docs in code_by_language.items():
                     if lang == "unknown":
                         logger.warning(
@@ -243,14 +246,14 @@ class IndexingService:
                             generate_summaries=request.generate_summaries
                         )
 
+                        # Create progress callback with current total_code_processed
+                        current_total_code = total_code_processed
                         async def code_chunk_progress(
                             processed: int,
                             total: int,
-                            lang: str = lang,
-                            lang_docs: list[Any] = lang_docs
                         ) -> None:
-                            # Offset by documents already processed
-                            total_processed = len(doc_documents) + processed
+                            # Calculate total processed: docs + all code docs so far + current batch
+                            total_processed = len(doc_documents) + current_total_code + processed
                             self._state.processed_documents = total_processed
                             if progress_callback:
                                 pct = 35 + int(
@@ -265,6 +268,9 @@ class IndexingService:
                         for doc in lang_docs:
                             code_chunks = await code_chunker.chunk_code_document(doc)
                             all_chunks.extend(code_chunks)
+
+                        # Update the total code documents processed
+                        total_code_processed += len(lang_docs)
 
                         chunk_count = sum(
                             1 for c in all_chunks if c.metadata.language == lang
