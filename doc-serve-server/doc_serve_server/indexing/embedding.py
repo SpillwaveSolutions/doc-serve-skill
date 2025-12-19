@@ -4,8 +4,8 @@ import logging
 from collections.abc import Awaitable, Callable
 from typing import Optional
 
+from anthropic import AsyncAnthropic
 from llama_index.core.extractors import SummaryExtractor
-from llama_index.llms.openai import OpenAI  # type: ignore
 from openai import AsyncOpenAI
 
 from doc_serve_server.config import settings
@@ -45,10 +45,9 @@ class EmbeddingGenerator:
             api_key=api_key or settings.OPENAI_API_KEY,
         )
 
-        # Initialize LlamaIndex LLM for summarization
-        self.llm = OpenAI(
-            api_key=api_key or settings.OPENAI_API_KEY,
-            model="gpt-4o-mini",  # Use efficient model for summarization
+        # Initialize Anthropic client for summarization
+        self.anthropic_client = AsyncAnthropic(
+            api_key=settings.ANTHROPIC_API_KEY,
         )
 
         # Store prompt template for later use
@@ -242,7 +241,7 @@ class EmbeddingGenerator:
 
     async def generate_summary(self, code_text: str) -> str:
         """
-        Generate a natural language summary of code using LLM.
+        Generate a natural language summary of code using Claude.
 
         Args:
             code_text: The source code to summarize.
@@ -251,16 +250,27 @@ class EmbeddingGenerator:
             Natural language summary of the code's functionality.
         """
         try:
-            # Use LLM directly with custom prompt
+            # Use Claude directly with custom prompt
             prompt = self.summary_prompt_template.format(context_str=code_text)
 
-            response = await self.llm.acomplete(prompt)
-            summary = str(response).strip()
+            response = await self.anthropic_client.messages.create(
+                model=settings.CLAUDE_MODEL,
+                max_tokens=300,
+                temperature=0.1,  # Low temperature for consistent summaries
+                messages=[
+                    {
+                        "role": "user",
+                        "content": prompt
+                    }
+                ]
+            )
+
+            summary = response.content[0].text.strip()
 
             if summary and len(summary) > 10:  # Ensure we got a meaningful summary
                 return summary
             else:
-                logger.warning("LLM returned empty or too short summary")
+                logger.warning("Claude returned empty or too short summary")
                 return self._extract_fallback_summary(code_text)
 
         except Exception as e:
