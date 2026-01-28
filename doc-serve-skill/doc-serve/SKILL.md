@@ -1,217 +1,156 @@
 ---
 name: doc-serve
 description: |
-  Advanced document search with BM25 keyword matching, semantic vector search, and hybrid retrieval.
-  Enables precise technical queries, conceptual understanding, and intelligent result fusion.
-  Supports local document indexing and provides comprehensive search capabilities for knowledge bases.
-version: 1.2.0
-category: ai-tools
-triggers:
-  - doc-serve
-  - bm25 search
-  - hybrid search
-  - semantic search
-  - search the domain
-  - search domain
-  - query domain
-  - look up in domain
-  - find in docs
-  - search documentation
-  - technical search
-  - documentation search
-author: Spillwave
+  Document search with BM25 keyword, semantic vector, and hybrid retrieval modes.
+  Use when asked to "search documentation", "query domain", "find in docs",
+  "bm25 search", "hybrid search", "semantic search", "doc-serve init",
+  "doc-serve start", "doc-serve stop", or "doc-serve status".
+  Supports multi-instance architecture with automatic server discovery.
 license: MIT
+metadata:
+  version: 1.3.0
+  category: ai-tools
+  author: Spillwave
 ---
 
 # Doc-Serve Skill
 
-## Overview
+Document search with three modes: BM25 (keyword), Vector (semantic), and Hybrid (fusion). Supports multi-instance architecture with per-project isolation and automatic server discovery.
 
-`doc-serve` provides advanced document search capabilities with three powerful search modes: BM25 keyword search, semantic vector search, and intelligent hybrid retrieval. It indexes local documentation (Markdown, PDF, TXT) and enables precise technical queries, conceptual understanding, and comprehensive knowledge discovery.
+## Contents
 
-## Capabilities
+- [Quick Start](#quick-start)
+- [Search Modes](#search-modes)
+- [Server Management](#server-management)
+- [Best Practices](#best-practices)
+- [Reference Documentation](#reference-documentation)
 
-1. **Multi-Mode Search**: BM25 (keyword), Vector (semantic), Hybrid (fusion)
-2. **Automatic Setup**: Repository cloning and CLI tool installation
-3. **Server Management**: Start/stop API server with health monitoring
-4. **Smart Indexing**: Document processing with chunking and embeddings
-5. **Advanced Retrieval**: Context-aware search with scoring transparency
-6. **API Integration**: RESTful endpoints with OpenAPI documentation
+---
 
-## When to Use
+## Quick Start
 
-- **Technical queries**: "Find AuthenticationError handling"
-- **Conceptual questions**: "How does OAuth authentication work?"
-- **Comprehensive search**: "Complete guide to error handling"
-- **Domain knowledge**: Search internal documentation and knowledge bases
-- **API references**: Find function definitions, error codes, specifications
-
-## Core Workflow
-
-### 1. Setup Verification
 ```bash
-doc-svr-ctl --version  # Check CLI tools installed
+# 1. Initialize project (first time only)
+doc-svr-ctl init
+
+# 2. Start server with auto-port
+doc-svr-ctl start --daemon
+
+# 3. Index documents
+doc-svr-ctl index /path/to/docs
+
+# 4. Search
+doc-svr-ctl query "search term" --mode hybrid
+
+# 5. Stop when done
+doc-svr-ctl stop
 ```
 
-### 2. Server Management
+### Validation Checklist
+
+Before querying, verify:
+- [ ] Server running: `doc-svr-ctl status` shows healthy
+- [ ] Documents indexed: status shows document count > 0
+- [ ] API key set: `OPENAI_API_KEY` for vector/hybrid modes
+
+---
+
+## Search Modes
+
+| Mode | Speed | Use For | Example |
+|------|-------|---------|---------|
+| `bm25` | Fast (10-50ms) | Technical terms, function names, error codes | `"AuthenticationError"` |
+| `vector` | Slower (800-1500ms) | Concepts, explanations | `"how authentication works"` |
+| `hybrid` | Slower (1000-1800ms) | Comprehensive results | `"OAuth implementation guide"` |
+
+### Mode Selection
+
 ```bash
-doc-serve &            # Start server in background
-doc-svr-ctl status     # Verify server health
+# Technical terms → BM25
+doc-svr-ctl query "recursiveCharacterTextSplitter" --mode bm25
+
+# Concepts → Vector
+doc-svr-ctl query "best practices for error handling" --mode vector
+
+# Comprehensive → Hybrid (default)
+doc-svr-ctl query "complete OAuth implementation" --mode hybrid --alpha 0.6
 ```
 
-### 3. Document Indexing
+### Parameters
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `--mode` | hybrid | Search mode: bm25, vector, hybrid |
+| `--threshold` | 0.7 | Minimum similarity (0.0-1.0) |
+| `--top-k` | 5 | Number of results |
+| `--alpha` | 0.5 | Hybrid balance (0=BM25, 1=Vector) |
+
+---
+
+## Server Management
+
+### Lifecycle Commands
+
 ```bash
-doc-svr-ctl index /path/to/docs  # Index documentation
+doc-svr-ctl init           # Initialize project config
+doc-svr-ctl start --daemon # Start with auto-port
+doc-svr-ctl status         # Show port, mode, document count
+doc-svr-ctl list           # List all running instances
+doc-svr-ctl stop           # Graceful shutdown
 ```
 
-### 4. Intelligent Search
-```bash
-# Choose search mode based on query type
-doc-svr-ctl query "exact function name" --mode bm25      # Technical terms
-doc-svr-ctl query "how concept works" --mode vector      # Explanations
-doc-svr-ctl query "complete solution" --mode hybrid      # Best of both
-```
+### Multi-Instance
 
-## Search Mode Selection Guide
+Each project runs its own isolated instance. Server details stored in `.claude/doc-serve/runtime.json`. Multiple Claude agents in the same project share one instance automatically.
 
-| Query Type | Recommended Mode | Example |
-|------------|------------------|---------|
-| **Technical terms** | BM25 | `"AuthenticationError"` |
-| **Function names** | BM25 | `"recursiveCharacterTextSplitter"` |
-| **Error codes** | BM25 | `"HTTP 404"` |
-| **Explanations** | Vector | `"how authentication works"` |
-| **Concepts** | Vector | `"best practices guide"` |
-| **Mixed content** | Hybrid | `"implement OAuth with error handling"` |
-| **Comprehensive** | Hybrid | `"complete troubleshooting guide"` |
+See [Server Discovery Guide](references/server-discovery.md) for implementation details.
+
+---
 
 ## Best Practices
 
-- **Mode Selection**: Use BM25 for technical terms, Vector for concepts, Hybrid for comprehensive results
-- **Threshold Tuning**: Start at 0.7, lower to 0.3-0.5 for more results
-- **Alpha Weighting**: Adjust hybrid balance (0.0=BM25, 1.0=Vector)
-- **Source Citation**: Always reference source filenames in responses
-- **Background Operation**: Run server with `doc-serve &` for interactive use
+1. **Mode Selection**: BM25 for exact terms, Vector for concepts, Hybrid for comprehensive
+2. **Threshold Tuning**: Start at 0.7, lower to 0.3-0.5 for more results
+3. **Server Discovery**: Use `runtime.json` rather than assuming port 8000
+4. **Resource Cleanup**: Run `doc-svr-ctl stop` when done
+5. **Source Citation**: Always reference source filenames in responses
+
+---
 
 ## Reference Documentation
 
-### Search Mode Guides
-- **[BM25 Search Guide](references/bm25-search-guide.md)**: Exact keyword matching for technical queries
-- **[Vector Search Guide](references/vector-search-guide.md)**: Semantic similarity for conceptual understanding
-- **[Hybrid Search Guide](references/hybrid-search-guide.md)**: Intelligent fusion of keyword and semantic search
+| Guide | Description |
+|-------|-------------|
+| [BM25 Search](references/bm25-search-guide.md) | Keyword matching for technical queries |
+| [Vector Search](references/vector-search-guide.md) | Semantic similarity for concepts |
+| [Hybrid Search](references/hybrid-search-guide.md) | Combined keyword and semantic search |
+| [Server Discovery](references/server-discovery.md) | Auto-discovery, multi-agent sharing |
+| [Integration Guide](references/integration-guide.md) | Scripts, Python API, CI/CD patterns |
+| [API Reference](references/api_reference.md) | REST endpoint documentation |
+| [Troubleshooting](references/troubleshooting-guide.md) | Common issues and solutions |
 
-### Troubleshooting
-- **[Troubleshooting Guide](references/troubleshooting-guide.md)**: Common issues and solutions
+---
 
-### API Documentation
-- **[API Reference](references/api_reference.md)**: Complete endpoint documentation
+## Configuration
 
-## Example Usage Scenarios
+### Required Environment Variables
 
-### Technical Query (BM25 Mode)
-**User**: "What does the documentation say about AuthenticationError?"
-
-**Execution**:
 ```bash
-doc-svr-ctl query "AuthenticationError" --mode bm25 --threshold 0.2
+export OPENAI_API_KEY="sk-proj-..."    # Required for vector/hybrid
+export ANTHROPIC_API_KEY="sk-ant-..."  # Optional for summarization
 ```
 
-**Response**: "According to `auth_module.md`, AuthenticationError is raised when credentials are invalid, with fields for username, timestamp, and failure reason."
+### Installation
 
-### Conceptual Query (Vector Mode)
-**User**: "How does the authentication system work?"
-
-**Execution**:
 ```bash
-doc-svr-ctl query "authentication system flow" --mode vector --threshold 0.5
+task install:global  # Install CLI tools
 ```
 
-**Response**: "The authentication system uses a multi-step flow: credential validation, token generation with JWT, session management via Redis, and automatic logout after 30 minutes (from `auth_overview.md`)."
+---
 
-### Comprehensive Query (Hybrid Mode)
-**User**: "Complete guide to implementing error handling"
+## Limitations
 
-**Execution**:
-```bash
-doc-svr-ctl query "error handling implementation guide" --mode hybrid --alpha 0.6 --top-k 8
-```
-
-**Response**: "Complete error handling implementation: 1) Exception hierarchy design, 2) Try-catch patterns, 3) Error logging with structured data, 4) User-friendly error messages, 5) Recovery strategies (from `error_handling.md` and `logging_guide.md`)."
-
-## Performance Characteristics
-
-| Mode | Speed | API Required | Best For |
-|------|-------|--------------|----------|
-| **BM25** | ⚡ 10-50ms | ❌ No | Technical terms, exact matches |
-| **Vector** | 🐌 800-1500ms | ✅ Yes | Concepts, explanations |
-| **Hybrid** | 🐌 1000-1800ms | ✅ Yes | Comprehensive, best quality |
-
-## Configuration Requirements
-
-### API Keys (for Vector/Hybrid modes)
-```bash
-# Required for semantic search
-export OPENAI_API_KEY="sk-proj-..."
-export ANTHROPIC_API_KEY="sk-ant-..."  # Optional
-```
-
-### Environment Setup
-```bash
-# Install tools
-task install:global
-
-# Configure API keys in .env file
-cd doc-serve-server
-echo "OPENAI_API_KEY=your-key-here" > .env
-```
-
-## Advanced Features
-
-- **Alpha Weighting**: Fine-tune hybrid search balance
-- **Scoring Transparency**: Individual vector/BM25 scores with `--scores`
-- **JSON Output**: Structured data with `--json` for scripting
-- **Batch Processing**: Efficient indexing of large document collections
-- **Health Monitoring**: Server status and indexing progress tracking
-
-## Integration Patterns
-
-### CLI Scripting
-```bash
-# Automated searches in scripts
-RESULT=$(doc-svr-ctl query "$QUERY" --mode hybrid --json)
-echo "$RESULT" | jq '.results[0].text'
-```
-
-### API Integration
-```python
-import requests
-
-response = requests.post('http://localhost:8000/query/', json={
-    'query': 'authentication guide',
-    'mode': 'hybrid',
-    'alpha': 0.5
-})
-results = response.json()['results']
-```
-
-### CI/CD Integration
-```bash
-# Documentation validation in CI
-doc-svr-ctl query "deprecated feature" --mode bm25 --threshold 0.1
-if [ $? -eq 0 ]; then echo "Documentation search working"; fi
-```
-
-## Limitations & Considerations
-
-- **API Costs**: Vector/hybrid modes require OpenAI API credits
-- **Setup Complexity**: Initial configuration requires API keys and indexing
-- **Resource Usage**: Server requires ~500MB RAM for typical document collections
-- **File Formats**: Supports Markdown, PDF, plain text (not Word docs or images)
-
-## Getting Started Checklist
-
-- [ ] Install CLI tools: `task install:global`
-- [ ] Set API keys in environment or `.env` file
-- [ ] Start server: `doc-serve &`
-- [ ] Index documents: `doc-svr-ctl index /path/to/docs`
-- [ ] Test search: `doc-svr-ctl query "test query"`
-- [ ] Explore modes: Try BM25, vector, and hybrid search
+- Vector/hybrid modes require OpenAI API credits
+- Supports: Markdown, PDF, plain text, code files
+- Does not support: Word docs, images
+- Server requires ~500MB RAM for typical collections

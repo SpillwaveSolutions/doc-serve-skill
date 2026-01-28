@@ -111,6 +111,17 @@ doc-serve/
 
 ## CLI Commands
 
+### Multi-Instance Commands (new)
+
+| Command | Description |
+|---------|-------------|
+| `doc-svr-ctl init` | Initialize project for doc-serve (creates .claude/doc-serve/) |
+| `doc-svr-ctl start` | Start doc-serve server for current project |
+| `doc-svr-ctl stop` | Stop the running server |
+| `doc-svr-ctl list` | List all running doc-serve instances |
+
+### Data Commands
+
 | Command | Description |
 |---------|-------------|
 | `doc-svr-ctl status` | Check server status |
@@ -131,6 +142,8 @@ doc-serve/
 | `API_HOST` | No | `127.0.0.1` | Server host |
 | `API_PORT` | No | `8000` | Server port |
 | `DEBUG` | No | `false` | Debug mode |
+| `DOC_SERVE_STATE_DIR` | No | - | Override state directory for multi-instance |
+| `DOC_SERVE_MODE` | No | `project` | Instance mode: 'project' or 'shared' |
 
 ### CLI
 

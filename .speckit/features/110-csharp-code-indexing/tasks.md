@@ -19,8 +19,8 @@
 
 **Purpose**: Verify environment and tree-sitter C# grammar availability
 
-- [ ] T001 Verify `tree-sitter-language-pack` includes the `c_sharp` grammar — run `python -c "from tree_sitter_language_pack import get_language; get_language('c_sharp')"` in `doc-serve-server/`
-- [ ] T002 Create a sample C# test fixture file at `doc-serve-server/tests/fixtures/sample.cs` containing a class with methods, properties, interfaces, enums, XML doc comments, and a namespace declaration for use in unit tests
+- [x] T001 Verify `tree-sitter-language-pack` includes the `c_sharp` grammar — run `python -c "from tree_sitter_language_pack import get_language; get_language('c_sharp')"` in `doc-serve-server/`
+- [x] T002 Create a sample C# test fixture file at `doc-serve-server/tests/fixtures/sample.cs` containing a class with methods, properties, interfaces, enums, XML doc comments, and a namespace declaration for use in unit tests
 
 ---
 
@@ -32,26 +32,26 @@
 
 ### Tests (Constitution III: Test-Alongside)
 
-- [ ] T003 [P] [US1] Write unit tests for C# file extension detection in `doc-serve-server/tests/unit/test_document_loader.py` — test that `.cs` and `.csx` are recognized as `csharp`, test `is_supported_language("csharp")` returns True
-- [ ] T004 [P] [US2] Write unit tests for C# AST parsing and symbol extraction in `doc-serve-server/tests/unit/test_chunking.py` — test that `CodeChunker` with language `csharp` produces chunks at class/method boundaries, test symbol metadata extraction (name, kind, parameters, return type, line numbers) for classes, methods, interfaces, properties, enums, structs
-- [ ] T005 [P] [US2] Write unit test for C# XML doc comment extraction in `doc-serve-server/tests/unit/test_chunking.py` — test that `/// <summary>` comments are extracted as docstring metadata on the corresponding chunk
-- [ ] T006 [P] [US3] Write unit tests for C# content-based detection in `doc-serve-server/tests/unit/test_document_loader.py` — test that content containing `using System;`, namespace declarations, property accessors, and attributes is detected as `csharp`
-- [ ] T007 [P] [US1] Write integration test for C# indexing end-to-end in `doc-serve-server/tests/unit/test_chunking.py` — test that a sample `.cs` file is loaded, chunked with AST awareness, and produces chunks with correct `language=csharp` metadata
+- [x] T003 [P] [US1] Write unit tests for C# file extension detection in `doc-serve-server/tests/unit/test_document_loader.py` — test that `.cs` and `.csx` are recognized as `csharp`, test `is_supported_language("csharp")` returns True
+- [x] T004 [P] [US2] Write unit tests for C# AST parsing and symbol extraction in `doc-serve-server/tests/unit/test_chunking.py` — test that `CodeChunker` with language `csharp` produces chunks at class/method boundaries, test symbol metadata extraction (name, kind, parameters, return type, line numbers) for classes, methods, interfaces, properties, enums, structs
+- [x] T005 [P] [US2] Write unit test for C# XML doc comment extraction in `doc-serve-server/tests/unit/test_chunking.py` — test that `/// <summary>` comments are extracted as docstring metadata on the corresponding chunk
+- [x] T006 [P] [US3] Write unit tests for C# content-based detection in `doc-serve-server/tests/unit/test_document_loader.py` — test that content containing `using System;`, namespace declarations, property accessors, and attributes is detected as `csharp`
+- [x] T007 [P] [US1] Write integration test for C# indexing end-to-end in `doc-serve-server/tests/unit/test_chunking.py` — test that a sample `.cs` file is loaded, chunked with AST awareness, and produces chunks with correct `language=csharp` metadata
 
 ### Implementation
 
-- [ ] T008 [P] [US1] Add `.cs` and `.csx` to `EXTENSION_TO_LANGUAGE` dictionary in `doc-serve-server/doc_serve_server/indexing/document_loader.py` — map both extensions to `"csharp"`
-- [ ] T009 [P] [US1] Add `.cs` and `.csx` to `CODE_EXTENSIONS` set in `doc-serve-server/doc_serve_server/indexing/document_loader.py`
-- [ ] T010 [P] [US3] Add C# content-detection patterns to `CONTENT_PATTERNS` dictionary in `doc-serve-server/doc_serve_server/indexing/document_loader.py` — key: `"csharp"`, patterns: `using\s+System`, `namespace\s+\w+`, `\{\s*get\s*;\s*(set\s*;)?\s*\}`, `\[[\w]+(\(.*\))?\]`, `public\s+(class|interface|struct|record|enum)\s+\w+`
-- [ ] T011 [US1] Add `"csharp": "c_sharp"` to the language mapping dictionary in `_setup_language()` method in `doc-serve-server/doc_serve_server/indexing/chunking.py`
-- [ ] T012 [US2] Add C# AST query patterns to `_get_symbols()` method in `doc-serve-server/doc_serve_server/indexing/chunking.py` — add a `csharp` case querying for: `class_declaration`, `method_declaration`, `constructor_declaration`, `interface_declaration`, `property_declaration`, `enum_declaration`, `struct_declaration`, `record_declaration`, `namespace_declaration`. Extract symbol name from the `name` field of each node.
-- [ ] T013 [US2] Add XML doc comment extraction for C# in `_get_symbols()` or `_extract_docstring()` in `doc-serve-server/doc_serve_server/indexing/chunking.py` — detect `///` comment nodes preceding declarations, extract text content, strip XML tags for plain text, store as `docstring` metadata on the chunk
+- [x] T008 [P] [US1] Add `.cs` and `.csx` to `EXTENSION_TO_LANGUAGE` dictionary in `doc-serve-server/doc_serve_server/indexing/document_loader.py` — map both extensions to `"csharp"`
+- [x] T009 [P] [US1] Add `.cs` and `.csx` to `CODE_EXTENSIONS` set in `doc-serve-server/doc_serve_server/indexing/document_loader.py`
+- [x] T010 [P] [US3] Add C# content-detection patterns to `CONTENT_PATTERNS` dictionary in `doc-serve-server/doc_serve_server/indexing/document_loader.py` — key: `"csharp"`, patterns: `using\s+System`, `namespace\s+\w+`, `\{\s*get\s*;\s*(set\s*;)?\s*\}`, `\[[\w]+(\(.*\))?\]`, `public\s+(class|interface|struct|record|enum)\s+\w+`
+- [x] T011 [US1] Add `"csharp": "c_sharp"` to the language mapping dictionary in `_setup_language()` method in `doc-serve-server/doc_serve_server/indexing/chunking.py`
+- [x] T012 [US2] Add C# AST query patterns to `_get_symbols()` method in `doc-serve-server/doc_serve_server/indexing/chunking.py` — add a `csharp` case querying for: `class_declaration`, `method_declaration`, `constructor_declaration`, `interface_declaration`, `property_declaration`, `enum_declaration`, `struct_declaration`, `record_declaration`, `namespace_declaration`. Extract symbol name from the `name` field of each node.
+- [x] T013 [US2] Add XML doc comment extraction for C# in `_get_symbols()` or `_extract_docstring()` in `doc-serve-server/doc_serve_server/indexing/chunking.py` — detect `///` comment nodes preceding declarations, extract text content, strip XML tags for plain text, store as `docstring` metadata on the chunk
 
 ### Verification
 
-- [ ] T014 Run all unit tests: `cd doc-serve-server && poetry run pytest tests/unit/test_document_loader.py tests/unit/test_chunking.py -v`
-- [ ] T015 Run full test suite: `cd doc-serve-server && poetry run pytest`
-- [ ] T016 Run `task before-push` from repository root to verify formatting, linting, type checking, and all tests pass
+- [x] T014 Run all unit tests: `cd doc-serve-server && poetry run pytest tests/unit/test_document_loader.py tests/unit/test_chunking.py -v`
+- [x] T015 Run full test suite: `cd doc-serve-server && poetry run pytest`
+- [x] T016 Run `task before-push` from repository root to verify formatting, linting, type checking, and all tests pass
 
 **Checkpoint**: C# code indexing is fully functional. All `.cs` and `.csx` files are recognized, parsed with AST-aware chunking, and searchable with correct metadata. Content-based detection works for ambiguous files.
 
@@ -61,8 +61,8 @@
 
 **Purpose**: Documentation and final verification
 
-- [ ] T017 [P] Run quickstart.md verification checklist — confirm all 7 items pass
-- [ ] T018 [P] Update `.speckit/features/110-csharp-code-indexing/spec.md` status from "Draft" to "Implemented"
+- [x] T017 [P] Run quickstart.md verification checklist — confirm all 7 items pass
+- [x] T018 [P] Update `.speckit/features/110-csharp-code-indexing/spec.md` status from "Draft" to "Implemented"
 
 ---
 

@@ -173,65 +173,46 @@ class TestQueryEndpoints:
     """Tests for query endpoints."""
 
     def test_query_documents_success(
-        self, client, mock_vector_store, mock_embedding_generator
+        self, app_with_mocks, client, mock_vector_store, mock_embedding_generator
     ):
         """Test successful document query."""
-        from doc_serve_server.services.query_service import get_query_service
-
-        service = get_query_service()
-        service.vector_store = mock_vector_store
-
         mock_vector_store.is_initialized = True
 
-        mock_result = MockSearchResult(
-            text="Sample result text",
-            metadata={"source": "docs/test.md", "chunk_index": 0},
-            score=0.92,
-            chunk_id="chunk_abc",
+        # Set up mock query service on app.state
+        mock_service = MagicMock()
+        mock_service.is_ready.return_value = True
+        mock_service.execute_query = AsyncMock(
+            return_value=MagicMock(
+                results=[
+                    MagicMock(
+                        text="Sample result",
+                        source="docs/test.md",
+                        score=0.92,
+                        chunk_id="chunk_abc",
+                        source_type="doc",
+                        language="markdown",
+                        metadata={},
+                    )
+                ],
+                query_time_ms=50.0,
+                total_results=1,
+            )
         )
-        mock_vector_store.similarity_search = AsyncMock(return_value=[mock_result])
 
-        with (
-            patch(
-                "doc_serve_server.api.routers.query.get_query_service"
-            ) as mock_get_service,
-            patch(
-                "doc_serve_server.api.routers.query.get_indexing_service"
-            ) as mock_get_idx,
-        ):
-            mock_service = MagicMock()
-            mock_service.is_ready.return_value = True
-            mock_service.execute_query = AsyncMock(
-                return_value=MagicMock(
-                    results=[
-                        MagicMock(
-                            text="Sample result",
-                            source="docs/test.md",
-                            score=0.92,
-                            chunk_id="chunk_abc",
-                            source_type="doc",
-                            language="markdown",
-                            metadata={},
-                        )
-                    ],
-                    query_time_ms=50.0,
-                    total_results=1,
-                )
-            )
-            mock_get_service.return_value = mock_service
+        mock_idx_service = MagicMock()
+        mock_idx_service.is_indexing = False
 
-            mock_idx_service = MagicMock()
-            mock_idx_service.is_indexing = False
-            mock_get_idx.return_value = mock_idx_service
+        app_with_mocks.state.query_service = mock_service
+        app_with_mocks.state.indexing_service = mock_idx_service
 
-            response = client.post(
-                "/query/",
-                json={
-                    "query": "How do I use Python?",
-                    "top_k": 5,
-                    "similarity_threshold": 0.7,
-                },
-            )
+        response = client.post(
+            "/query/",
+            json={
+                "query": "How do I use Python?",
+                "top_k": 5,
+                "similarity_threshold": 0.7,
+            },
+        )
 
         assert response.status_code == 200
         data = response.json()
@@ -248,84 +229,61 @@ class TestQueryEndpoints:
         # Pydantic validation should reject empty query
         assert response.status_code == 422
 
-    def test_query_service_not_ready_indexing(self, client, mock_vector_store):
+    def test_query_service_not_ready_indexing(
+        self, app_with_mocks, client, mock_vector_store
+    ):
         """Test query endpoint structure when service is ready."""
-        # Note: The mock fixture sets up a ready state. Testing the 503
-        # responses requires integration with actual service state management.
-        # This test verifies the endpoint accepts valid requests.
-        from doc_serve_server.services.query_service import get_query_service
-
-        service = get_query_service()
-        service.vector_store = mock_vector_store
-
         mock_vector_store.is_initialized = True
 
-        with (
-            patch(
-                "doc_serve_server.api.routers.query.get_query_service"
-            ) as mock_get_service,
-            patch(
-                "doc_serve_server.api.routers.query.get_indexing_service"
-            ) as mock_get_idx,
-        ):
-            mock_service = MagicMock()
-            mock_service.is_ready.return_value = True
-            mock_service.execute_query = AsyncMock(
-                return_value=MagicMock(
-                    results=[],
-                    query_time_ms=10.0,
-                    total_results=0,
-                )
+        mock_service = MagicMock()
+        mock_service.is_ready.return_value = True
+        mock_service.execute_query = AsyncMock(
+            return_value=MagicMock(
+                results=[],
+                query_time_ms=10.0,
+                total_results=0,
             )
-            mock_get_service.return_value = mock_service
+        )
 
-            mock_idx_service = MagicMock()
-            mock_idx_service.is_indexing = False
-            mock_get_idx.return_value = mock_idx_service
+        mock_idx_service = MagicMock()
+        mock_idx_service.is_indexing = False
 
-            response = client.post(
-                "/query/",
-                json={"query": "test query"},
-            )
+        app_with_mocks.state.query_service = mock_service
+        app_with_mocks.state.indexing_service = mock_idx_service
+
+        response = client.post(
+            "/query/",
+            json={"query": "test query"},
+        )
 
         assert response.status_code == 200
 
-    def test_query_service_not_ready_no_index(self, client, mock_vector_store):
+    def test_query_service_not_ready_no_index(
+        self, app_with_mocks, client, mock_vector_store
+    ):
         """Test query returns empty results when no documents match."""
-        from doc_serve_server.services.query_service import get_query_service
-
-        service = get_query_service()
-        service.vector_store = mock_vector_store
-
         mock_vector_store.is_initialized = True
 
-        with (
-            patch(
-                "doc_serve_server.api.routers.query.get_query_service"
-            ) as mock_get_service,
-            patch(
-                "doc_serve_server.api.routers.query.get_indexing_service"
-            ) as mock_get_idx,
-        ):
-            mock_service = MagicMock()
-            mock_service.is_ready.return_value = True
-            mock_service.execute_query = AsyncMock(
-                return_value=MagicMock(
-                    results=[],
-                    query_time_ms=5.0,
-                    total_results=0,
-                )
+        mock_service = MagicMock()
+        mock_service.is_ready.return_value = True
+        mock_service.execute_query = AsyncMock(
+            return_value=MagicMock(
+                results=[],
+                query_time_ms=5.0,
+                total_results=0,
             )
-            mock_get_service.return_value = mock_service
+        )
 
-            mock_idx_service = MagicMock()
-            mock_idx_service.is_indexing = False
-            mock_get_idx.return_value = mock_idx_service
+        mock_idx_service = MagicMock()
+        mock_idx_service.is_indexing = False
 
-            response = client.post(
-                "/query/",
-                json={"query": "test query"},
-            )
+        app_with_mocks.state.query_service = mock_service
+        app_with_mocks.state.indexing_service = mock_idx_service
+
+        response = client.post(
+            "/query/",
+            json={"query": "test query"},
+        )
 
         assert response.status_code == 200
         data = response.json()

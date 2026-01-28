@@ -1,9 +1,14 @@
 """Application configuration using Pydantic settings."""
 
+import json
+import logging
 from functools import lru_cache
 from pathlib import Path
+from typing import Any, Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
@@ -42,6 +47,10 @@ class Settings(BaseSettings):
     # Rate Limiting
     EMBEDDING_BATCH_SIZE: int = 100
 
+    # Multi-instance Configuration
+    DOC_SERVE_STATE_DIR: Optional[str] = None  # Override state directory
+    DOC_SERVE_MODE: str = "project"  # "project" or "shared"
+
     model_config = SettingsConfigDict(
         env_file=[
             ".env",  # Current directory
@@ -60,3 +69,24 @@ def get_settings() -> Settings:
 
 
 settings = get_settings()
+
+
+def load_project_config(state_dir: Path) -> dict[str, Any]:
+    """Load project configuration from state directory.
+
+    Precedence: CLI flags > env vars > project config > defaults
+
+    Args:
+        state_dir: Path to the state directory containing config.json.
+
+    Returns:
+        Dictionary of configuration values from config.json, or empty dict.
+    """
+    config_path = state_dir / "config.json"
+    if config_path.exists():
+        try:
+            with open(config_path) as f:
+                return json.load(f)  # type: ignore[no-any-return]
+        except (json.JSONDecodeError, OSError) as e:
+            logger.warning(f"Failed to load project config from {config_path}: {e}")
+    return {}

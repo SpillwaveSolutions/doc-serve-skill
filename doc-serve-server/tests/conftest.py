@@ -113,7 +113,11 @@ def mock_bm25_manager():
 
 @pytest.fixture
 def app_with_mocks(mock_vector_store, mock_embedding_generator, mock_bm25_manager):
-    """Create FastAPI app with mocked dependencies."""
+    """Create FastAPI app with mocked dependencies.
+
+    Sets up app.state with mock services to match the DI pattern
+    used by route handlers (request.app.state.<service>).
+    """
     with (
         patch(
             "doc_serve_server.storage.get_vector_store", return_value=mock_vector_store
@@ -133,6 +137,24 @@ def app_with_mocks(mock_vector_store, mock_embedding_generator, mock_bm25_manage
         ),
     ):
         from doc_serve_server.api.main import app
+        from doc_serve_server.services import IndexingService, QueryService
+
+        # Populate app.state with mock-backed services for DI
+        app.state.vector_store = mock_vector_store
+        app.state.bm25_manager = mock_bm25_manager
+        app.state.indexing_service = IndexingService(
+            vector_store=mock_vector_store,
+            bm25_manager=mock_bm25_manager,
+        )
+        app.state.query_service = QueryService(
+            vector_store=mock_vector_store,
+            embedding_generator=mock_embedding_generator,
+            bm25_manager=mock_bm25_manager,
+        )
+        app.state.mode = "project"
+        app.state.instance_id = None
+        app.state.project_id = None
+        app.state.active_projects = None
 
         yield app
 

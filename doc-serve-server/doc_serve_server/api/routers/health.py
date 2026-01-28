@@ -3,11 +3,9 @@
 from datetime import datetime, timezone
 from typing import Literal
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
 
 from doc_serve_server.models import HealthStatus, IndexingStatus
-from doc_serve_server.services import get_indexing_service
-from doc_serve_server.storage import get_vector_store
 
 router = APIRouter()
 
@@ -18,9 +16,8 @@ router = APIRouter()
     summary="Health Check",
     description="Returns the current server health status.",
 )
-async def health_check() -> HealthStatus:
-    """
-    Check server health status.
+async def health_check(request: Request) -> HealthStatus:
+    """Check server health status.
 
     Returns:
         HealthStatus with current status:
@@ -29,8 +26,8 @@ async def health_check() -> HealthStatus:
         - degraded: Server is up but some services are unavailable
         - unhealthy: Server is not operational
     """
-    indexing_service = get_indexing_service()
-    vector_store = get_vector_store()
+    indexing_service = request.app.state.indexing_service
+    vector_store = request.app.state.vector_store
 
     # Determine status
     status: Literal["healthy", "indexing", "degraded", "unhealthy"]
@@ -47,11 +44,21 @@ async def health_check() -> HealthStatus:
         status = "healthy"
         message = "Server is running and ready for queries"
 
+    # Multi-instance metadata
+    mode = getattr(request.app.state, "mode", "project")
+    instance_id = getattr(request.app.state, "instance_id", None)
+    project_id = getattr(request.app.state, "project_id", None)
+    active_projects = getattr(request.app.state, "active_projects", None)
+
     return HealthStatus(
         status=status,
         message=message,
         timestamp=datetime.now(timezone.utc),
         version="1.0.0",
+        mode=mode,
+        instance_id=instance_id,
+        project_id=project_id,
+        active_projects=active_projects,
     )
 
 
@@ -61,9 +68,8 @@ async def health_check() -> HealthStatus:
     summary="Indexing Status",
     description="Returns detailed indexing status information.",
 )
-async def indexing_status() -> IndexingStatus:
-    """
-    Get detailed indexing status.
+async def indexing_status(request: Request) -> IndexingStatus:
+    """Get detailed indexing status.
 
     Returns:
         IndexingStatus with:
@@ -73,7 +79,7 @@ async def indexing_status() -> IndexingStatus:
         - last_indexed_at: Timestamp of last indexing operation
         - indexed_folders: List of folders that have been indexed
     """
-    indexing_service = get_indexing_service()
+    indexing_service = request.app.state.indexing_service
     status = await indexing_service.get_status()
 
     return IndexingStatus(

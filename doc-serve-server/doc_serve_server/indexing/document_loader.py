@@ -63,6 +63,9 @@ class LanguageDetector:
         ".rs": "rust",
         # Swift
         ".swift": "swift",
+        # C#
+        ".cs": "csharp",
+        ".csx": "csharp",
     }
 
     # Language detection by content patterns (fallback)
@@ -117,6 +120,16 @@ class LanguageDetector:
             re.compile(r"^\s*import\s+Foundation", re.MULTILINE),
             re.compile(r"^\s*func\s+\w+\s*\(", re.MULTILINE),
             re.compile(r"^\s*class\s+\w+\s*:", re.MULTILINE),
+        ],
+        "csharp": [
+            re.compile(r"^\s*using\s+System", re.MULTILINE),
+            re.compile(r"^\s*namespace\s+\w+", re.MULTILINE),
+            re.compile(r"\{\s*get\s*;\s*(set\s*;)?\s*\}", re.MULTILINE),
+            re.compile(r"\[[\w]+(\(.*\))?\]", re.MULTILINE),
+            re.compile(
+                r"^\s*public\s+(class|interface|struct|record|enum)\s+\w+",
+                re.MULTILINE,
+            ),
         ],
     }
 
@@ -253,6 +266,8 @@ class DocumentLoader:
         ".go",  # Go
         ".rs",  # Rust
         ".swift",  # Swift
+        ".cs",
+        ".csx",  # C#
     }
 
     SUPPORTED_EXTENSIONS: set[str] = DOCUMENT_EXTENSIONS | CODE_EXTENSIONS

@@ -1,0 +1,290 @@
+"""Tests for multi-instance CLI commands (init, start, stop, list)."""
+
+import json
+import tempfile
+from pathlib import Path
+from unittest.mock import MagicMock, patch
+
+import pytest
+from click.testing import CliRunner
+
+from doc_svr_ctl.cli import cli
+from doc_svr_ctl.commands.init import init_command
+from doc_svr_ctl.commands.list_cmd import list_command
+from doc_svr_ctl.commands.start import start_command
+from doc_svr_ctl.commands.stop import stop_command
+
+
+@pytest.fixture
+def runner() -> CliRunner:
+    """Create a CLI test runner."""
+    return CliRunner()
+
+
+@pytest.fixture
+def temp_project(tmp_path: Path) -> Path:
+    """Create a temporary project directory."""
+    # Create a pyproject.toml to mark it as a project root
+    (tmp_path / "pyproject.toml").write_text("[tool.poetry]\nname = 'test'\n")
+    return tmp_path
+
+
+class TestInitCommand:
+    """Tests for the init command."""
+
+    def test_init_creates_directory_structure(
+        self, runner: CliRunner, temp_project: Path
+    ) -> None:
+        """Test that init creates the correct directory structure."""
+        result = runner.invoke(init_command, ["--path", str(temp_project)])
+
+        assert result.exit_code == 0
+        assert "initialized successfully" in result.output.lower()
+
+        state_dir = temp_project / ".claude" / "doc-serve"
+        assert state_dir.exists()
+        assert (state_dir / "config.json").exists()
+        assert (state_dir / "data").exists()
+        assert (state_dir / "data" / "chroma_db").exists()
+        assert (state_dir / "data" / "bm25_index").exists()
+        assert (state_dir / "logs").exists()
+
+    def test_init_writes_config(self, runner: CliRunner, temp_project: Path) -> None:
+        """Test that init writes the config.json file."""
+        result = runner.invoke(
+            init_command, ["--path", str(temp_project), "--port", "9000"]
+        )
+
+        assert result.exit_code == 0
+
+        config_path = temp_project / ".claude" / "doc-serve" / "config.json"
+        config = json.loads(config_path.read_text())
+
+        assert config["port"] == 9000
+        assert config["auto_port"] is False
+        assert config["bind_host"] == "127.0.0.1"
+
+    def test_init_fails_if_already_initialized(
+        self, runner: CliRunner, temp_project: Path
+    ) -> None:
+        """Test that init fails if already initialized without --force."""
+        # First init
+        runner.invoke(init_command, ["--path", str(temp_project)])
+
+        # Second init should fail
+        result = runner.invoke(init_command, ["--path", str(temp_project)])
+        assert result.exit_code == 1
+        assert "already exists" in result.output.lower()
+
+    def test_init_force_overwrites(self, runner: CliRunner, temp_project: Path) -> None:
+        """Test that init --force overwrites existing config."""
+        # First init with port 8000
+        runner.invoke(init_command, ["--path", str(temp_project), "--port", "8000"])
+
+        # Second init with --force and different port
+        result = runner.invoke(
+            init_command,
+            ["--path", str(temp_project), "--port", "9000", "--force"],
+        )
+        assert result.exit_code == 0
+
+        config_path = temp_project / ".claude" / "doc-serve" / "config.json"
+        config = json.loads(config_path.read_text())
+        assert config["port"] == 9000
+
+    def test_init_json_output(self, runner: CliRunner, temp_project: Path) -> None:
+        """Test that init --json outputs JSON."""
+        result = runner.invoke(init_command, ["--path", str(temp_project), "--json"])
+
+        assert result.exit_code == 0
+        output = json.loads(result.output)
+        assert output["status"] == "initialized"
+        assert "project_root" in output
+        assert "config" in output
+
+
+class TestStartCommand:
+    """Tests for the start command."""
+
+    def test_start_fails_if_not_initialized(
+        self, runner: CliRunner, temp_project: Path
+    ) -> None:
+        """Test that start fails if project not initialized."""
+        result = runner.invoke(start_command, ["--path", str(temp_project)])
+
+        assert result.exit_code == 1
+        assert "not initialized" in result.output.lower()
+
+    def test_start_json_error_output(
+        self, runner: CliRunner, temp_project: Path
+    ) -> None:
+        """Test that start --json outputs JSON error."""
+        result = runner.invoke(start_command, ["--path", str(temp_project), "--json"])
+
+        assert result.exit_code == 1
+        output = json.loads(result.output)
+        assert "error" in output
+        assert "init" in output["hint"].lower()
+
+
+class TestStopCommand:
+    """Tests for the stop command."""
+
+    def test_stop_no_state_directory(
+        self, runner: CliRunner, temp_project: Path
+    ) -> None:
+        """Test that stop handles missing state directory."""
+        result = runner.invoke(stop_command, ["--path", str(temp_project)])
+
+        assert result.exit_code == 1
+        assert "no doc-serve state found" in result.output.lower()
+
+    def test_stop_no_server_running(
+        self, runner: CliRunner, temp_project: Path
+    ) -> None:
+        """Test that stop handles no server running."""
+        # Initialize first
+        runner.invoke(init_command, ["--path", str(temp_project)])
+
+        # Stop should indicate no server running
+        result = runner.invoke(stop_command, ["--path", str(temp_project)])
+
+        # Exit code 0 since there's nothing to stop
+        assert "no server running" in result.output.lower()
+
+    def test_stop_json_output(self, runner: CliRunner, temp_project: Path) -> None:
+        """Test that stop --json outputs JSON."""
+        # Initialize first
+        runner.invoke(init_command, ["--path", str(temp_project)])
+
+        result = runner.invoke(stop_command, ["--path", str(temp_project), "--json"])
+
+        output = json.loads(result.output)
+        assert output["status"] == "not_running"
+
+
+class TestListCommand:
+    """Tests for the list command."""
+
+    def test_list_no_instances(self, runner: CliRunner) -> None:
+        """Test that list handles no running instances."""
+        with patch("doc_svr_ctl.commands.list_cmd.get_registry", return_value={}):
+            result = runner.invoke(list_command)
+
+        assert result.exit_code == 0
+        assert "no running doc-serve instances found" in result.output.lower()
+
+    def test_list_json_output(self, runner: CliRunner) -> None:
+        """Test that list --json outputs JSON."""
+        with patch("doc_svr_ctl.commands.list_cmd.get_registry", return_value={}):
+            result = runner.invoke(list_command, ["--json"])
+
+        output = json.loads(result.output)
+        assert "instances" in output
+        assert output["total"] == 0
+
+    def test_list_with_stale_instance(
+        self, runner: CliRunner, temp_project: Path
+    ) -> None:
+        """Test that list handles stale instances."""
+        # Create a stale registry entry
+        state_dir = temp_project / ".claude" / "doc-serve"
+        state_dir.mkdir(parents=True)
+
+        # Write a runtime.json with a non-existent PID
+        runtime = {
+            "pid": 999999,  # Non-existent PID
+            "base_url": "http://127.0.0.1:8000",
+            "mode": "project",
+        }
+        (state_dir / "runtime.json").write_text(json.dumps(runtime))
+
+        registry = {
+            str(temp_project): {
+                "state_dir": str(state_dir),
+                "project_name": temp_project.name,
+            }
+        }
+
+        with (
+            patch(
+                "doc_svr_ctl.commands.list_cmd.get_registry",
+                return_value=registry,
+            ),
+            patch(
+                "doc_svr_ctl.commands.list_cmd.is_process_alive",
+                return_value=False,
+            ),
+            patch("doc_svr_ctl.commands.list_cmd.save_registry"),
+        ):
+            result = runner.invoke(list_command, ["--all"])
+
+        assert result.exit_code == 0
+        # Should show the instance as stale
+        assert "stale" in result.output.lower()
+
+
+class TestCLIIntegration:
+    """Integration tests for the CLI commands."""
+
+    def test_commands_registered(self, runner: CliRunner) -> None:
+        """Test that all new commands are registered."""
+        result = runner.invoke(cli, ["--help"])
+
+        assert result.exit_code == 0
+        assert "init" in result.output
+        assert "start" in result.output
+        assert "stop" in result.output
+        assert "list" in result.output
+
+    def test_init_workflow(self, runner: CliRunner, temp_project: Path) -> None:
+        """Test the init workflow through the main CLI."""
+        result = runner.invoke(cli, ["init", "--path", str(temp_project)])
+
+        assert result.exit_code == 0
+        assert (temp_project / ".claude" / "doc-serve" / "config.json").exists()
+
+
+class TestProjectRootResolution:
+    """Tests for project root resolution in commands."""
+
+    def test_resolve_from_git_root(self, runner: CliRunner, tmp_path: Path) -> None:
+        """Test that project root is resolved from git root."""
+        # Create a fake git repo
+        git_dir = tmp_path / ".git"
+        git_dir.mkdir()
+
+        # Create subdirectory
+        sub_dir = tmp_path / "src" / "package"
+        sub_dir.mkdir(parents=True)
+
+        # Mock git rev-parse to return the tmp_path
+        with patch("subprocess.run") as mock_run:
+            mock_result = MagicMock()
+            mock_result.returncode = 0
+            mock_result.stdout = str(tmp_path)
+            mock_run.return_value = mock_result
+
+            result = runner.invoke(init_command, ["--path", str(sub_dir)])
+
+        # Should resolve to tmp_path (the git root)
+        assert result.exit_code == 0
+
+    def test_resolve_from_claude_dir(self, runner: CliRunner, tmp_path: Path) -> None:
+        """Test that project root is resolved from .claude directory."""
+        # Create .claude directory
+        (tmp_path / ".claude").mkdir()
+
+        # Create subdirectory
+        sub_dir = tmp_path / "src"
+        sub_dir.mkdir()
+
+        # Mock git to fail (not a git repo)
+        with patch("subprocess.run") as mock_run:
+            mock_result = MagicMock()
+            mock_result.returncode = 1
+            mock_run.return_value = mock_result
+
+            result = runner.invoke(init_command, ["--path", str(sub_dir)])
+
+        assert result.exit_code == 0

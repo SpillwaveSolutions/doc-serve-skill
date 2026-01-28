@@ -2,10 +2,9 @@
 
 import logging
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, Request, status
 
 from doc_serve_server.models import QueryRequest, QueryResponse
-from doc_serve_server.services import get_indexing_service, get_query_service
 
 logger = logging.getLogger(__name__)
 
@@ -18,33 +17,30 @@ router = APIRouter()
     summary="Query Documents",
     description="Perform semantic, keyword, or hybrid search on indexed documents.",
 )
-async def query_documents(request: QueryRequest) -> QueryResponse:
-    """
-    Execute a search query on indexed documents.
+async def query_documents(
+    request_body: QueryRequest, request: Request
+) -> QueryResponse:
+    """Execute a search query on indexed documents.
 
     Args:
-        request: QueryRequest containing:
-            - query: The search query text
-            - top_k: Number of results to return (default: 5)
-            - similarity_threshold: Minimum similarity score (default: 0.7)
-            - mode: Retrieval mode (vector, bm25, hybrid)
-            - alpha: Weight for hybrid search (1.0=vector, 0.0=bm25)
+        request_body: QueryRequest containing query parameters.
+        request: FastAPI request for accessing app state.
 
     Returns:
-        QueryResponse containing:
-            - results: List of matching chunks with sources and scores
-            - query_time_ms: Query execution time in milliseconds
-            - total_results: Total number of results found
+        QueryResponse with ranked results and timing.
 
     Raises:
         400: Invalid query (empty or too long)
         503: Index not ready (indexing in progress or not initialized)
     """
-    query_service = get_query_service()
-    indexing_service = get_indexing_service()
+    from doc_serve_server.services import QueryService
+    from doc_serve_server.services.indexing_service import IndexingService
+
+    query_service: QueryService = request.app.state.query_service
+    indexing_service: IndexingService = request.app.state.indexing_service
 
     # Validate query
-    query = request.query.strip()
+    query = request_body.query.strip()
     if not query:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -66,7 +62,7 @@ async def query_documents(request: QueryRequest) -> QueryResponse:
 
     # Execute query
     try:
-        response = await query_service.execute_query(request)
+        response = await query_service.execute_query(request_body)
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -81,14 +77,16 @@ async def query_documents(request: QueryRequest) -> QueryResponse:
     summary="Document Count",
     description="Get the total number of indexed document chunks.",
 )
-async def get_document_count() -> dict[str, int | bool]:
-    """
-    Get the total number of indexed document chunks.
+async def get_document_count(request: Request) -> dict[str, int | bool]:
+    """Get the total number of indexed document chunks.
+
+    Args:
+        request: FastAPI request for accessing app state.
 
     Returns:
         Dictionary with count of indexed chunks.
     """
-    query_service = get_query_service()
+    query_service = request.app.state.query_service
 
     count = await query_service.get_document_count()
 

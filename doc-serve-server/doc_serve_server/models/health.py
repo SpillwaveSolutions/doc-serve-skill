@@ -25,6 +25,22 @@ class HealthStatus(BaseModel):
         default="1.0.0",
         description="Server version",
     )
+    mode: Optional[str] = Field(
+        default=None,
+        description="Instance mode: 'project' or 'shared'",
+    )
+    instance_id: Optional[str] = Field(
+        default=None,
+        description="Unique instance identifier",
+    )
+    project_id: Optional[str] = Field(
+        default=None,
+        description="Project identifier (shared mode)",
+    )
+    active_projects: Optional[int] = Field(
+        default=None,
+        description="Number of active projects (shared mode)",
+    )
 
     model_config = {
         "json_schema_extra": {

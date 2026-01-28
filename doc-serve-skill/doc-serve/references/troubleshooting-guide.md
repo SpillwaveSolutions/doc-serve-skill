@@ -231,28 +231,87 @@ top -p $(pgrep -f "doc-serve")
 
 **Solutions:**
 
-**Start the server:**
+**Start the server (multi-instance mode):**
 ```bash
-doc-serve &
-sleep 3
+doc-svr-ctl start --daemon   # Uses auto-port allocation
+doc-svr-ctl status           # Shows the actual port
 ```
 
 **Check server status:**
 ```bash
 doc-svr-ctl status
-# Should show server is healthy
+# Should show server is healthy with port number
 ```
 
-**Verify port:**
+**Verify port from runtime.json:**
 ```bash
-# Check if server is listening
-netstat -tlnp | grep 8000
+# Check what port was assigned
+cat .claude/doc-serve/runtime.json | jq '.port'
+```
+
+**List all running instances:**
+```bash
+doc-svr-ctl list
+# Shows all projects with their ports
 ```
 
 **Use correct URL:**
 ```bash
-# If server is on different port/host
-doc-svr-ctl --url http://localhost:8001 status
+# Override URL if needed
+export DOC_SERVE_URL="http://localhost:54321"
+doc-svr-ctl status
+```
+
+### 8a. Stale Server State (Multi-Instance)
+
+**Symptoms:**
+- `runtime.json` exists but server is not responding
+- "Server not responding" warnings
+- Previous server crashed without cleanup
+
+**Solutions:**
+
+**Let the CLI handle it:**
+```bash
+# CLI automatically detects stale state and starts fresh
+doc-svr-ctl start --daemon
+```
+
+**Manual cleanup:**
+```bash
+# Remove stale state files
+rm .claude/doc-serve/runtime.json
+rm .claude/doc-serve/lock.json
+rm .claude/doc-serve/pid
+
+# Start fresh
+doc-svr-ctl start --daemon
+```
+
+### 8b. Multiple Agents Racing to Start
+
+**Symptoms:**
+- "Another instance is already running" error
+- Lock acquisition failures
+
+**Solutions:**
+
+The lock file protocol prevents double-start automatically:
+```bash
+# First agent wins and starts the server
+# Second agent should detect the running instance
+doc-svr-ctl status
+
+# If lock is stale (process died), cleanup happens automatically
+doc-svr-ctl start --daemon
+```
+
+**If locks persist incorrectly:**
+```bash
+# Manual lock cleanup (only if process is truly dead)
+ps aux | grep doc-serve  # Verify no process running
+rm .claude/doc-serve/lock.json
+doc-svr-ctl start --daemon
 ```
 
 ### 9. Invalid API Key Errors

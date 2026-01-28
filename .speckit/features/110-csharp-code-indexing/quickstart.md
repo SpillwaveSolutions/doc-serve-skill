@@ -81,10 +81,10 @@ Doc-serve extracts:
 
 ## Verification Checklist
 
-- [ ] `.cs` files are detected and loaded during indexing
-- [ ] `.csx` files are also detected and loaded
-- [ ] C# code is chunked at class/method boundaries (not arbitrary line splits)
-- [ ] Symbol metadata (name, kind, parameters, return type) is present in query results
-- [ ] XML doc comments (`///`) are extracted as docstring metadata
-- [ ] `--language csharp` filter returns only C# results
-- [ ] C# files with syntax errors fall back to text-based chunking (not skipped)
+- [x] `.cs` files are detected and loaded during indexing
+- [x] `.csx` files are also detected and loaded
+- [x] C# code is chunked at class/method boundaries (not arbitrary line splits)
+- [x] Symbol metadata (name, kind, parameters, return type) is present in query results
+- [x] XML doc comments (`///`) are extracted as docstring metadata
+- [x] `--language csharp` filter returns only C# results
+- [x] C# files with syntax errors fall back to text-based chunking (not skipped)
