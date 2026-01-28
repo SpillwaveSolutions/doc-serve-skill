@@ -1,7 +1,6 @@
 """Tests for multi-instance CLI commands (init, start, stop, list)."""
 
 import json
-import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
