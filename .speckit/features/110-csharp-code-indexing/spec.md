@@ -2,7 +2,7 @@
 
 **Feature Branch**: `110-csharp-code-indexing`
 **Created**: 2026-01-27
-**Status**: Draft
+**Status**: Implemented
 **Input**: User description: "Add C# to the indexing of source code"
 
 ## User Scenarios & Testing *(mandatory)*

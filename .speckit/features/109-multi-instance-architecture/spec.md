@@ -2,7 +2,7 @@
 
 **Feature Branch**: `109-multi-instance-architecture`
 **Created**: 2026-01-27
-**Status**: Draft
+**Status**: Implemented (MVP - User Story 1)
 **Input**: User description: "Refactor doc-serve from single-instance to concurrent multi-project operation with per-project and shared daemon deployment modes"
 
 ## User Scenarios & Testing *(mandatory)*

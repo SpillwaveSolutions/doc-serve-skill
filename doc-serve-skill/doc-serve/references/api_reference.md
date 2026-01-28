@@ -2,11 +2,15 @@
 
 ## Base URL
 
-```
-http://127.0.0.1:8000
+Discover from runtime file (multi-instance mode):
+```bash
+cat .claude/doc-serve/runtime.json | jq -r '.base_url'
+# Example: http://127.0.0.1:54321
 ```
 
-Configure via environment variable: `DOC_SERVE_URL`
+Default (single instance): `http://127.0.0.1:8000`
+
+Override via environment: `DOC_SERVE_URL`
 
 ---
 

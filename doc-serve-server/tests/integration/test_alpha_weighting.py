@@ -1,31 +1,31 @@
 """Integration tests for alpha weighting in hybrid mode."""
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 
 class TestAlphaWeighting:
     """Tests for alpha parameter validation and behavior."""
 
-    def test_alpha_validation_bounds(self, client):
+    def test_alpha_validation_bounds(self, app_with_mocks, client):
         """Test that alpha must be between 0.0 and 1.0."""
-        # Valid bounds
-        for alpha in [0.0, 0.5, 1.0]:
-            # Use mock to avoid actual execution but check validation
-            with patch(
-                "doc_serve_server.api.routers.query.get_query_service"
-            ) as mock_get_service:
-                mock_service = MagicMock()
-                mock_service.is_ready.return_value = True
-                mock_service.execute_query = AsyncMock(
-                    return_value=MagicMock(results=[], query_time_ms=0, total_results=0)
-                )
-                mock_get_service.return_value = mock_service
+        # Valid bounds - set up mock query/indexing service on app.state
+        mock_service = MagicMock()
+        mock_service.is_ready.return_value = True
+        mock_service.execute_query = AsyncMock(
+            return_value=MagicMock(results=[], query_time_ms=0, total_results=0)
+        )
+        mock_idx_service = MagicMock()
+        mock_idx_service.is_indexing = False
 
-                response = client.post(
-                    "/query/",
-                    json={"query": "test", "mode": "hybrid", "alpha": alpha},
-                )
-                assert response.status_code == 200
+        app_with_mocks.state.query_service = mock_service
+        app_with_mocks.state.indexing_service = mock_idx_service
+
+        for alpha in [0.0, 0.5, 1.0]:
+            response = client.post(
+                "/query/",
+                json={"query": "test", "mode": "hybrid", "alpha": alpha},
+            )
+            assert response.status_code == 200
 
         # Invalid bounds
         for alpha in [-0.1, 1.1]:
@@ -36,15 +36,15 @@ class TestAlphaWeighting:
             assert response.status_code == 422
 
     def test_alpha_passing_to_service(
-        self, client, mock_vector_store, mock_bm25_manager, mock_embedding_generator
+        self,
+        app_with_mocks,
+        client,
+        mock_vector_store,
+        mock_bm25_manager,
+        mock_embedding_generator,
     ):
         """Test that alpha is used correctly in manual hybrid fusion."""
-        from doc_serve_server.services.query_service import get_query_service
-
-        service = get_query_service()
-        service.vector_store = mock_vector_store
-        service.bm25_manager = mock_bm25_manager
-        service.embedding_generator = mock_embedding_generator
+        from doc_serve_server.services import QueryService
 
         mock_vector_store.is_initialized = True
         mock_bm25_manager.is_initialized = True
@@ -82,6 +82,14 @@ class TestAlphaWeighting:
                 )
             ]
         )
+
+        # Create a real QueryService with mocked deps and set on app.state
+        query_service = QueryService(
+            vector_store=mock_vector_store,
+            embedding_generator=mock_embedding_generator,
+            bm25_manager=mock_bm25_manager,
+        )
+        app_with_mocks.state.query_service = query_service
 
         alpha_value = 0.7
         response = client.post(

@@ -124,5 +124,8 @@ test_output/
 !.claude/
 !.opencode/
 .env
-!CLAUDE.md 
+!CLAUDE.md
 !AGENTS.md
+
+# Doc-serve per-project state directories
+.claude/doc-serve/

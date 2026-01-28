@@ -19,10 +19,10 @@
 
 **Purpose**: Branch initialization and project structure preparation
 
-- [ ] T001 Verify branch `109-multi-instance-architecture` is checked out and up to date with main
-- [ ] T002 Add `.claude/doc-serve/` to `.gitignore` in the repository root (runtime.json, lock, pid files should not be tracked)
-- [ ] T003 [P] Create empty module files for new server modules: `doc-serve-server/doc_serve_server/runtime.py`, `doc-serve-server/doc_serve_server/locking.py`, `doc-serve-server/doc_serve_server/storage_paths.py`, `doc-serve-server/doc_serve_server/project_root.py`
-- [ ] T004 [P] Create CLI commands directory structure: `doc-svr-ctl/doc_svr_ctl/commands/__init__.py`
+- [x] T001 Verify branch `109-multi-instance-architecture` is checked out and up to date with main
+- [x] T002 Add `.claude/doc-serve/` to `.gitignore` in the repository root (runtime.json, lock, pid files should not be tracked)
+- [x] T003 [P] Create empty module files for new server modules: `doc-serve-server/doc_serve_server/runtime.py`, `doc-serve-server/doc_serve_server/locking.py`, `doc-serve-server/doc_serve_server/storage_paths.py`, `doc-serve-server/doc_serve_server/project_root.py`
+- [x] T004 [P] Create CLI commands directory structure: `doc-svr-ctl/doc_svr_ctl/commands/__init__.py`
 
 ---
 
@@ -32,14 +32,14 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete. Without configurable paths, per-project isolation is impossible.
 
-- [ ] T005 Add `state_dir` parameter and `DOC_SERVE_STATE_DIR` environment variable to `doc-serve-server/doc_serve_server/config/settings.py` — default to `None` (current behavior) for backward compatibility; when set, all storage paths resolve relative to it
-- [ ] T006 Modify `VectorStoreManager.__init__` in `doc-serve-server/doc_serve_server/storage/vector_store.py` to accept an absolute `persist_dir` parameter instead of reading from global settings
-- [ ] T007 Modify `BM25IndexManager.__init__` in `doc-serve-server/doc_serve_server/indexing/bm25_index.py` to accept an absolute `persist_dir` parameter instead of reading from global settings
-- [ ] T008 Modify `IndexingService.__init__` in `doc-serve-server/doc_serve_server/services/indexing_service.py` to accept injected `VectorStoreManager` and `BM25IndexManager` dependencies instead of importing global singletons
-- [ ] T009 Remove global singleton factory functions (`get_vector_store`, `get_bm25_manager`, `get_indexing_service`) from their respective modules and replace with FastAPI `app.state`-based initialization in `doc-serve-server/doc_serve_server/api/main.py` lifespan handler
-- [ ] T010 Update all router files that depend on singletons (`doc-serve-server/doc_serve_server/api/routers/health.py`, `index.py`, `query.py`) to retrieve services from `request.app.state` instead of importing singletons
-- [ ] T011 Verify existing tests pass with refactored dependency injection — run `cd doc-serve-server && poetry run pytest`
-- [ ] T053 [P] Implement configuration loading in `doc-serve-server/doc_serve_server/config/settings.py` — add `load_project_config(state_dir: Path) -> ProjectConfig` that reads `config.json` from the state directory and merges with environment variables and built-in defaults per FR-009 precedence chain (CLI flags > env vars > project config > global config > defaults). CLI flag overrides are applied at call site.
+- [x] T005 Add `state_dir` parameter and `DOC_SERVE_STATE_DIR` environment variable to `doc-serve-server/doc_serve_server/config/settings.py` — default to `None` (current behavior) for backward compatibility; when set, all storage paths resolve relative to it
+- [x] T006 Modify `VectorStoreManager.__init__` in `doc-serve-server/doc_serve_server/storage/vector_store.py` to accept an absolute `persist_dir` parameter instead of reading from global settings
+- [x] T007 Modify `BM25IndexManager.__init__` in `doc-serve-server/doc_serve_server/indexing/bm25_index.py` to accept an absolute `persist_dir` parameter instead of reading from global settings
+- [x] T008 Modify `IndexingService.__init__` in `doc-serve-server/doc_serve_server/services/indexing_service.py` to accept injected `VectorStoreManager` and `BM25IndexManager` dependencies instead of importing global singletons
+- [x] T009 Remove global singleton factory functions (`get_vector_store`, `get_bm25_manager`, `get_indexing_service`) from their respective modules and replace with FastAPI `app.state`-based initialization in `doc-serve-server/doc_serve_server/api/main.py` lifespan handler
+- [x] T010 Update all router files that depend on singletons (`doc-serve-server/doc_serve_server/api/routers/health.py`, `index.py`, `query.py`) to retrieve services from `request.app.state` instead of importing singletons
+- [x] T011 Verify existing tests pass with refactored dependency injection — run `cd doc-serve-server && poetry run pytest`
+- [x] T053 [P] Implement configuration loading in `doc-serve-server/doc_serve_server/config/settings.py` — add `load_project_config(state_dir: Path) -> ProjectConfig` that reads `config.json` from the state directory and merges with environment variables and built-in defaults per FR-009 precedence chain (CLI flags > env vars > project config > global config > defaults). CLI flag overrides are applied at call site.
 - [ ] T054 Update FastAPI-generated OpenAPI spec to reflect new/modified endpoints — verify `/docs` endpoint exposes health_response_v2 (mode, instance_id, project_id, active_projects fields), index_request_v2 and query_request_v2 (optional project_id), and new `/projects/{project_id}/status` endpoint. Ensure OpenAPI schema is auto-generated from Pydantic models per Constitution II (OpenAPI-First).
 
 **Checkpoint**: Foundation ready — server runs with configurable `state_dir`, config precedence chain, no global singletons, and updated OpenAPI spec. All existing tests pass. User story implementation can now begin.
@@ -54,36 +54,36 @@
 
 ### Tests for User Story 1 (Constitution III: Test-Alongside)
 
-- [ ] T055 [P] [US1] Write unit tests for `project_root.py` in `doc-serve-server/tests/unit/test_project_root.py` — test git root resolution, cwd fallback, symlink resolution
-- [ ] T056 [P] [US1] Write unit tests for `runtime.py` in `doc-serve-server/tests/unit/test_runtime.py` — test RuntimeState model validation, write/read/delete cycle, stale PID detection
-- [ ] T057 [P] [US1] Write unit tests for `locking.py` in `doc-serve-server/tests/unit/test_locking.py` — test lock acquisition, release, stale detection, cleanup
-- [ ] T058 [P] [US1] Write unit tests for `storage_paths.py` in `doc-serve-server/tests/unit/test_storage.py` — test state dir resolution, directory creation, path determinism
+- [x] T055 [P] [US1] Write unit tests for `project_root.py` in `doc-serve-server/tests/unit/test_project_root.py` — test git root resolution, cwd fallback, symlink resolution
+- [x] T056 [P] [US1] Write unit tests for `runtime.py` in `doc-serve-server/tests/unit/test_runtime.py` — test RuntimeState model validation, write/read/delete cycle, stale PID detection
+- [x] T057 [P] [US1] Write unit tests for `locking.py` in `doc-serve-server/tests/unit/test_locking.py` — test lock acquisition, release, stale detection, cleanup
+- [x] T058 [P] [US1] Write unit tests for `storage_paths.py` in `doc-serve-server/tests/unit/test_storage_paths.py` — test state dir resolution, directory creation, path determinism
 - [ ] T059 [US1] Write integration test for per-project lifecycle in `doc-serve-server/tests/integration/test_lifecycle.py` — test start/stop cycle, runtime.json creation/deletion, lock acquisition/release, port binding
 
 ### Core Modules
 
-- [ ] T012 [P] [US1] Implement `project_root.py` in `doc-serve-server/doc_serve_server/project_root.py` — basic project root resolution using `git rev-parse --show-toplevel` (5s timeout) with fallback to `Path.cwd().resolve()`. Always resolve symlinks. Export `resolve_project_root(start_path: Path) -> Path`. Note: US2 (T026-T027) adds full fallback chain (.claude/ marker, pyproject.toml walk-up, edge cases).
-- [ ] T013 [P] [US1] Implement `storage.py` in `doc-serve-server/doc_serve_server/storage_paths.py` — path resolution for per-project state directory. Given a project root, return `<root>/.claude/doc-serve/` and subdirectories (`data/`, `logs/`, `data/llamaindex/`, `data/chroma_db/`, `data/bm25_index/`). Create directories if they don't exist. Export `resolve_state_dir(project_root: Path) -> Path` and `resolve_storage_paths(state_dir: Path) -> dict`.
-- [ ] T014 [P] [US1] Implement `runtime.py` in `doc-serve-server/doc_serve_server/runtime.py` — Pydantic `RuntimeState` model matching `runtime_json_project` schema from `contracts/api-changes.yaml` (fields: `schema_version`, `mode`, `project_root`, `instance_id`, `base_url`, `bind_host`, `port`, `pid`, `started_at`). Include `write_runtime(state_dir: Path, state: RuntimeState)`, `read_runtime(state_dir: Path) -> Optional[RuntimeState]`, `delete_runtime(state_dir: Path)`, and `validate_runtime(state: RuntimeState) -> bool` (checks PID alive + health endpoint).
-- [ ] T015 [P] [US1] Implement `locking.py` in `doc-serve-server/doc_serve_server/locking.py` — `fcntl.flock()`-based exclusive lock on `doc-serve.lock` with separate `doc-serve.pid` file. Export `acquire_lock(state_dir: Path) -> bool` (non-blocking, returns False if held), `release_lock(state_dir: Path)`, `read_pid(state_dir: Path) -> Optional[int]`, `is_stale(state_dir: Path) -> bool` (check PID alive via `os.kill(pid, 0)`), `cleanup_stale(state_dir: Path)`.
+- [x] T012 [P] [US1] Implement `project_root.py` in `doc-serve-server/doc_serve_server/project_root.py` — basic project root resolution using `git rev-parse --show-toplevel` (5s timeout) with fallback to `Path.cwd().resolve()`. Always resolve symlinks. Export `resolve_project_root(start_path: Path) -> Path`. Note: US2 (T026-T027) adds full fallback chain (.claude/ marker, pyproject.toml walk-up, edge cases).
+- [x] T013 [P] [US1] Implement `storage.py` in `doc-serve-server/doc_serve_server/storage_paths.py` — path resolution for per-project state directory. Given a project root, return `<root>/.claude/doc-serve/` and subdirectories (`data/`, `logs/`, `data/llamaindex/`, `data/chroma_db/`, `data/bm25_index/`). Create directories if they don't exist. Export `resolve_state_dir(project_root: Path) -> Path` and `resolve_storage_paths(state_dir: Path) -> dict`.
+- [x] T014 [P] [US1] Implement `runtime.py` in `doc-serve-server/doc_serve_server/runtime.py` — Pydantic `RuntimeState` model matching `runtime_json_project` schema from `contracts/api-changes.yaml` (fields: `schema_version`, `mode`, `project_root`, `instance_id`, `base_url`, `bind_host`, `port`, `pid`, `started_at`). Include `write_runtime(state_dir: Path, state: RuntimeState)`, `read_runtime(state_dir: Path) -> Optional[RuntimeState]`, `delete_runtime(state_dir: Path)`, and `validate_runtime(state: RuntimeState) -> bool` (checks PID alive + health endpoint).
+- [x] T015 [P] [US1] Implement `locking.py` in `doc-serve-server/doc_serve_server/locking.py` — `fcntl.flock()`-based exclusive lock on `doc-serve.lock` with separate `doc-serve.pid` file. Export `acquire_lock(state_dir: Path) -> bool` (non-blocking, returns False if held), `release_lock(state_dir: Path)`, `read_pid(state_dir: Path) -> Optional[int]`, `is_stale(state_dir: Path) -> bool` (check PID alive via `os.kill(pid, 0)`), `cleanup_stale(state_dir: Path)`.
 
 ### Server Modifications
 
-- [ ] T016 [US1] Modify `doc-serve-server/doc_serve_server/api/main.py` to support port 0 binding — change uvicorn config to accept `port=0`, after server starts read actual port from bound socket, write `runtime.json` via `runtime.py`, register shutdown hook to call `delete_runtime()` and `release_lock()`
-- [ ] T017 [US1] Modify health endpoint in `doc-serve-server/doc_serve_server/api/routers/health.py` to include `mode` field (`"project"` or `"shared"`), `instance_id`, and `project_id` in response per `health_response_v2` schema from `contracts/api-changes.yaml`
+- [x] T016 [US1] Modify `doc-serve-server/doc_serve_server/api/main.py` to support port 0 binding — change uvicorn config to accept `port=0`, after server starts read actual port from bound socket, write `runtime.json` via `runtime.py`, register shutdown hook to call `delete_runtime()` and `release_lock()`
+- [x] T017 [US1] Modify health endpoint in `doc-serve-server/doc_serve_server/api/routers/health.py` to include `mode` field (`"project"` or `"shared"`), `instance_id`, and `project_id` in response per `health_response_v2` schema from `contracts/api-changes.yaml`
 
 ### CLI Commands
 
-- [ ] T018 [P] [US1] Implement `start` command in `doc-svr-ctl/doc_svr_ctl/commands/start.py` — resolve project root, check for existing lock/runtime, detect and clean stale state, spawn server subprocess (daemonized), wait for health endpoint readiness, print base URL
-- [ ] T019 [P] [US1] Implement `stop` command in `doc-svr-ctl/doc_svr_ctl/commands/stop.py` — read `runtime.json`, send SIGTERM to PID, wait for process exit, verify cleanup of runtime artifacts
-- [ ] T020 [P] [US1] Implement `status` command in `doc-svr-ctl/doc_svr_ctl/commands/status.py` — resolve project root from cwd, read `runtime.json`, validate health endpoint, report address and indexing status (or "not running")
-- [ ] T021 [P] [US1] Implement `list` command in `doc-svr-ctl/doc_svr_ctl/commands/list_cmd.py` — maintain a registry file at `~/.doc-serve/registry.json` (list of known project state directories, updated by `start`/`stop`/`init`). Scan registry entries for `runtime.json` files, validate each via health check, report table of running instances with project name, URL, mode, and PID. Fall back to scanning `~/.doc-serve/projects/` for shared mode instances.
-- [ ] T022 [P] [US1] Implement `init` command in `doc-svr-ctl/doc_svr_ctl/commands/init.py` — resolve project root, create `.claude/doc-serve/` directory, write `config.json` with defaults per `config_json` schema from `contracts/api-changes.yaml`
-- [ ] T023 [US1] Register all new commands in `doc-svr-ctl/doc_svr_ctl/cli.py` — add `start`, `stop`, `status` (update existing), `list`, and `init` as Click commands/groups
+- [x] T018 [P] [US1] Implement `start` command in `doc-svr-ctl/doc_svr_ctl/commands/start.py` — resolve project root, check for existing lock/runtime, detect and clean stale state, spawn server subprocess (daemonized), wait for health endpoint readiness, print base URL
+- [x] T019 [P] [US1] Implement `stop` command in `doc-svr-ctl/doc_svr_ctl/commands/stop.py` — read `runtime.json`, send SIGTERM to PID, wait for process exit, verify cleanup of runtime artifacts
+- [x] T020 [P] [US1] Implement `status` command in `doc-svr-ctl/doc_svr_ctl/commands/status.py` — resolve project root from cwd, read `runtime.json`, validate health endpoint, report address and indexing status (or "not running")
+- [x] T021 [P] [US1] Implement `list` command in `doc-svr-ctl/doc_svr_ctl/commands/list_cmd.py` — maintain a registry file at `~/.doc-serve/registry.json` (list of known project state directories, updated by `start`/`stop`/`init`). Scan registry entries for `runtime.json` files, validate each via health check, report table of running instances with project name, URL, mode, and PID. Fall back to scanning `~/.doc-serve/projects/` for shared mode instances.
+- [x] T022 [P] [US1] Implement `init` command in `doc-svr-ctl/doc_svr_ctl/commands/init.py` — resolve project root, create `.claude/doc-serve/` directory, write `config.json` with defaults per `config_json` schema from `contracts/api-changes.yaml`
+- [x] T023 [US1] Register all new commands in `doc-svr-ctl/doc_svr_ctl/cli.py` — add `start`, `stop`, `status` (update existing), `list`, and `init` as Click commands/groups
 
 ### Integration
 
-- [ ] T024 [US1] Add startup integration in `doc-serve-server/doc_serve_server/api/main.py` lifespan — on startup: resolve project root → resolve state dir → acquire lock (fail if held and not stale) → bind port 0 → resolve storage paths → initialize services with resolved paths → write runtime.json. On shutdown: delete runtime.json → release lock → delete PID file.
+- [x] T024 [US1] Add startup integration in `doc-serve-server/doc_serve_server/api/main.py` lifespan — on startup: resolve project root → resolve state dir → acquire lock (fail if held and not stale) → bind port 0 → resolve storage paths → initialize services with resolved paths → write runtime.json. On shutdown: delete runtime.json → release lock → delete PID file.
 - [ ] T025 [US1] Verify per-project lifecycle end-to-end: start server via CLI, confirm `runtime.json` written with actual port, run status from subdirectory, stop server, confirm all artifacts cleaned up
 
 **Checkpoint**: Per-project mode is fully functional. A developer can `init → start → status → stop` for any project. Two projects can run concurrently on different ports. Crashed instances recover on next start. This is the MVP.

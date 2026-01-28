@@ -3,7 +3,16 @@
 import click
 
 from . import __version__
-from .commands import index_command, query_command, reset_command, status_command
+from .commands import (
+    index_command,
+    init_command,
+    list_command,
+    query_command,
+    reset_command,
+    start_command,
+    status_command,
+    stop_command,
+)
 
 
 @click.group()
@@ -15,11 +24,27 @@ def cli() -> None:
     indexing and semantic search API.
 
     \b
+    Project Commands:
+      init     Initialize a new doc-serve project
+      start    Start the server for this project
+      stop     Stop the server for this project
+      list     List all running doc-serve instances
+
+    \b
+    Server Commands:
+      status   Check server status
+      query    Search documents
+      index    Index documents from a folder
+      reset    Clear all indexed documents
+
+    \b
     Examples:
+      doc-svr-ctl init                      # Initialize project
+      doc-svr-ctl start                     # Start server
       doc-svr-ctl status                    # Check server status
       doc-svr-ctl query "how to use python" # Search documents
       doc-svr-ctl index ./docs              # Index documents
-      doc-svr-ctl reset --yes               # Clear all indexed documents
+      doc-svr-ctl stop                      # Stop server
 
     \b
     Environment Variables:
@@ -28,7 +53,13 @@ def cli() -> None:
     pass
 
 
-# Register commands
+# Register project management commands
+cli.add_command(init_command, name="init")
+cli.add_command(start_command, name="start")
+cli.add_command(stop_command, name="stop")
+cli.add_command(list_command, name="list")
+
+# Register server interaction commands
 cli.add_command(status_command, name="status")
 cli.add_command(query_command, name="query")
 cli.add_command(index_command, name="index")

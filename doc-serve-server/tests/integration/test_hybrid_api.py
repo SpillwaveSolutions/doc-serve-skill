@@ -7,15 +7,15 @@ class TestHybridQueryEndpoint:
     """Tests for hybrid query mode via API."""
 
     def test_query_hybrid_mode(
-        self, client, mock_vector_store, mock_bm25_manager, mock_embedding_generator
+        self,
+        app_with_mocks,
+        client,
+        mock_vector_store,
+        mock_bm25_manager,
+        mock_embedding_generator,
     ):
         """Test querying with mode=hybrid."""
-        from doc_serve_server.services.query_service import get_query_service
-
-        service = get_query_service()
-        service.vector_store = mock_vector_store
-        service.bm25_manager = mock_bm25_manager
-        service.embedding_generator = mock_embedding_generator
+        from doc_serve_server.services import QueryService
 
         mock_vector_store.is_initialized = True
         mock_bm25_manager.is_initialized = True
@@ -53,6 +53,14 @@ class TestHybridQueryEndpoint:
                 )
             ]
         )
+
+        # Create real QueryService with mocked deps and set on app.state
+        query_service = QueryService(
+            vector_store=mock_vector_store,
+            embedding_generator=mock_embedding_generator,
+            bm25_manager=mock_bm25_manager,
+        )
+        app_with_mocks.state.query_service = query_service
 
         response = client.post(
             "/query/",

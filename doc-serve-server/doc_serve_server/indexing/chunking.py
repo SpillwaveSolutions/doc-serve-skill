@@ -2,6 +2,7 @@
 
 import hashlib
 import logging
+import re
 from collections.abc import Awaitable, Callable
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -455,6 +456,7 @@ class CodeChunker:
                 "java": "java",
                 "cpp": "cpp",
                 "c": "c",
+                "csharp": "csharp",
             }
 
             lang_id = lang_map.get(self.language)
@@ -534,6 +536,27 @@ class CodeChunker:
                   (type_spec
                     name: (type_identifier) @name)) @symbol
             """
+        elif self.language == "csharp":
+            query_str = """
+                (class_declaration
+                  name: (identifier) @name) @symbol
+                (method_declaration
+                  name: (identifier) @name) @symbol
+                (constructor_declaration
+                  name: (identifier) @name) @symbol
+                (interface_declaration
+                  name: (identifier) @name) @symbol
+                (property_declaration
+                  name: (identifier) @name) @symbol
+                (enum_declaration
+                  name: (identifier) @name) @symbol
+                (struct_declaration
+                  name: (identifier) @name) @symbol
+                (record_declaration
+                  name: (identifier) @name) @symbol
+                (namespace_declaration
+                  name: (identifier) @name) @symbol
+            """
 
         if not query_str:
             return []
@@ -555,18 +578,69 @@ class CodeChunker:
                     if hasattr(name_node, "text") and name_node.text:
                         name_text = name_node.text.decode("utf-8")
 
-                    symbols.append(
-                        {
-                            "name": name_text,
-                            "kind": node.type,
-                            "start_line": node.start_point[0] + 1,
-                            "end_line": node.end_point[0] + 1,
-                        }
-                    )
+                    symbol_info: dict[str, Any] = {
+                        "name": name_text,
+                        "kind": node.type,
+                        "start_line": node.start_point[0] + 1,
+                        "end_line": node.end_point[0] + 1,
+                    }
+
+                    # Extract XML doc comments for C# declarations
+                    if self.language == "csharp":
+                        docstring = self._extract_xml_doc_comment(
+                            text, node.start_point[0]
+                        )
+                        if docstring:
+                            symbol_info["docstring"] = docstring
+
+                    symbols.append(symbol_info)
         except Exception as e:
             logger.error(f"Error querying AST for {self.language}: {e}")
 
         return symbols
+
+    def _extract_xml_doc_comment(
+        self, text: str, declaration_line: int
+    ) -> Optional[str]:
+        """
+        Extract XML doc comments (/// lines) preceding a C# declaration.
+
+        Args:
+            text: The full source code text.
+            declaration_line: The 0-based line index of the declaration.
+
+        Returns:
+            Plain text extracted from XML doc comments, or None if not found.
+        """
+        lines = text.split("\n")
+        doc_lines: list[str] = []
+
+        # Walk backwards from the line before the declaration
+        line_idx = declaration_line - 1
+        while line_idx >= 0:
+            stripped = lines[line_idx].strip()
+            if stripped.startswith("///"):
+                # Remove the /// prefix
+                content = stripped[3:].strip()
+                doc_lines.insert(0, content)
+                line_idx -= 1
+            elif stripped.startswith("[") and stripped.endswith("]"):
+                # Skip attributes like [Serializable]
+                line_idx -= 1
+            else:
+                break
+
+        if not doc_lines:
+            return None
+
+        # Strip XML tags for plain text
+        combined = " ".join(doc_lines)
+        # Remove XML tags like <summary>, </summary>, <param name="x">, etc.
+        plain_text = re.sub(r"<[^>]+>", "", combined)
+        # Collapse whitespace
+        plain_text = re.sub(r"\s+", " ", plain_text).strip()
+
+        return plain_text if plain_text else None
 
     def count_tokens(self, text: str) -> int:
         """Count the number of tokens in a text string."""

@@ -6,16 +6,11 @@ from unittest.mock import AsyncMock, MagicMock
 class TestBM25QueryEndpoint:
     """Tests for BM25 query mode via API."""
 
-    def test_query_bm25_mode(self, client, mock_vector_store, mock_bm25_manager):
+    def test_query_bm25_mode(
+        self, app_with_mocks, client, mock_vector_store, mock_bm25_manager
+    ):
         """Test querying with mode=bm25."""
-        # Use a more direct patch on the service instance used by the router
-        from doc_serve_server.services.query_service import get_query_service
-
-        service = get_query_service()
-
-        # Manually set the mocks on the singleton service
-        service.vector_store = mock_vector_store
-        service.bm25_manager = mock_bm25_manager
+        from doc_serve_server.services import QueryService
 
         mock_vector_store.is_initialized = True
         mock_bm25_manager.is_initialized = True
@@ -29,6 +24,13 @@ class TestBM25QueryEndpoint:
         node_mock.score = 1.0
         retriever_mock.aretrieve = AsyncMock(return_value=[node_mock])
         mock_bm25_manager.get_retriever.return_value = retriever_mock
+
+        # Create QueryService with mocked deps and set on app.state
+        query_service = QueryService(
+            vector_store=mock_vector_store,
+            bm25_manager=mock_bm25_manager,
+        )
+        app_with_mocks.state.query_service = query_service
 
         response = client.post(
             "/query/",

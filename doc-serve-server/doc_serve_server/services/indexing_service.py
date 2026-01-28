@@ -363,8 +363,10 @@ class IndexingService:
                     metadatas=[chunk.metadata.to_dict() for chunk in batch_chunks],
                 )
 
-                logger.info(f"Stored batch {batch_start // chroma_batch_size + 1} "
-                           f"({len(batch_chunks)} chunks) in vector database")
+                logger.info(
+                    f"Stored batch {batch_start // chroma_batch_size + 1} "
+                    f"({len(batch_chunks)} chunks) in vector database"
+                )
 
             # Step 5: Build BM25 index
             if progress_callback:
