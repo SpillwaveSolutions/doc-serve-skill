@@ -124,3 +124,5 @@ test_output/
 !.claude/
 !.opencode/
 .env
+!CLAUDE.md 
+!AGENTS.md
