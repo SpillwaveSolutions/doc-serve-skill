@@ -470,7 +470,7 @@ Every LlamaIndex component that currently uses hardcoded paths must be updated:
 ## Module Structure
 
 ```
-doc_serve_server/
+agent_brain_server/
 ├── __init__.py
 ├── runtime.py          # NEW: Runtime state management
 ├── locking.py          # NEW: Lock file handling

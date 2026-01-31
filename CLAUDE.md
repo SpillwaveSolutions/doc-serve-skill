@@ -1,16 +1,16 @@
-# Doc-Serve Development Guidelines
+# Agent Brain Development Guidelines
 
 Instructions for Claude Code when working on this repository.
 
 ## Project Overview
 
-Doc-Serve is a RAG-based document indexing and semantic search system. It's a monorepo containing:
+Agent Brain is a RAG-based document indexing and semantic search system. It's a monorepo containing:
 
 | Package | Path | Description |
 |---------|------|-------------|
-| doc-serve-server | `doc-serve-server/` | FastAPI REST API server |
-| doc-svr-ctl | `doc-svr-ctl/` | CLI management tool |
-| doc-serve-skill | `doc-serve-skill/` | Claude Code skill |
+| agent-brain-server | `agent-brain-server/` | FastAPI REST API server |
+| agent-brain-cli | `agent-brain-cli/` | CLI management tool |
+| agent-brain-skill | `agent-brain-skill/` | Claude Code skill |
 
 ## Technology Stack
 
@@ -24,44 +24,44 @@ Doc-Serve is a RAG-based document indexing and semantic search system. It's a mo
 
 ## Build and Test Commands
 
-### doc-serve-server
+### agent-brain-server
 
 ```bash
-cd doc-serve-server
+cd agent-brain-server
 poetry install                    # Install dependencies
-poetry run doc-serve              # Run server
+poetry run agent-brain-serve      # Run server
 poetry run pytest                 # Run tests
-poetry run pytest --cov=doc_serve_server       # Tests with coverage
-poetry run mypy doc_serve_server               # Type checking
-poetry run ruff check doc_serve_server         # Linting
-poetry run black doc_serve_server              # Format code
+poetry run pytest --cov=agent_brain_server       # Tests with coverage
+poetry run mypy agent_brain_server               # Type checking
+poetry run ruff check agent_brain_server         # Linting
+poetry run black agent_brain_server              # Format code
 ```
 
-### doc-svr-ctl
+### agent-brain-cli
 
 ```bash
-cd doc-svr-ctl
+cd agent-brain-cli
 poetry install                    # Install dependencies
-poetry run doc-svr-ctl --help     # Show CLI help
+poetry run agent-brain --help     # Show CLI help
 poetry run pytest                 # Run tests
-poetry run mypy doc_serve_server               # Type checking
-poetry run ruff check doc_serve_server         # Linting
-poetry run black doc_serve_server              # Format code
+poetry run mypy agent_brain_cli               # Type checking
+poetry run ruff check agent_brain_cli         # Linting
+poetry run black agent_brain_cli              # Format code
 ```
 
 ### Full Quality Check
 
 ```bash
 # Run from package directory
-poetry run black doc_serve_server tests && poetry run ruff check doc_serve_server tests && poetry run mypy doc_serve_server && poetry run pytest
+poetry run black agent_brain_server tests && poetry run ruff check agent_brain_server tests && poetry run mypy agent_brain_server && poetry run pytest
 ```
 
 ## Project Structure
 
 ```
 doc-serve/
-├── doc-serve-server/           # FastAPI server
-│   ├── doc_serve_server/           # FastAPI server
+├── agent-brain-server/           # FastAPI server
+│   ├── agent_brain_server/           # FastAPI server
 │   │   ├── api/                # REST endpoints
 │   │   │   ├── main.py         # App entry point
 │   │   │   └── routers/        # Route handlers
@@ -71,13 +71,13 @@ doc-serve/
 │   │   ├── services/           # Business logic
 │   │   └── storage/            # ChromaDB integration
 │   └── tests/
-├── doc-svr-ctl/                # CLI tool
-│   ├── doc_serve_server/           # FastAPI server
+├── agent-brain-cli/                # CLI tool
+│   ├── agent_brain_cli/           # CLI package
 │   │   ├── cli.py              # Main entry point
 │   │   ├── client/             # API client
 │   │   └── commands/           # CLI commands
 │   └── tests/
-├── doc-serve-skill/            # Claude skill
+├── agent-brain-skill/            # Claude skill
 │   └── doc-serve/
 │       └── SKILL.md
 └── docs/                       # Documentation
@@ -115,23 +115,23 @@ doc-serve/
 
 | Command | Description |
 |---------|-------------|
-| `doc-svr-ctl init` | Initialize project for doc-serve (creates .claude/doc-serve/) |
-| `doc-svr-ctl start` | Start doc-serve server for current project |
-| `doc-svr-ctl stop` | Stop the running server |
-| `doc-svr-ctl list` | List all running doc-serve instances |
+| `agent-brain init` | Initialize project for Agent Brain (creates .claude/doc-serve/) |
+| `agent-brain start` | Start Agent Brain server for current project |
+| `agent-brain stop` | Stop the running server |
+| `agent-brain list` | List all running Agent Brain instances |
 
 ### Data Commands
 
 | Command | Description |
 |---------|-------------|
-| `doc-svr-ctl status` | Check server status |
-| `doc-svr-ctl query "text"` | Search documents |
-| `doc-svr-ctl index /path` | Index documents |
-| `doc-svr-ctl reset --yes` | Clear index |
+| `agent-brain status` | Check server status |
+| `agent-brain query "text"` | Search documents |
+| `agent-brain index /path` | Index documents |
+| `agent-brain reset --yes` | Clear index |
 
 ## Environment Variables
 
-### Server (doc-serve-server/.env)
+### Server (agent-brain-server/.env)
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
@@ -161,7 +161,7 @@ doc-serve/
 
 - [User Guide](docs/USER_GUIDE.md) - End-user documentation
 - [Developer Guide](docs/DEVELOPERS_GUIDE.md) - Development setup
-- [API Reference](doc-serve-skill/doc-serve/references/api_reference.md) - Full API docs
+- [API Reference](agent-brain-skill/doc-serve/references/api_reference.md) - Full API docs
 - [Original Spec](docs/ORIGINAL_SPEC.md) - Project specification
 
 ## Quality Assurance

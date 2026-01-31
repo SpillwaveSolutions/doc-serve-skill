@@ -34,14 +34,14 @@ specs:
 
 # Skill documentation - ✅ Imported to Wiki
 skill:
-  doc-serve-skill/doc-serve/SKILL.md: "Agent-Skill-Definition"
-  doc-serve-skill/doc-serve/references/api_reference.md: "Agent-Skill-API-Reference"
-  doc-serve-skill/doc-serve/references/bm25-search-guide.md: "Agent-Skill-BM25-Search-Guide"
-  doc-serve-skill/doc-serve/references/vector-search-guide.md: "Agent-Skill-Vector-Search-Guide"
-  doc-serve-skill/doc-serve/references/hybrid-search-guide.md: "Agent-Skill-Hybrid-Search-Guide"
-  doc-serve-skill/doc-serve/references/server-discovery.md: "Agent-Skill-Server-Discovery-Guide"
-  doc-serve-skill/doc-serve/references/integration-guide.md: "Agent-Skill-Integration-Guide"
-  doc-serve-skill/doc-serve/references/troubleshooting-guide.md: "Agent-Skill-Troubleshooting-Guide"
+  agent-brain-skill/doc-serve/SKILL.md: "Agent-Skill-Definition"
+  agent-brain-skill/doc-serve/references/api_reference.md: "Agent-Skill-API-Reference"
+  agent-brain-skill/doc-serve/references/bm25-search-guide.md: "Agent-Skill-BM25-Search-Guide"
+  agent-brain-skill/doc-serve/references/vector-search-guide.md: "Agent-Skill-Vector-Search-Guide"
+  agent-brain-skill/doc-serve/references/hybrid-search-guide.md: "Agent-Skill-Hybrid-Search-Guide"
+  agent-brain-skill/doc-serve/references/server-discovery.md: "Agent-Skill-Server-Discovery-Guide"
+  agent-brain-skill/doc-serve/references/integration-guide.md: "Agent-Skill-Integration-Guide"
+  agent-brain-skill/doc-serve/references/troubleshooting-guide.md: "Agent-Skill-Troubleshooting-Guide"
 
 # Feature 109 - Multi-Instance Architecture (MAJOR FEATURE)
 feature-109:

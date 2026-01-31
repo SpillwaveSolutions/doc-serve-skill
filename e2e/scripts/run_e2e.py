@@ -116,7 +116,7 @@ class E2ETestRunner:
 
     def run_cli(self, *args, timeout: int = 30) -> Tuple[int, str, str]:
         """Run a CLI command and return (exit_code, stdout, stderr)."""
-        cmd = ["poetry", "run", "doc-svr-ctl", *args]
+        cmd = ["poetry", "run", "agent-brain", *args]
         self.log(f"Running: {' '.join(cmd)}", "DEBUG")
 
         try:

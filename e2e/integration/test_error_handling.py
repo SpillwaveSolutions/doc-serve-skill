@@ -81,11 +81,11 @@ class TestConnectionErrors:
         """CLI should handle wrong server URL gracefully."""
         from pathlib import Path
 
-        CLI_DIR = Path(__file__).parent.parent.parent / "doc-svr-ctl"
+        CLI_DIR = Path(__file__).parent.parent.parent / "agent-brain-cli"
 
         import subprocess
         result = subprocess.run(
-            ["poetry", "run", "doc-svr-ctl",
+            ["poetry", "run", "agent-brain",
              "--url", "http://localhost:59999",
              "status", "--json"],
             cwd=CLI_DIR,

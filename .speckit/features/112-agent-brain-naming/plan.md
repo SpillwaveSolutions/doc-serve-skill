@@ -53,32 +53,33 @@ Unify all component names under the "agent-brain" brand to resolve naming incons
 ### Source Code (repository root)
 
 ```text
-# Existing monorepo structure (unchanged)
-doc-serve-server/
-├── doc_serve_server/
+# Monorepo structure after Phase 8 directory renames
+agent-brain-server/                    # Renamed from doc-serve-server/
+├── agent_brain_server/                # Renamed from doc_serve_server/
 │   ├── api/
-│   │   └── main.py          # Add agent-brain-serve entry point
-│   └── __init__.py          # Version bump to 1.2.0
-├── pyproject.toml           # Add new script entry point
+│   │   └── main.py                    # agent-brain-serve entry point
+│   └── __init__.py                    # Version 1.2.0
+├── pyproject.toml                     # Updated script entry points
 └── tests/
 
-doc-svr-ctl/
-├── doc_svr_ctl/
-│   ├── cli.py               # Add agent-brain entry point
-│   └── __init__.py          # Version bump to 1.2.0
-├── pyproject.toml           # Add new script entry point
+agent-brain-cli/                       # Renamed from doc-svr-ctl/
+├── agent_brain_cli/                   # Renamed from doc_svr_ctl/
+│   ├── cli.py                         # agent-brain entry point
+│   └── __init__.py                    # Version 1.2.0
+├── pyproject.toml                     # Updated script entry points
 └── tests/
 
-doc-serve-skill/
-└── doc-serve/               # Rename to using-agent-brain/
-    ├── SKILL.md             # Update name, triggers, commands
-    └── references/          # Update all references
+agent-brain-skill/                     # Renamed from doc-serve-skill/
+└── using-agent-brain/                 # Renamed from doc-serve/
+    ├── SKILL.md                       # Updated name, triggers, commands
+    └── references/                    # Updated all references
 ```
 
-**Structure Decision**: Existing monorepo structure preserved. Changes are limited to:
-1. Adding new entry points in pyproject.toml files
-2. Renaming skill directory
-3. Updating documentation references
+**Structure Decision**: Full directory restructure for brand unification:
+1. Renamed all top-level directories to agent-brain-*
+2. Renamed internal Python packages to agent_brain_*
+3. Updated all imports and references
+4. Updated Taskfile.yml for new paths
 
 ## Complexity Tracking
 
@@ -193,6 +194,19 @@ def cli():
 2. Update all URL references
 3. Verify redirects work
 4. Publish v1.2.0 to PyPI
+
+### Phase 8: Directory Renames
+1. Rename top-level directories to agent-brain naming:
+   - `doc-serve-server/` → `agent-brain-server/`
+   - `doc-svr-ctl/` → `agent-brain-cli/`
+   - `doc-serve-skill/` → `agent-brain-skill/`
+2. Rename internal Python packages:
+   - `doc_serve_server/` → `agent_brain_server/`
+   - `doc_svr_ctl/` → `agent_brain_cli/`
+3. Update all imports and internal references
+4. Update Taskfile.yml to reference new directory names
+5. Update all documentation to reflect new structure
+6. Run full test suite to verify
 
 ## Migration Guide (quickstart.md)
 

@@ -11,16 +11,16 @@ Install Doc-Serve and the management tool globally using the Task runner:
 git clone git@github.com:SpillwaveSolutions/doc-serve.git
 cd doc-serve
 
-# Install tools globally (makes 'doc-serve' and 'doc-svr-ctl' available)
+# Install tools globally (makes 'doc-serve' and 'agent-brain' available)
 task install:global
 ```
 
 ## 2. Configuration
 
-Create a `.env` file in the `doc-serve-server` directory with your API keys:
+Create a `.env` file in the `agent-brain-server` directory with your API keys:
 
 ```bash
-cd doc-serve-server
+cd agent-brain-server
 cp .env.example .env
 # Edit .env and add:
 # OPENAI_API_KEY=sk-...
@@ -35,8 +35,8 @@ Initialize and start a project-specific server with auto-port allocation:
 
 ```bash
 cd /path/to/your/project
-doc-svr-ctl init      # Creates .claude/doc-serve/ directory
-doc-svr-ctl start --daemon   # Starts server with auto-assigned port
+agent-brain init      # Creates .claude/doc-serve/ directory
+agent-brain start --daemon   # Starts server with auto-assigned port
 ```
 
 The server runs in the background with isolated indexes for this project.
@@ -57,30 +57,30 @@ Doc-Serve can index both documentation and source code for unified search:
 ### Index Documentation Only (Default)
 ```bash
 # Index documentation files (Markdown, TXT, PDF, etc.)
-doc-svr-ctl index ./docs
+agent-brain index ./docs
 ```
 
 ### Index Code + Documentation (Recommended)
 ```bash
 # Index both documentation and source code files
-doc-svr-ctl index ./my-project --include-code
+agent-brain index ./my-project --include-code
 ```
 
 ### Advanced Indexing Options
 ```bash
 # Index specific programming languages
-doc-svr-ctl index ./src --include-code --languages python,typescript
+agent-brain index ./src --include-code --languages python,typescript
 
 # Use AST-aware chunking for better code understanding
-doc-svr-ctl index ./src --include-code --code-strategy ast_aware
+agent-brain index ./src --include-code --code-strategy ast_aware
 
 # Generate LLM summaries for code chunks (improves semantic search)
-doc-svr-ctl index ./src --include-code --generate-summaries
+agent-brain index ./src --include-code --generate-summaries
 ```
 
 Check the status to ensure indexing is complete:
 ```bash
-doc-svr-ctl status
+agent-brain status
 ```
 
 ## 5. Query Knowledge
@@ -90,28 +90,28 @@ Doc-Serve supports three powerful search modes:
 ### Semantic Search (Vector - Default)
 ```bash
 # Search for espresso information using semantic similarity
-doc-svr-ctl query "espresso brewing techniques"
+agent-brain query "espresso brewing techniques"
 ```
 
 ### Keyword Search (BM25)
 ```bash
 # Search for exact word matches (great for function names, error codes)
-doc-svr-ctl query "espresso" --mode bm25
+agent-brain query "espresso" --mode bm25
 ```
 
 ### Hybrid Search (Recommended)
 ```bash
 # Combine semantic and keyword search (best of both worlds)
-doc-svr-ctl query "espresso vs french press" --mode hybrid --alpha 0.7
+agent-brain query "espresso vs french press" --mode hybrid --alpha 0.7
 ```
 
 ### Advanced Options
 ```bash
 # Show individual scores for hybrid results
-doc-svr-ctl query "brewing methods" --mode hybrid --scores
+agent-brain query "brewing methods" --mode hybrid --scores
 
 # Adjust result count and similarity threshold
-doc-svr-ctl query "coffee temperature" --top-k 10 --threshold 0.3
+agent-brain query "coffee temperature" --top-k 10 --threshold 0.3
 ```
 
 ### Code-Aware Search (with Code Ingestion)
@@ -120,20 +120,20 @@ When code is indexed, you can perform cross-reference searches with AST-aware me
 
 ```bash
 # Search across both documentation and code
-doc-svr-ctl query "authentication implementation"
+agent-brain query "authentication implementation"
 
 # Filter results by source type
-doc-svr-ctl query "API endpoints" --source-types code      # Code only
-doc-svr-ctl query "API usage" --source-types doc           # Docs only
+agent-brain query "API endpoints" --source-types code      # Code only
+agent-brain query "API usage" --source-types doc           # Docs only
 
 # Filter by programming language
-doc-svr-ctl query "database connection" --languages python,typescript
+agent-brain query "database connection" --languages python,typescript
 
 # Combine filters for precise results
-doc-svr-ctl query "error handling" --source-types code --languages go
+agent-brain query "error handling" --source-types code --languages go
 
 # Search by specific function or class name (BM25 recommended for identifiers)
-doc-svr-ctl query "authenticate_user" --mode bm25 --source-types code
+agent-brain query "authenticate_user" --mode bm25 --source-types code
 ```
 
 ### Supported Languages
@@ -147,21 +147,21 @@ Doc-Serve supports AST-aware code ingestion for: **Python, TypeScript, JavaScrip
 
 | Task | Command |
 |------|---------|
-| **Initialize Project** | `doc-svr-ctl init` |
-| **Start Server** | `doc-svr-ctl start --daemon` |
-| **Stop Server** | `doc-svr-ctl stop` |
-| **List All Instances** | `doc-svr-ctl list` |
-| **Check Status** | `doc-svr-ctl status` |
+| **Initialize Project** | `agent-brain init` |
+| **Start Server** | `agent-brain start --daemon` |
+| **Stop Server** | `agent-brain stop` |
+| **List All Instances** | `agent-brain list` |
+| **Check Status** | `agent-brain status` |
 
 ### Data Commands
 
 | Task | Command |
 |------|---------|
-| **Index Docs Only** | `doc-svr-ctl index /path/to/docs` |
-| **Index Code + Docs** | `doc-svr-ctl index /path --include-code` |
-| **Semantic Search** | `doc-svr-ctl query "your question"` |
-| **Keyword Search** | `doc-svr-ctl query "keyword" --mode bm25` |
-| **Hybrid Search** | `doc-svr-ctl query "question" --mode hybrid --alpha 0.5` |
-| **Filter by Source** | `doc-svr-ctl query "term" --source-types code` |
-| **Filter by Language** | `doc-svr-ctl query "term" --languages python,csharp` |
-| **Reset Index** | `doc-svr-ctl reset --yes` |
+| **Index Docs Only** | `agent-brain index /path/to/docs` |
+| **Index Code + Docs** | `agent-brain index /path --include-code` |
+| **Semantic Search** | `agent-brain query "your question"` |
+| **Keyword Search** | `agent-brain query "keyword" --mode bm25` |
+| **Hybrid Search** | `agent-brain query "question" --mode hybrid --alpha 0.5` |
+| **Filter by Source** | `agent-brain query "term" --source-types code` |
+| **Filter by Language** | `agent-brain query "term" --languages python,csharp` |
+| **Reset Index** | `agent-brain reset --yes` |

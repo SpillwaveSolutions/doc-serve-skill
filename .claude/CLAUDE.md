@@ -1,20 +1,20 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with the Doc-Serve repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with the Agent Brain repository.
 
 ## Repository Status
 
-Doc-Serve is a fully implemented RAG-based document indexing and semantic search system. The repository contains:
+Agent Brain is a fully implemented RAG-based document indexing and semantic search system. The repository contains:
 
-- **doc-serve-server**: FastAPI REST API server with AST-aware code ingestion
-- **doc-svr-ctl**: CLI management tool
-- **doc-serve-skill**: Claude Code skill integration
+- **agent-brain-server**: FastAPI REST API server with AST-aware code ingestion
+- **agent-brain-cli**: CLI management tool
+- **agent-brain-skill**: Claude Code skill integration
 - **Comprehensive test suite**: Unit, integration, and end-to-end tests
 - **Full documentation**: User guides, developer guides, and API references
 
 ## Project Architecture
 
-Doc-Serve implements a RAG (Retrieval-Augmented Generation) system with:
+Agent Brain implements a RAG (Retrieval-Augmented Generation) system with:
 
 - **Multi-language code ingestion**: AST-based parsing for Python, TypeScript, JavaScript, Java, Go, Rust, C, C++
 - **Hybrid search**: Combines BM25 keyword matching with semantic similarity
@@ -37,27 +37,27 @@ task before-push
 
 ### Individual Package Commands
 
-**Server (doc-serve-server)**:
+**Server (agent-brain-server)**:
 ```bash
-cd doc-serve-server
+cd agent-brain-server
 poetry install                    # Install dependencies
-poetry run doc-serve              # Run server
+poetry run agent-brain-serve      # Run server
 poetry run pytest                 # Run tests
-poetry run pytest --cov=doc_serve_server  # Tests with coverage
-poetry run mypy doc_serve_server # Type checking
-poetry run ruff check doc_serve_server    # Linting
-poetry run black doc_serve_server         # Format code
+poetry run pytest --cov=agent_brain_server  # Tests with coverage
+poetry run mypy agent_brain_server # Type checking
+poetry run ruff check agent_brain_server    # Linting
+poetry run black agent_brain_server         # Format code
 ```
 
-**CLI (doc-svr-ctl)**:
+**CLI (agent-brain-cli)**:
 ```bash
-cd doc-svr-ctl
+cd agent-brain-cli
 poetry install                    # Install dependencies
-poetry run doc-svr-ctl --help     # Show CLI help
+poetry run agent-brain --help     # Show CLI help
 poetry run pytest                 # Run tests
-poetry run mypy doc_svr_ctl       # Type checking
-poetry run ruff check doc_svr_ctl # Linting
-poetry run black doc_svr_ctl      # Format code
+poetry run mypy agent_brain_cli       # Type checking
+poetry run ruff check agent_brain_cli # Linting
+poetry run black agent_brain_cli      # Format code
 ```
 
 ### Monorepo Commands
@@ -104,14 +104,14 @@ This validates the complete workflow from server startup to advanced querying.
 ## Key Files to Understand
 
 ### Architecture
-- `doc-serve-server/doc_serve_server/api/main.py` - FastAPI server entry point
-- `doc-serve-server/doc_serve_server/config/settings.py` - Configuration
-- `doc-serve-server/doc_serve_server/services/indexing_service.py` - AST-based ingestion
-- `doc-serve-server/doc_serve_server/services/query_service.py` - Hybrid search
+- `agent-brain-server/agent_brain_server/api/main.py` - FastAPI server entry point
+- `agent-brain-server/agent_brain_server/config/settings.py` - Configuration
+- `agent-brain-server/agent_brain_server/services/indexing_service.py` - AST-based ingestion
+- `agent-brain-server/agent_brain_server/services/query_service.py` - Hybrid search
 
 ### CLI
-- `doc-svr-ctl/doc_svr_ctl/cli.py` - CLI entry point
-- `doc-svr-ctl/doc_svr_ctl/commands/` - CLI command implementations
+- `agent-brain-cli/agent_brain_cli/cli.py` - CLI entry point
+- `agent-brain-cli/agent_brain_cli/commands/` - CLI command implementations
 
 ### Testing
 - `scripts/quick_start_guide.sh` - End-to-end validation script
@@ -133,4 +133,4 @@ Required environment variables:
 
 ## Notes
 
-This is a production-ready Doc-Serve implementation with comprehensive testing and documentation. Always run the quality checks and end-to-end validation before making changes.
+This is a production-ready Agent Brain implementation with comprehensive testing and documentation. Always run the quality checks and end-to-end validation before making changes.

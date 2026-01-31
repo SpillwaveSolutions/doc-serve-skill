@@ -1,0 +1,126 @@
+"""Health status models."""
+
+from datetime import datetime, timezone
+from typing import Literal, Optional
+
+from pydantic import BaseModel, Field
+
+
+class HealthStatus(BaseModel):
+    """Server health status response."""
+
+    status: Literal["healthy", "indexing", "degraded", "unhealthy"] = Field(
+        ...,
+        description="Current server health status",
+    )
+    message: Optional[str] = Field(
+        None,
+        description="Additional status message",
+    )
+    timestamp: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        description="Timestamp of the health check",
+    )
+    version: str = Field(
+        default="1.2.0",
+        description="Server version",
+    )
+    mode: Optional[str] = Field(
+        default=None,
+        description="Instance mode: 'project' or 'shared'",
+    )
+    instance_id: Optional[str] = Field(
+        default=None,
+        description="Unique instance identifier",
+    )
+    project_id: Optional[str] = Field(
+        default=None,
+        description="Project identifier (shared mode)",
+    )
+    active_projects: Optional[int] = Field(
+        default=None,
+        description="Number of active projects (shared mode)",
+    )
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "status": "healthy",
+                    "message": "Server is running and ready for queries",
+                    "timestamp": "2024-12-15T10:30:00Z",
+                    "version": "1.2.0",
+                }
+            ]
+        }
+    }
+
+
+class IndexingStatus(BaseModel):
+    """Detailed indexing status response."""
+
+    total_documents: int = Field(
+        default=0,
+        ge=0,
+        description="Total number of documents indexed",
+    )
+    total_chunks: int = Field(
+        default=0,
+        ge=0,
+        description="Total number of chunks in vector store",
+    )
+    total_doc_chunks: int = Field(
+        default=0,
+        ge=0,
+        description="Number of document chunks",
+    )
+    total_code_chunks: int = Field(
+        default=0,
+        ge=0,
+        description="Number of code chunks",
+    )
+    supported_languages: list[str] = Field(
+        default_factory=list,
+        description="Programming languages that have been indexed",
+    )
+    indexing_in_progress: bool = Field(
+        default=False,
+        description="Whether indexing is currently in progress",
+    )
+    current_job_id: Optional[str] = Field(
+        None,
+        description="ID of the current indexing job",
+    )
+    progress_percent: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=100.0,
+        description="Progress percentage of current indexing job",
+    )
+    last_indexed_at: Optional[datetime] = Field(
+        None,
+        description="Timestamp of last completed indexing operation",
+    )
+    indexed_folders: list[str] = Field(
+        default_factory=list,
+        description="List of folders that have been indexed",
+    )
+
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "total_documents": 150,
+                    "total_chunks": 1200,
+                    "total_doc_chunks": 800,
+                    "total_code_chunks": 400,
+                    "indexing_in_progress": False,
+                    "current_job_id": None,
+                    "progress_percent": 0.0,
+                    "last_indexed_at": "2024-12-15T10:30:00Z",
+                    "indexed_folders": ["/path/to/docs"],
+                    "supported_languages": ["python", "typescript", "java"],
+                }
+            ]
+        }
+    }

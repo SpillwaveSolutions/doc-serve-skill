@@ -8,8 +8,8 @@ import os
 # Paths
 E2E_DIR = Path(__file__).parent.parent
 PROJECT_ROOT = E2E_DIR.parent
-SERVER_DIR = PROJECT_ROOT / "doc-serve-server"
-CLI_DIR = PROJECT_ROOT / "doc-svr-ctl"
+SERVER_DIR = PROJECT_ROOT / "agent-brain-server"
+CLI_DIR = PROJECT_ROOT / "agent-brain-cli"
 TEST_DOCS_DIR = E2E_DIR / "fixtures" / "test_docs" / "coffee_brewing"
 
 # Server settings

@@ -18,7 +18,7 @@ try:
     from dotenv import load_dotenv
     E2E_DIR = Path(__file__).parent.parent
     PROJECT_ROOT = E2E_DIR.parent
-    SERVER_ENV = PROJECT_ROOT / "doc-serve-server" / ".env"
+    SERVER_ENV = PROJECT_ROOT / "agent-brain-server" / ".env"
     if SERVER_ENV.exists():
         load_dotenv(SERVER_ENV)
 except ImportError:
@@ -29,8 +29,8 @@ except ImportError:
 if 'E2E_DIR' not in dir():
     E2E_DIR = Path(__file__).parent.parent
     PROJECT_ROOT = E2E_DIR.parent
-SERVER_DIR = PROJECT_ROOT / "doc-serve-server"
-CLI_DIR = PROJECT_ROOT / "doc-svr-ctl"
+SERVER_DIR = PROJECT_ROOT / "agent-brain-server"
+CLI_DIR = PROJECT_ROOT / "agent-brain-cli"
 TEST_DOCS_DIR = E2E_DIR / "fixtures" / "test_docs" / "coffee_brewing"
 
 # Timeouts
@@ -47,7 +47,7 @@ class CLIRunner:
 
     def run(self, *args, timeout: int = 30) -> dict:
         """Run CLI command and return parsed result."""
-        cmd = ["poetry", "run", "doc-svr-ctl", *args]
+        cmd = ["poetry", "run", "agent-brain", *args]
 
         try:
             result = subprocess.run(

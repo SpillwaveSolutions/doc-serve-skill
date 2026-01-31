@@ -16,9 +16,9 @@ Mono repo
 ```markdown
 /
    docs/ 
-   doc-serve-skill/
-   doc-serve-server/
-   doc-svr-ctl/ (Command line interface to doc-server)
+   agent-brain-skill/
+   agent-brain-server/
+   agent-brain-cli/ (Command line interface to doc-server)
    
    
 ```
