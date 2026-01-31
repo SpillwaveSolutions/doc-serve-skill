@@ -1,4 +1,4 @@
-# Doc-Serve Monorepo Task Runner
+# Agent Brain Monorepo Task Runner
 # https://taskfile.dev
 #
 # Usage:
@@ -11,20 +11,20 @@
 version: '3'
 
 dotenv:
-  - doc-serve-server/.env
-  - doc-serve-server/.env.local
+  - agent-brain-server/.env
+  - agent-brain-server/.env.local
 
 vars:
-  SERVER_DIR: doc-serve-server
-  CLI_DIR: doc-svr-ctl
+  SERVER_DIR: agent-brain-server
+  CLI_DIR: agent-brain-cli
 
 includes:
   server:
-    taskfile: ./doc-serve-server/Taskfile.yml
-    dir: ./doc-serve-server
+    taskfile: ./agent-brain-server/Taskfile.yml
+    dir: ./agent-brain-server
   cli:
-    taskfile: ./doc-svr-ctl/Taskfile.yml
-    dir: ./doc-svr-ctl
+    taskfile: ./agent-brain-cli/Taskfile.yml
+    dir: ./agent-brain-cli
 
 tasks:
   default:
@@ -217,13 +217,13 @@ tasks:
     desc: Check server status via CLI (usage - task status -- --json)
     dir: ./{{.CLI_DIR}}
     cmds:
-      - poetry run doc-svr-ctl status {{.CLI_ARGS}}
+      - poetry run agent-brain status {{.CLI_ARGS}}
 
   query:
     desc: Query documents (usage - task query -- "your query")
     dir: ./{{.CLI_DIR}}
     cmds:
-      - poetry run doc-svr-ctl query {{.CLI_ARGS}}
+      - poetry run agent-brain query {{.CLI_ARGS}}
 
   index:
     desc: Index documents (usage - task index -- ./path/to/docs)
@@ -232,10 +232,10 @@ tasks:
         sh: 'echo "{{.CLI_ARGS}}" | head -1 | xargs -I{} realpath "{}" 2>/dev/null || echo "{{.CLI_ARGS}}"'
     dir: ./{{.CLI_DIR}}
     cmds:
-      - poetry run doc-svr-ctl index {{.ABS_PATH}}
+      - poetry run agent-brain index {{.ABS_PATH}}
 
   reset:
     desc: Reset the index (usage - task reset -- --yes)
     dir: ./{{.CLI_DIR}}
     cmds:
-      - poetry run doc-svr-ctl reset {{.CLI_ARGS}}
+      - poetry run agent-brain reset {{.CLI_ARGS}}

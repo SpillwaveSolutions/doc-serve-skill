@@ -20,7 +20,14 @@
       "Bash(poetry run mypy:*)",
       "Bash(poetry run doc-svr-ctl:*)",
       "Skill(improving-skills)",
-      "mcp__github__create_issue"
+      "mcp__github__create_issue",
+      "Bash(poetry install:*)",
+      "Bash(poetry run agent-brain:*)",
+      "Bash(cd:*)",
+      "Bash(poetry run agent-brain-serve:*)",
+      "Bash(task before-push)",
+      "Bash(git add:*)",
+      "Bash(git reset:*)"
     ]
   },
   "sandbox": {

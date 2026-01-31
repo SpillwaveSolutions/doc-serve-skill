@@ -90,7 +90,7 @@ cd e2e
 
 ## Environment Requirements
 
-- `OPENAI_API_KEY` - Required for embeddings. Pytest tests auto-load from `doc-serve-server/.env`. Shell scripts require manual sourcing or export.
+- `OPENAI_API_KEY` - Required for embeddings. Pytest tests auto-load from `agent-brain-server/.env`. Shell scripts require manual sourcing or export.
 - Python 3.10+
 - Poetry installed
 - Server and CLI dependencies installed

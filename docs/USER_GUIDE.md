@@ -1,6 +1,6 @@
-# Doc-Serve User Guide
+# Agent Brain User Guide
 
-This guide covers how to use Doc-Serve for document indexing and semantic search using the command-line interface.
+This guide covers how to use Agent Brain for document indexing and semantic search using the command-line interface.
 
 ## Table of Contents
 
@@ -15,18 +15,18 @@ This guide covers how to use Doc-Serve for document indexing and semantic search
 
 ## Core Concepts
 
-Doc-Serve is a RAG (Retrieval-Augmented Generation) system that can index and search across both documentation and source code. It works in three phases:
+Agent Brain is a RAG (Retrieval-Augmented Generation) system that can index and search across both documentation and source code. It works in three phases:
 1. **Indexing**: It reads your documents and/or source code, splits them into semantic chunks using context-aware algorithms, and generates vector embeddings.
 2. **Storage**: Chunks and embeddings are stored in a ChromaDB vector database with metadata for filtering.
 3. **Retrieval**: When you query, it finds the most similar chunks based on semantic meaning, with support for cross-reference searches across docs and code.
 
 ## Server Management
 
-The Doc-Serve server must be running to handle indexing and query requests.
+The Agent Brain server must be running to handle indexing and query requests.
 
 ### Starting the Server (Legacy Mode)
 ```bash
-doc-serve
+agent-brain-serve
 ```
 By default, the server binds to `127.0.0.1:8000`. You can change this using options:
 - `--host`: Bind address (e.g., `0.0.0.0`)
@@ -36,14 +36,14 @@ By default, the server binds to `127.0.0.1:8000`. You can change this using opti
 ### Checking Server Health
 Use the management tool to check if the server is responsive:
 ```bash
-doc-svr-ctl status
+agent-brain status
 ```
 
 ---
 
 ## Multi-Instance Mode
 
-Multi-instance mode allows running separate doc-serve instances for different projects with fully isolated indexes and automatic port allocation. This is the recommended approach for working on multiple projects.
+Multi-instance mode allows running separate Agent Brain instances for different projects with fully isolated indexes and automatic port allocation. This is the recommended approach for working on multiple projects.
 
 ### Initializing a Project
 
@@ -51,7 +51,7 @@ Before using multi-instance mode, initialize the project:
 
 ```bash
 cd /path/to/my-project
-doc-svr-ctl init
+agent-brain init
 ```
 
 This creates a `.claude/doc-serve/` directory with a `config.json` file. The state directory stores all project-specific data including indexes, logs, and runtime state.
@@ -61,7 +61,7 @@ This creates a `.claude/doc-serve/` directory with a `config.json` file. The sta
 Start a project-specific server with automatic port allocation:
 
 ```bash
-doc-svr-ctl start --daemon
+agent-brain start --daemon
 ```
 
 The server starts on an automatically assigned port (no conflicts with other projects). The actual port is written to `.claude/doc-serve/runtime.json`.
@@ -69,17 +69,17 @@ The server starts on an automatically assigned port (no conflicts with other pro
 ### Stopping the Server
 
 ```bash
-doc-svr-ctl stop
+agent-brain stop
 ```
 
 This gracefully shuts down the server and cleans up runtime artifacts.
 
 ### Listing Running Instances
 
-To see all running doc-serve instances across all projects:
+To see all running Agent Brain instances across all projects:
 
 ```bash
-doc-svr-ctl list
+agent-brain list
 ```
 
 Example output:
@@ -108,11 +108,11 @@ Agents and skills can read this file to discover the running server for the curr
 
 ### Working from Subdirectories
 
-Doc-serve automatically resolves the project root from any subdirectory:
+Agent Brain automatically resolves the project root from any subdirectory:
 
 ```bash
 cd /path/to/my-project/src/deep/nested
-doc-svr-ctl status
+agent-brain status
 # → Finds server for /path/to/my-project
 ```
 
@@ -122,11 +122,11 @@ Each project gets its own isolated server:
 
 ```bash
 # Terminal 1
-cd /path/to/project-a && doc-svr-ctl start --daemon
+cd /path/to/project-a && agent-brain start --daemon
 # → Started on port 49321
 
 # Terminal 2
-cd /path/to/project-b && doc-svr-ctl start --daemon
+cd /path/to/project-b && agent-brain start --daemon
 # → Started on port 49322 (no conflict)
 ```
 
@@ -141,16 +141,16 @@ Settings are resolved in this order (first wins):
 
 ## Indexing Documents and Code
 
-Doc-Serve can index both documentation and source code for unified search capabilities.
+Agent Brain can index both documentation and source code for unified search capabilities.
 
 ### Index Documentation Only (Default)
 ```bash
-doc-svr-ctl index /path/to/your/docs
+agent-brain index /path/to/your/docs
 ```
 
 ### Index Code + Documentation
 ```bash
-doc-svr-ctl index /path/to/your/project --include-code
+agent-brain index /path/to/your/project --include-code
 ```
 
 ### Advanced Indexing Options
@@ -168,19 +168,19 @@ doc-svr-ctl index /path/to/your/project --include-code
 ### Resetting the Index
 If you want to start over and clear all indexed data:
 ```bash
-doc-svr-ctl reset --yes
+agent-brain reset --yes
 ```
 
 ## Querying Knowledge
 
-Doc-Serve supports three search modes:
+Agent Brain supports three search modes:
 1. **Semantic Search (Vector)**: Finds content with similar meaning.
 2. **Keyword Search (BM25)**: Finds exact word matches (best for function names, error codes).
 3. **Hybrid Search**: Combines both (recommended default).
 
 ### Basic Query (Hybrid)
 ```bash
-doc-svr-ctl query "how do I configure the system?"
+agent-brain query "how do I configure the system?"
 ```
 
 ### Search Modes
@@ -201,29 +201,29 @@ When code is indexed alongside documentation, you can perform powerful cross-ref
 #### Filtering by Source Type
 ```bash
 # Search documentation only
-doc-svr-ctl query "API usage examples" --source-types doc
+agent-brain query "API usage examples" --source-types doc
 
 # Search code only
-doc-svr-ctl query "database connection" --source-types code
+agent-brain query "database connection" --source-types code
 
 # Search both (default)
-doc-svr-ctl query "authentication implementation"
+agent-brain query "authentication implementation"
 ```
 
 #### Filtering by Programming Language
 ```bash
 # Search Python code only
-doc-svr-ctl query "error handling" --languages python
+agent-brain query "error handling" --languages python
 
 # Search multiple languages
-doc-svr-ctl query "API endpoints" --languages python,typescript
+agent-brain query "API endpoints" --languages python,typescript
 
 # Combine filters
-doc-svr-ctl query "data validation" --source-types code --languages javascript
+agent-brain query "data validation" --source-types code --languages javascript
 ```
 
 #### Supported Languages
-Doc-Serve supports AST-aware chunking for: **Python, TypeScript, JavaScript, Java, Go, Rust, C, C++, C#**.
+Agent Brain supports AST-aware chunking for: **Python, TypeScript, JavaScript, Java, Go, Rust, C, C++, C#**.
 
 **C# Support Details:**
 - File extensions: `.cs`, `.csx` (C# scripts)
@@ -240,22 +240,22 @@ When using AST-aware chunking, search results include:
 ### Programmatic Output
 Use the `--json` flag to get raw data for piping into other tools like `jq`:
 ```bash
-doc-svr-ctl query "api endpoints" --json | jq .results[0].text
+agent-brain query "api endpoints" --json | jq .results[0].text
 ```
 
 ## Troubleshooting
 
 ### Connection Error
 If you see `Connection Error: Unable to connect to server`, ensure:
-1. The `doc-serve` process is running.
+1. The `agent-brain-serve` process is running.
 2. You are using the correct URL (default `http://127.0.0.1:8000`).
-3. If the server is on a different port, use `doc-svr-ctl --url http://127.0.0.1:PORT status`.
+3. If the server is on a different port, use `agent-brain --url http://127.0.0.1:PORT status`.
 
 ### No Results Found
 If queries return no results:
-1. Run `doc-svr-ctl status` to check the "Total Chunks" count. If 0, indexing failed or hasn't run.
+1. Run `agent-brain status` to check the "Total Chunks" count. If 0, indexing failed or hasn't run.
 2. Lower the `--threshold` (try `0.3` or `0.2`).
 3. Ensure the documents you indexed contain relevant text and are in supported formats (.md, .txt, .pdf).
 
 ### Duplicated Results
-If you see identical results, the stable ID logic ensures that re-indexing the same files updates existing entries. If you have moved files or indexed different paths to the same data, run `doc-svr-ctl reset --yes` and re-index.
+If you see identical results, the stable ID logic ensures that re-indexing the same files updates existing entries. If you have moved files or indexed different paths to the same data, run `agent-brain reset --yes` and re-index.

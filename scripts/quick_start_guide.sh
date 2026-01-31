@@ -4,8 +4,8 @@ set -e
 # Configuration
 PORT=8085
 DB_PATH="./integration/tests/quick_start/chroma_db"
-SERVER_DIR="doc-serve-server"
-CLI_DIR="doc-svr-ctl"
+SERVER_DIR="agent-brain-server"
+CLI_DIR="agent-brain-cli"
 WORKSPACE="integration/tests/quick_start"
 BASE_URL="http://127.0.0.1:$PORT"
 
@@ -97,7 +97,7 @@ cd ..
 
 # 6. Index Project
 echo "Indexing project root (including code)..."
-if ! poetry -C $CLI_DIR run doc-svr-ctl index . --include-code; then
+if ! poetry -C $CLI_DIR run agent-brain index . --include-code; then
     echo "Failed to start indexing. Check server status."
     kill $SERVER_PID
     exit 1
@@ -118,7 +118,7 @@ while true; do
         exit 1
     fi
 
-    STATUS=$(poetry -C $CLI_DIR run doc-svr-ctl status --json 2>/dev/null)
+    STATUS=$(poetry -C $CLI_DIR run agent-brain status --json 2>/dev/null)
 
     # Try to parse with jq if available, otherwise fall back to grep
     if command -v jq >/dev/null 2>&1; then
@@ -143,16 +143,16 @@ done
 echo "--- Running Queries ---"
 
 echo "Query 1: Semantic (espresso)"
-poetry -C $CLI_DIR run doc-svr-ctl query "how to make espresso" --top-k 3 || echo "Query 1 failed, continuing..."
+poetry -C $CLI_DIR run agent-brain query "how to make espresso" --top-k 3 || echo "Query 1 failed, continuing..."
 
 echo "Query 2: Keyword/BM25 (CodeSplitter)"
-poetry -C $CLI_DIR run doc-svr-ctl query "CodeSplitter" --mode bm25 --source-types code || echo "Query 2 failed, continuing..."
+poetry -C $CLI_DIR run agent-brain query "CodeSplitter" --mode bm25 --source-types code || echo "Query 2 failed, continuing..."
 
 echo "Query 3: Hybrid (authentication)"
-poetry -C $CLI_DIR run doc-svr-ctl query "how does authentication work" --mode hybrid --alpha 0.5 || echo "Query 3 failed, continuing..."
+poetry -C $CLI_DIR run agent-brain query "how does authentication work" --mode hybrid --alpha 0.5 || echo "Query 3 failed, continuing..."
 
 echo "Query 4: Language-specific (Python chunks)"
-poetry -C $CLI_DIR run doc-svr-ctl query "class" --languages python --source-types code --top-k 2 || echo "Query 4 failed, continuing..."
+poetry -C $CLI_DIR run agent-brain query "class" --languages python --source-types code --top-k 2 || echo "Query 4 failed, continuing..."
 
 # 9. Summarization Test (Small sample)
 echo "--- Testing Summarization (Small Sample) ---"
@@ -166,9 +166,9 @@ echo "Indexing sample for summarization..."
 # Note: This might still take a bit if LLM is involved, but we only have 3 files.
 # Use absolute path since CLI runs from different directory
 ABS_SUMM_DIR="$(pwd)/$SUMM_DIR"
-if poetry -C $CLI_DIR run doc-svr-ctl index "$ABS_SUMM_DIR" --generate-summaries; then
+if poetry -C $CLI_DIR run agent-brain index "$ABS_SUMM_DIR" --generate-summaries; then
     echo "Querying sample with summary..."
-    poetry -C $CLI_DIR run doc-svr-ctl query "math operations" --source-types code || echo "Summarization query failed"
+    poetry -C $CLI_DIR run agent-brain query "math operations" --source-types code || echo "Summarization query failed"
 else
     echo "Summarization indexing failed (may require API keys)"
 fi

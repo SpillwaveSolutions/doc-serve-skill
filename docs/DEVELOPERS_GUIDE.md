@@ -1,6 +1,6 @@
-# Doc-Serve Developer Guide
+# Agent Brain Developer Guide
 
-This guide covers setting up a development environment, understanding the architecture, and contributing to Doc-Serve.
+This guide covers setting up a development environment, understanding the architecture, and contributing to Agent Brain.
 
 ## Table of Contents
 
@@ -19,17 +19,17 @@ This guide covers setting up a development environment, understanding the archit
 
 ## Architecture Overview
 
-Doc-Serve is a RAG (Retrieval-Augmented Generation) system for semantic search across documentation and source code.
+Agent Brain is a RAG (Retrieval-Augmented Generation) system for semantic search across documentation and source code.
 
 ```mermaid
 flowchart TB
     subgraph Clients["Client Layer"]
-        CLI["doc-svr-ctl<br/>(Click CLI)"]
+        CLI["agent-brain<br/>(Click CLI)"]
         Skill["Claude Skill<br/>(REST Client)"]
         API_Client["External Apps<br/>(HTTP/REST)"]
     end
 
-    subgraph Server["doc-serve-server"]
+    subgraph Server["agent-brain-server"]
         subgraph API["REST API Layer"]
             FastAPI["FastAPI<br/>/health, /query, /index"]
         end
@@ -86,9 +86,9 @@ flowchart TB
 
 | Package | Directory | Description |
 |---------|-----------|-------------|
-| `doc-serve-server` | `doc-serve-server/` | FastAPI REST API backend |
-| `doc-svr-ctl` | `doc-svr-ctl/` | Click-based CLI management tool |
-| `doc-serve-skill` | `doc-serve-skill/` | Claude Code skill definition |
+| `agent-brain-server` | `agent-brain-server/` | FastAPI REST API backend |
+| `agent-brain-cli` | `agent-brain-cli/` | Click-based CLI management tool |
+| `agent-brain-skill` | `agent-brain-skill/` | Claude Code skill definition |
 | `e2e` | `e2e/` | End-to-end integration tests |
 
 ---
@@ -112,7 +112,7 @@ task install
 ```bash
 task install:global
 ```
-This installs `doc-serve` and `doc-svr-ctl` in your current Python environment's bin folder, allowing you to run them from any directory.
+This installs `agent-brain-serve` and `agent-brain` in your current Python environment's bin folder, allowing you to run them from any directory.
 
 ---
 
@@ -127,7 +127,7 @@ The root `Taskfile.yml` orchestrates the entire monorepo.
 | `task dev` | Start server in development mode |
 | `task pr-qa-gate` | **MANDATORY** before push: Run all quality checks |
 | `task test` | Run all tests |
-| `task status` | Wrapper for `doc-svr-ctl status` |
+| `task status` | Wrapper for `agent-brain status` |
 
 ---
 
@@ -145,8 +145,8 @@ This ensures:
 4. Test coverage is above 50%.
 
 ### Test Directories
-- `doc-serve-server/tests/`: Server-specific tests.
-- `doc-svr-ctl/tests/`: CLI-specific tests.
+- `agent-brain-server/tests/`: Server-specific tests.
+- `agent-brain-cli/tests/`: CLI-specific tests.
 - `e2e/`: Full workflow integration tests.
 
 ### End-to-End Validation Script
@@ -157,7 +157,7 @@ Before releasing any version or merging major features, you MUST run the end-to-
 ./scripts/quick_start_guide.sh
 ```
 
-This script validates the complete Doc-Serve workflow by:
+This script validates the complete Agent Brain workflow by:
 1. Starting a real server instance
 2. Indexing the project codebase with `--include-code`
 3. Running semantic, BM25, and hybrid search queries
@@ -173,27 +173,27 @@ This script validates the complete Doc-Serve workflow by:
 - `0`: All tests passed
 - Non-zero: Test failures or setup issues
 
-The script serves as both a release validation tool and a comprehensive demonstration of Doc-Serve's capabilities.
+The script serves as both a release validation tool and a comprehensive demonstration of Agent Brain's capabilities.
 
 ---
 
 ## Troubleshooting
 
 ### ModuleNotFoundError: No module named 'src'
-This usually means you are running the tool without installing it or the `PYTHONPATH` is not set. 
+This usually means you are running the tool without installing it or the `PYTHONPATH` is not set.
 **Solution**: Run `task install:global` or always use `poetry run`.
 
 ### Port 8000 Already in Use
 **Solution**: `lsof -ti :8000 | xargs kill -9`
 
 ### Duplicated Results in Query
-**Solution**: The system uses stable IDs based on file path and chunk index. If you see duplicates, run `doc-svr-ctl reset --yes` to clear the old index and re-index.
+**Solution**: The system uses stable IDs based on file path and chunk index. If you see duplicates, run `agent-brain reset --yes` to clear the old index and re-index.
 
 ---
 
 ## Multi-Instance Architecture
 
-Doc-Serve supports running multiple concurrent instances with per-project isolation. This enables developers to work on multiple projects simultaneously without port conflicts or index cross-contamination.
+Agent Brain supports running multiple concurrent instances with per-project isolation. This enables developers to work on multiple projects simultaneously without port conflicts or index cross-contamination.
 
 ### State Directory Structure
 
@@ -273,7 +273,7 @@ The `/health` endpoint now includes mode information:
 
 ## Code Ingestion & Language Support
 
-Doc-Serve supports AST-aware code chunking for 9+ programming languages using tree-sitter. The current implementation includes: **Python, TypeScript, JavaScript, Java, Go, Rust, C, C++, C#**.
+Agent Brain supports AST-aware code chunking for 9+ programming languages using tree-sitter. The current implementation includes: **Python, TypeScript, JavaScript, Java, Go, Rust, C, C++, C#**.
 
 Adding support for new programming languages is straightforward:
 
@@ -320,7 +320,7 @@ except Exception:
 
 **Step 2: Update extension mapping**
 
-In `doc_serve_server/indexing/document_loader.py`:
+In `agent_brain_server/indexing/document_loader.py`:
 
 ```python
 # Add to CODE_EXTENSIONS
@@ -338,7 +338,7 @@ EXTENSION_TO_LANGUAGE = {
 
 **Step 3: Register with CodeChunker**
 
-In `doc_serve_server/indexing/code_chunker.py`:
+In `agent_brain_server/indexing/code_chunker.py`:
 
 ```python
 class CodeChunker:
@@ -374,7 +374,7 @@ C# is fully supported with AST-aware parsing:
 - Namespaces
 
 **XML Documentation:**
-Doc-Serve extracts XML doc comments (`/// <summary>`, `/// <param>`, `/// <returns>`) and stores them as metadata on chunks.
+Agent Brain extracts XML doc comments (`/// <summary>`, `/// <param>`, `/// <returns>`) and stores them as metadata on chunks.
 
 **Tree-sitter Grammar:**
 Uses the `c_sharp` grammar from `tree-sitter-language-pack`.

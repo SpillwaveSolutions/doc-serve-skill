@@ -28,7 +28,7 @@ def run_cli_command(*args, timeout: int = 10) -> dict:
     """Run a CLI command and return result."""
     try:
         result = subprocess.run(
-            ["poetry", "run", "doc-svr-ctl", *args],
+            ["poetry", "run", "agent-brain", *args],
             cwd=CLI_DIR,
             capture_output=True,
             text=True,

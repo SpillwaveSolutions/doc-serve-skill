@@ -32,7 +32,7 @@ These specs represent the completed Phase 1 work:
 | Spec ID | Name | Status | Description |
 |---------|------|--------|-------------|
 | 001 | Phase 1 Core Server | Implemented | FastAPI server with vector search |
-| 002 | CLI Tool | Implemented | doc-svr-ctl management CLI |
+| 002 | CLI Tool | Implemented | agent-brain management CLI |
 | 003 | CLI Entry Points | Implemented | Package entry point configuration |
 | 004 | Taskfile Support | Implemented | Task runner integration |
 | 005 | Deprecation Fixes | Implemented | Pydantic V2, pytest-asyncio updates |

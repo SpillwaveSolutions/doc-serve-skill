@@ -1,20 +1,20 @@
-# Doc-Serve
+# Agent Brain
 
-A RAG-based (Retrieval-Augmented Generation) document indexing and semantic search system. Doc-Serve enables AI assistants and applications to query domain-specific documentation using natural language.
+A RAG-based (Retrieval-Augmented Generation) document indexing and semantic search system. Agent Brain enables AI assistants and applications to query domain-specific documentation using natural language.
 
 ## Overview
 
-Doc-Serve is a monorepo containing three packages:
+Agent Brain is a monorepo containing three packages:
 
 | Package | Description |
 |---------|-------------|
-| **doc-serve-server** | FastAPI REST API for document indexing and semantic search |
-| **doc-svr-ctl** | Command-line interface for managing the server |
-| **doc-serve-skill** | Claude Code skill for AI-powered documentation queries |
+| **agent-brain-server** | FastAPI REST API for document indexing and semantic search |
+| **agent-brain-cli** | Command-line interface for managing the server |
+| **agent-brain-skill** | Claude Code skill for AI-powered documentation queries |
 
 ## Code Ingestion & Search
 
-Doc-Serve now supports unified search across documentation and source code:
+Agent Brain now supports unified search across documentation and source code:
 
 - **10 Programming Languages**: Python, TypeScript, JavaScript, Java, Kotlin, C, C++, C#, Go, Rust, and Swift
 - **AST-Aware Chunking**: Intelligent code parsing and chunking using tree-sitter
@@ -26,13 +26,13 @@ Doc-Serve now supports unified search across documentation and source code:
 ### Example: Code-Aware Search
 ```bash
 # Index both docs and code
-doc-svr-ctl index ./my-project --include-code
+agent-brain index ./my-project --include-code
 
 # Search across everything
-doc-svr-ctl query "authentication implementation"
+agent-brain query "authentication implementation"
 
 # Filter by code only
-doc-svr-ctl query "API endpoints" --source-types code --languages python
+agent-brain query "API endpoints" --source-types code --languages python
 ```
 
 ## Features
@@ -79,7 +79,7 @@ task --list
 
 ```bash
 # Copy the example environment file
-cp doc-serve-server/.env.example doc-serve-server/.env
+cp agent-brain-server/.env.example agent-brain-server/.env
 
 # Edit and add your API keys
 # OPENAI_API_KEY=sk-your-openai-key
@@ -134,21 +134,21 @@ All operations use [Task](https://taskfile.dev). Run `task --list` to see all av
 ```
 doc-serve/
 ├── Taskfile.yml          # Root task runner
-├── doc-serve-server/     # FastAPI server
+├── agent-brain-server/     # FastAPI server
 │   ├── Taskfile.yml
-│   └── doc_serve_server/
+│   └── agent_brain_server/
 │       ├── api/          # REST endpoints
 │       ├── config/       # Settings management
 │       ├── indexing/     # Document processing
 │       ├── models/       # Pydantic models
 │       ├── services/     # Business logic
 │       └── storage/      # Vector store
-├── doc-svr-ctl/          # CLI tool
+├── agent-brain-cli/          # CLI tool
 │   ├── Taskfile.yml
-│   └── doc_svr_ctl/
+│   └── agent_brain_cli/
 │       ├── client/       # API client
 │       └── commands/     # CLI commands
-├── doc-serve-skill/      # Claude skill
+├── agent-brain-skill/      # Claude skill
 │   └── doc-serve/
 │       └── SKILL.md      # Skill definition
 └── docs/                 # Documentation
@@ -168,9 +168,9 @@ doc-serve/
 
 ## Documentation
 
-- [User Guide](docs/USER_GUIDE.md) - How to use Doc-Serve
+- [User Guide](docs/USER_GUIDE.md) - How to use Agent Brain
 - [Developer Guide](docs/DEVELOPERS_GUIDE.md) - Setup and contribution guide
-- [API Reference](doc-serve-skill/doc-serve/references/api_reference.md) - Full API documentation
+- [API Reference](agent-brain-skill/doc-serve/references/api_reference.md) - Full API documentation
 - [Product Roadmap](docs/roadmaps/product-roadmap.md) - Future plans and features
 - [Spec Mapping](docs/spec_mapping.md) - Mapping of specs to features
 

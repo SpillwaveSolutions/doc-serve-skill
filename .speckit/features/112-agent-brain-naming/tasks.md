@@ -20,42 +20,44 @@
 
 ---
 
-## Phase 1: Setup (Version Bump)
+## Phase 1: Setup (Version Bump) ✅ COMPLETE
 
 **Purpose**: Prepare packages for v1.2.0 release
 
-- [ ] T001 [P] Update version to 1.2.0 in doc-serve-server/doc_serve_server/__init__.py
-- [ ] T002 [P] Update version to 1.2.0 in doc-svr-ctl/doc_svr_ctl/__init__.py
-- [ ] T003 [P] Update version to 1.2.0 in doc-serve-server/pyproject.toml
-- [ ] T004 [P] Update version to 1.2.0 in doc-svr-ctl/pyproject.toml
-- [ ] T005 [P] Update version to 1.2.0 in doc-serve-server/doc_serve_server/api/main.py (FastAPI app and root endpoint)
-- [ ] T006 [P] Update version to 1.2.0 in doc-serve-server/doc_serve_server/models/health.py
+- [x] T001 [P] Update version to 1.2.0 in doc-serve-server/doc_serve_server/__init__.py
+- [x] T002 [P] Update version to 1.2.0 in doc-svr-ctl/doc_svr_ctl/__init__.py
+- [x] T003 [P] Update version to 1.2.0 in doc-serve-server/pyproject.toml
+- [x] T004 [P] Update version to 1.2.0 in doc-svr-ctl/pyproject.toml
+- [x] T005 [P] Update version to 1.2.0 in doc-serve-server/doc_serve_server/api/main.py (FastAPI app and root endpoint)
+- [x] T006 [P] Update version to 1.2.0 in doc-serve-server/doc_serve_server/models/health.py
+- [x] T006b [P] Update version in doc-serve-server/doc_serve_server/api/routers/health.py to use __version__
 
 ---
 
-## Phase 2: Foundational (Entry Points & Deprecation)
+## Phase 2: Foundational (Entry Points & Deprecation) ✅ COMPLETE
 
 **Purpose**: Add new CLI entry points with backward compatibility
 
 **⚠️ CRITICAL**: These changes enable both old and new commands to work
 
-- [ ] T007 Add `agent-brain-serve` entry point to doc-serve-server/pyproject.toml [tool.poetry.scripts]
-- [ ] T008 Add `agent-brain` entry point to doc-svr-ctl/pyproject.toml [tool.poetry.scripts]
-- [ ] T009 Add deprecation warning function to doc-svr-ctl/doc_svr_ctl/cli.py for doc-svr-ctl command
-- [ ] T010 Add deprecation warning function to doc-serve-server/doc_serve_server/api/main.py for doc-serve command
-- [ ] T011 Run `poetry install` in doc-serve-server/ to register new entry points
-- [ ] T012 Run `poetry install` in doc-svr-ctl/ to register new entry points
-- [ ] T013 Run `task before-push` to verify all tests pass with new entry points
+- [x] T007 Add `agent-brain-serve` entry point to doc-serve-server/pyproject.toml [tool.poetry.scripts]
+- [x] T008 Add `agent-brain` entry point to doc-svr-ctl/pyproject.toml [tool.poetry.scripts]
+- [x] T009 Add deprecation warning function to doc-svr-ctl/doc_svr_ctl/cli.py for doc-svr-ctl command
+- [x] T010 Add deprecation warning function to doc-serve-server/doc_serve_server/api/main.py for doc-serve command
+- [x] T011 Run `poetry install` in doc-serve-server/ to register new entry points
+- [x] T012 Run `poetry install` in doc-svr-ctl/ to register new entry points
+- [x] T013 Run `task before-push` to verify all tests pass with new entry points
+- [x] T013b Update tests to use new naming (Agent Brain RAG API, 1.2.0)
 
-**Checkpoint**: Both old and new commands should now work. Verify with:
-- `agent-brain --help` (new)
+**Checkpoint**: Both old and new commands should now work. ✅ Verified:
+- `agent-brain --help` (new) ✅
 - `doc-svr-ctl --help` (deprecated, shows warning)
-- `agent-brain-serve --help` (new)
+- `agent-brain-serve --help` (new) ✅
 - `doc-serve --help` (deprecated, shows warning)
 
 ---
 
-## Phase 3: User Story 1 - New User Installation (Priority: P1) 🎯 MVP
+## Phase 3: User Story 1 - New User Installation (Priority: P1) ✅ COMPLETE
 
 **Goal**: New users see consistent agent-brain naming in PyPI and GitHub
 
@@ -63,18 +65,18 @@
 
 ### Implementation for User Story 1
 
-- [ ] T014 [P] [US1] Update PyPI description in doc-serve-server/pyproject.toml to emphasize agent-brain branding
-- [ ] T015 [P] [US1] Update PyPI description in doc-svr-ctl/pyproject.toml to emphasize agent-brain branding
-- [ ] T016 [P] [US1] Update keywords in doc-serve-server/pyproject.toml to include agent-brain terms
-- [ ] T017 [P] [US1] Update keywords in doc-svr-ctl/pyproject.toml to include agent-brain terms
-- [ ] T018 [US1] Update doc-serve-server/README.md with new primary command names
-- [ ] T019 [US1] Update doc-svr-ctl/README.md with new primary command names
+- [x] T014 [P] [US1] Update PyPI description in doc-serve-server/pyproject.toml to emphasize agent-brain branding
+- [x] T015 [P] [US1] Update PyPI description in doc-svr-ctl/pyproject.toml to emphasize agent-brain branding
+- [x] T016 [P] [US1] Update keywords in doc-serve-server/pyproject.toml to include agent-brain terms
+- [x] T017 [P] [US1] Update keywords in doc-svr-ctl/pyproject.toml to include agent-brain terms
+- [x] T018 [US1] Update doc-serve-server/README.md with new primary command names
+- [x] T019 [US1] Update doc-svr-ctl/README.md with new primary command names
 
-**Checkpoint**: User Story 1 complete - new users see consistent branding on PyPI
+**Checkpoint**: User Story 1 complete - new users see consistent branding on PyPI ✅
 
 ---
 
-## Phase 4: User Story 2 - Existing User Migration (Priority: P1)
+## Phase 4: User Story 2 - Existing User Migration (Priority: P1) ✅ COMPLETE
 
 **Goal**: Existing users can upgrade smoothly with clear migration path
 
@@ -82,18 +84,18 @@
 
 ### Implementation for User Story 2
 
-- [ ] T020 [US2] Create docs/MIGRATION.md with v1.1→v1.2 migration steps
-- [ ] T021 [US2] Update deprecation messages to reference docs/MIGRATION.md
-- [ ] T022 [P] [US2] Update doc-serve-server/tests/test_server_install.py for new version
-- [ ] T023 [P] [US2] Update doc-svr-ctl/tests/test_cli_install.py for new version
-- [ ] T024 [P] [US2] Add test for agent-brain command entry point in doc-svr-ctl/tests/test_cli.py
-- [ ] T025 [P] [US2] Add test for agent-brain-serve command entry point in doc-serve-server/tests/test_cli.py (if exists)
+- [x] T020 [US2] Create docs/MIGRATION.md with v1.1→v1.2 migration steps
+- [x] T021 [US2] Update deprecation messages to reference docs/MIGRATION.md
+- [x] T022 [P] [US2] Update doc-serve-server/tests/test_server_install.py for new version
+- [x] T023 [P] [US2] Update doc-svr-ctl/tests/test_cli_install.py for new version
+- [x] T024 [P] [US2] Add test for agent-brain command entry point in doc-svr-ctl/tests/test_cli.py
+- [x] T025 [P] [US2] Add test for agent-brain-serve command entry point in doc-serve-server/tests/test_cli.py (if exists)
 
-**Checkpoint**: User Story 2 complete - existing users can upgrade with deprecation warnings
+**Checkpoint**: User Story 2 complete - existing users can upgrade with deprecation warnings ✅
 
 ---
 
-## Phase 5: User Story 3 - Documentation Consistency (Priority: P2)
+## Phase 5: User Story 3 - Documentation Consistency (Priority: P2) ✅ COMPLETE
 
 **Goal**: All documentation uses consistent agent-brain naming
 
@@ -101,24 +103,24 @@
 
 ### Implementation for User Story 3
 
-- [ ] T026 [P] [US3] Update README.md (root) with agent-brain naming and installation commands
-- [ ] T027 [P] [US3] Update CLAUDE.md (root) with agent-brain command references
-- [ ] T028 [P] [US3] Update .claude/CLAUDE.md with agent-brain command references
-- [ ] T029 [P] [US3] Update doc-serve-skill/doc-serve/SKILL.md command examples to use agent-brain
-- [ ] T030 [P] [US3] Update doc-serve-skill/doc-serve/references/troubleshooting-guide.md with new commands
-- [ ] T031 [P] [US3] Update doc-serve-skill/doc-serve/references/integration-guide.md with new commands
-- [ ] T032 [P] [US3] Update doc-serve-skill/doc-serve/references/api_reference.md with new commands
-- [ ] T033 [P] [US3] Update doc-serve-skill/doc-serve/references/bm25-search-guide.md with new commands
-- [ ] T034 [P] [US3] Update doc-serve-skill/doc-serve/references/vector-search-guide.md with new commands
-- [ ] T035 [P] [US3] Update doc-serve-skill/doc-serve/references/hybrid-search-guide.md with new commands
-- [ ] T036 [P] [US3] Update doc-serve-skill/doc-serve/references/server-discovery.md with new commands
-- [ ] T037 [US3] Run grep to verify no doc-svr-ctl or doc-serve references remain (except deprecation notes)
+- [x] T026 [P] [US3] Update README.md (root) with agent-brain naming and installation commands
+- [x] T027 [P] [US3] Update CLAUDE.md (root) with agent-brain command references
+- [x] T028 [P] [US3] Update .claude/CLAUDE.md with agent-brain command references
+- [x] T029 [P] [US3] Update doc-serve-skill/doc-serve/SKILL.md command examples to use agent-brain
+- [x] T030 [P] [US3] Update doc-serve-skill/doc-serve/references/troubleshooting-guide.md with new commands
+- [x] T031 [P] [US3] Update doc-serve-skill/doc-serve/references/integration-guide.md with new commands
+- [x] T032 [P] [US3] Update doc-serve-skill/doc-serve/references/api_reference.md with new commands
+- [x] T033 [P] [US3] Update doc-serve-skill/doc-serve/references/bm25-search-guide.md with new commands
+- [x] T034 [P] [US3] Update doc-serve-skill/doc-serve/references/vector-search-guide.md with new commands
+- [x] T035 [P] [US3] Update doc-serve-skill/doc-serve/references/hybrid-search-guide.md with new commands
+- [x] T036 [P] [US3] Update doc-serve-skill/doc-serve/references/server-discovery.md with new commands
+- [x] T037 [US3] Run grep to verify no doc-svr-ctl or doc-serve references remain (except deprecation notes)
 
-**Checkpoint**: User Story 3 complete - all documentation uses agent-brain naming
+**Checkpoint**: User Story 3 complete - all documentation uses agent-brain naming ✅
 
 ---
 
-## Phase 6: User Story 4 - Claude Code Skill Discovery (Priority: P2)
+## Phase 6: User Story 4 - Claude Code Skill Discovery (Priority: P2) ✅ COMPLETE
 
 **Goal**: Skill renamed to using-agent-brain with updated triggers
 
@@ -126,28 +128,28 @@
 
 ### Implementation for User Story 4
 
-- [ ] T038 [US4] Rename directory doc-serve-skill/doc-serve/ to doc-serve-skill/using-agent-brain/
-- [ ] T039 [US4] Update name field in doc-serve-skill/using-agent-brain/SKILL.md frontmatter to `using-agent-brain`
-- [ ] T040 [US4] Update description in SKILL.md to reference agent-brain commands
-- [ ] T041 [US4] Update trigger keywords in SKILL.md to include "agent-brain" terms
-- [ ] T042 [US4] Update all internal file references in SKILL.md (references/ paths remain valid)
-- [ ] T043 [US4] Verify skill loads correctly with new name
+- [x] T038 [US4] Rename directory doc-serve-skill/doc-serve/ to doc-serve-skill/using-agent-brain/
+- [x] T039 [US4] Update name field in doc-serve-skill/using-agent-brain/SKILL.md frontmatter to `using-agent-brain`
+- [x] T040 [US4] Update description in SKILL.md to reference agent-brain commands
+- [x] T041 [US4] Update trigger keywords in SKILL.md to include "agent-brain" terms
+- [x] T042 [US4] Update all internal file references in SKILL.md (references/ paths remain valid)
+- [x] T043 [US4] Verify skill loads correctly with new name
 
-**Checkpoint**: User Story 4 complete - skill discoverable as using-agent-brain
+**Checkpoint**: User Story 4 complete - skill discoverable as using-agent-brain ✅
 
 ---
 
-## Phase 7: Polish & Cross-Cutting Concerns
+## Phase 7: Polish & Cross-Cutting Concerns ✅ COMPLETE
 
 **Purpose**: Final validation and release preparation
 
-- [ ] T044 Run `task before-push` to verify all tests pass
-- [ ] T045 Run grep audit for any remaining old naming inconsistencies
-- [ ] T046 Update .speckit/features/112-agent-brain-naming/quickstart.md if any steps changed
+- [x] T044 Run `task before-push` to verify all tests pass
+- [x] T045 Run grep audit for any remaining old naming inconsistencies
+- [x] T046 Update .speckit/features/112-agent-brain-naming/quickstart.md if any steps changed
 - [ ] T047 Close GitHub issues #90, #91, #93, #94, #95 with implementation notes
 - [ ] T048 Build packages with `poetry build` in both package directories
 - [ ] T049 Test local installation from wheels to verify entry points
-- [ ] T050 Create git commit with conventional message: `feat(naming): unify branding to agent-brain (v1.2.0)`
+- [x] T050 Create git commit with conventional message: `feat(naming): unify branding to agent-brain (v1.2.0)`
 - [ ] T051 Create git tag v1.2.0
 - [ ] T052 Publish to PyPI: `poetry publish` in doc-serve-server/ and doc-svr-ctl/
 
@@ -158,6 +160,34 @@
 - [ ] T055 Update README badges to use new repository URL
 - [ ] T056 Close GitHub issue #92 (repository rename)
 - [ ] T057 Update GitHub release notes with final URLs
+
+---
+
+## Phase 8: Directory Renames ✅ COMPLETE
+
+**Purpose**: Complete brand unification by renaming all directories and internal Python packages
+
+**Goal**: All directories and Python packages use agent-brain naming consistently
+
+### Top-Level Directory Renames
+
+- [x] T060 [US3] Rename `doc-serve-server/` directory to `agent-brain-server/`
+- [x] T061 [US3] Rename `doc-svr-ctl/` directory to `agent-brain-cli/`
+- [x] T062 [US3] Rename `doc-serve-skill/` directory to `agent-brain-skill/`
+
+### Internal Python Package Renames
+
+- [x] T063 [US3] Rename `doc_serve_server/` to `agent_brain_server/` inside agent-brain-server/
+- [x] T064 [US3] Rename `doc_svr_ctl/` to `agent_brain_cli/` inside agent-brain-cli/
+
+### Update References
+
+- [x] T065 [US3] Update all imports and internal references to use new package names
+- [x] T066 [US3] Update Taskfile.yml to reference new directory names
+- [x] T067 [US3] Update all documentation to reflect new directory structure
+- [x] T068 [US3] Run full test suite (`task before-push`) to verify all changes work
+
+**Checkpoint**: Phase 8 complete - all directories and packages use agent-brain naming ✅
 
 ---
 
@@ -178,6 +208,9 @@ Phase 3 (US1)   Phase 4 (US2)   Phase 5 (US3)   Phase 6 (US4)  │
                          │                                       │
                          ▼                                       │
                   Phase 7 (Polish) ◄─────────────────────────────┘
+                         │
+                         ▼
+                  Phase 8 (Directory Renames)
 ```
 
 ### User Story Dependencies

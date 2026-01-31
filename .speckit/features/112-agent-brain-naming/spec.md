@@ -140,6 +140,41 @@ Users of Claude Code should be able to discover and install the skill using intu
 - Existing data directories (`.claude/doc-serve/`) do not need renaming in v1.2
 - Users accept a transition period with deprecation warnings
 
+## Directory Renames
+
+As part of the full unification to agent-brain naming, the following directory and package renames were performed:
+
+### Top-Level Directory Renames
+
+| Current Name | New Name | Purpose |
+|--------------|----------|---------|
+| `doc-serve-server` | `agent-brain-server` | FastAPI RAG server package |
+| `doc-svr-ctl` | `agent-brain-cli` | CLI management tool package |
+| `doc-serve-skill` | `agent-brain-skill` | Claude Code skill package |
+
+### Internal Python Package Renames
+
+| Current Name | New Name | Location |
+|--------------|----------|----------|
+| `doc_serve_server` | `agent_brain_server` | `agent-brain-server/agent_brain_server/` |
+| `doc_svr_ctl` | `agent_brain_cli` | `agent-brain-cli/agent_brain_cli/` |
+
+### Rationale
+
+The directory and package renames were performed to:
+
+1. **Complete brand unification**: Align all package names with the agent-brain brand
+2. **Reduce confusion**: Users no longer need to map between different naming conventions
+3. **Improve discoverability**: Consistent naming makes the codebase easier to navigate
+4. **Future-proof**: Establishes a clear naming pattern for any future packages
+
+### Impact
+
+- All imports must be updated (e.g., `from doc_serve_server.api` to `from agent_brain_server.api`)
+- Taskfile.yml must be updated to reference new directory names
+- Documentation must reflect new directory structure
+- Tests continue to work after import updates
+
 ## Out of Scope
 
 - Renaming the internal data directory from `.claude/doc-serve/` to `.claude/agent-brain/`

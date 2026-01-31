@@ -88,11 +88,11 @@ fi
 
 # Install dependencies if needed
 log_info "Installing server dependencies..."
-cd "$PROJECT_ROOT/doc-serve-server"
+cd "$PROJECT_ROOT/agent-brain-server"
 poetry install --quiet
 
 log_info "Installing CLI dependencies..."
-cd "$PROJECT_ROOT/doc-svr-ctl"
+cd "$PROJECT_ROOT/agent-brain-cli"
 poetry install --quiet
 
 # Run tests using Python script or pytest
@@ -101,16 +101,16 @@ if [ "$USE_PYTEST" = true ]; then
 
     # Start server in background
     log_info "Starting doc-serve server..."
-    cd "$PROJECT_ROOT/doc-serve-server"
+    cd "$PROJECT_ROOT/agent-brain-server"
     poetry run doc-serve &
     SERVER_PID=$!
 
     # Wait for server health
     log_info "Waiting for server to be healthy..."
-    cd "$PROJECT_ROOT/doc-svr-ctl"
+    cd "$PROJECT_ROOT/agent-brain-cli"
     for i in {1..30}; do
-        if poetry run doc-svr-ctl status --json 2>/dev/null | grep -q '"status"'; then
-            STATUS=$(poetry run doc-svr-ctl status --json 2>/dev/null | grep -o '"status": "[^"]*"' | head -1)
+        if poetry run agent-brain status --json 2>/dev/null | grep -q '"status"'; then
+            STATUS=$(poetry run agent-brain status --json 2>/dev/null | grep -o '"status": "[^"]*"' | head -1)
             if echo "$STATUS" | grep -qE '"healthy"|"indexing"'; then
                 log_ok "Server is ready"
                 break

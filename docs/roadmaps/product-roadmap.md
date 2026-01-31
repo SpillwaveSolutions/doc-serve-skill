@@ -48,7 +48,7 @@ Doc-Serve is a local-first RAG (Retrieval-Augmented Generation) service that ind
 - **Vector Search:** Chroma vector database with OpenAI text-embedding-3-large
 - **Persistent Storage:** Disk-based persistence across restarts
 - **REST API:** `/query`, `/index`, `/health` endpoints
-- **CLI Tool:** `doc-svr-ctl` with status, query, index, reset commands
+- **CLI Tool:** `agent-brain` with status, query, index, reset commands
 - **Claude Skill:** Basic integration for conversational document search
 
 ### Technical Stack
@@ -166,10 +166,10 @@ Enable running multiple concurrent doc-serve instances with per-project isolatio
 ### New CLI Commands
 
 ```bash
-doc-svr-ctl init              # Initialize project for doc-serve
-doc-svr-ctl start --daemon    # Start server with auto-port
-doc-svr-ctl stop              # Stop the server
-doc-svr-ctl list              # List all running instances
+agent-brain init              # Initialize project for doc-serve
+agent-brain start --daemon    # Start server with auto-port
+agent-brain stop              # Stop the server
+agent-brain list              # List all running instances
 ```
 
 ### Benefits
@@ -218,7 +218,7 @@ Update the doc-serve Claude Code skill to leverage multi-instance architecture f
 
 ### Key Features
 
-- **Auto-Initialization:** Skill automatically runs `doc-svr-ctl init` when needed
+- **Auto-Initialization:** Skill automatically runs `agent-brain init` when needed
 - **Server Discovery:** Reads `runtime.json` to find running instances
 - **Auto-Start:** Starts server automatically if no instance is running
 - **Status Reporting:** Reports port, mode, instance ID, document count
@@ -460,13 +460,13 @@ Doc-Serve enables creating searchable, AI-queryable corpora from large documenta
 
 ```bash
 # Index AWS CDK documentation
-doc-svr-ctl index ~/aws-cdk-docs/
+agent-brain index ~/aws-cdk-docs/
 
 # Index AWS CDK Python library source (Phase 3)
-doc-svr-ctl index ~/aws-cdk-python/src/ --include-code
+agent-brain index ~/aws-cdk-python/src/ --include-code
 
 # Query during development
-doc-svr-ctl query "S3 bucket with lifecycle rules and versioning"
+agent-brain query "S3 bucket with lifecycle rules and versioning"
 ```
 
 **Sample Queries:**
@@ -490,10 +490,10 @@ doc-svr-ctl query "S3 bucket with lifecycle rules and versioning"
 
 ```bash
 # Index Claude documentation
-doc-svr-ctl index ~/anthropic-docs/
+agent-brain index ~/anthropic-docs/
 
 # Index Claude SDK source (Phase 3)
-doc-svr-ctl index ~/claude-sdk/src/ --include-code
+agent-brain index ~/claude-sdk/src/ --include-code
 
 # Query via Claude skill
 "How do I implement streaming responses with the Python SDK?"
@@ -520,12 +520,12 @@ doc-svr-ctl index ~/claude-sdk/src/ --include-code
 
 ```bash
 # Index internal documentation
-doc-svr-ctl index ~/company-docs/architecture/
-doc-svr-ctl index ~/company-docs/onboarding/
-doc-svr-ctl index ~/company-docs/api-guides/
+agent-brain index ~/company-docs/architecture/
+agent-brain index ~/company-docs/onboarding/
+agent-brain index ~/company-docs/api-guides/
 
 # Index internal code (Phase 3)
-doc-svr-ctl index ~/company-monorepo/libs/ --include-code
+agent-brain index ~/company-monorepo/libs/ --include-code
 
 # Team members query via Claude skill
 "What is our authentication flow for mobile apps?"
@@ -546,13 +546,13 @@ doc-svr-ctl index ~/company-monorepo/libs/ --include-code
 
 ```bash
 # Index project documentation
-doc-svr-ctl index ~/kubernetes/docs/
+agent-brain index ~/kubernetes/docs/
 
 # Index project source code (Phase 3)
-doc-svr-ctl index ~/kubernetes/pkg/ --include-code
+agent-brain index ~/kubernetes/pkg/ --include-code
 
 # Query for contribution patterns
-doc-svr-ctl query "How are admission controllers implemented?"
+agent-brain query "How are admission controllers implemented?"
 ```
 
 **Sample Queries:**
