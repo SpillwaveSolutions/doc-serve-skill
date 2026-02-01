@@ -14,6 +14,8 @@ class QueryMode(str, Enum):
     VECTOR = "vector"
     BM25 = "bm25"
     HYBRID = "hybrid"
+    GRAPH = "graph"  # Graph-only retrieval (Feature 113)
+    MULTI = "multi"  # Multi-retrieval: vector + BM25 + graph with RRF (Feature 113)
 
 
 class QueryRequest(BaseModel):
@@ -39,7 +41,7 @@ class QueryRequest(BaseModel):
     )
     mode: QueryMode = Field(
         default=QueryMode.HYBRID,
-        description="Retrieval mode (vector, bm25, hybrid)",
+        description="Retrieval mode (vector, bm25, hybrid, graph, multi)",
     )
     alpha: float = Field(
         default=0.5,
@@ -129,6 +131,17 @@ class QueryResult(BaseModel):
     )
     language: str | None = Field(
         default=None, description="Programming language for code files"
+    )
+
+    # GraphRAG fields (Feature 113)
+    graph_score: float | None = Field(
+        default=None, description="Score from graph-based retrieval"
+    )
+    related_entities: list[str] | None = Field(
+        default=None, description="Related entities from knowledge graph"
+    )
+    relationship_path: list[str] | None = Field(
+        default=None, description="Relationship paths in the graph"
     )
 
     # Additional metadata

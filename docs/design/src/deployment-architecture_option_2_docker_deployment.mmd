@@ -1,0 +1,39 @@
+flowchart TB
+    subgraph Docker["Docker Host"]
+        direction TB
+        Compose[Docker Compose]
+
+        subgraph Network["agent-brain-network"]
+            Traefik[Traefik Proxy]
+            Server1[agent-brain:8000]
+            Server2[agent-brain:8000]
+        end
+
+        subgraph Volumes["Docker Volumes"]
+            ChromaVol[chroma-data]
+            BM25Vol[bm25-data]
+        end
+    end
+
+    Users[Users]
+    OpenAI[OpenAI API]
+
+    Users -->|"HTTPS"| Traefik
+    Traefik --> Server1
+    Traefik --> Server2
+    Server1 --> ChromaVol
+    Server1 --> BM25Vol
+    Server2 --> ChromaVol
+    Server2 --> BM25Vol
+    Server1 --> OpenAI
+    Server2 --> OpenAI
+
+    classDef compose fill:#2496ED,stroke:#333,stroke-width:2px,color:white
+    classDef container fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef volume fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+    classDef external fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+
+    class Compose compose
+    class Traefik,Server1,Server2 container
+    class ChromaVol,BM25Vol volume
+    class Users,OpenAI external

@@ -1,0 +1,113 @@
+@startuml Storage Components
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+title Storage Layer - Component Architecture
+
+skinparam component {
+    BackgroundColor<<manager>> #E3F2FD
+    BackgroundColor<<backend>> #E8F5E9
+    BackgroundColor<<persist>> #FFF3E0
+}
+
+package "Storage Layer" {
+
+    ' Vector Storage
+    package "Vector Storage" {
+        component [VectorStoreManager] <<manager>> as vector_mgr
+        component [ChromaDB] <<backend>> as chroma
+        database "chroma_db/" <<persist>> as chroma_files
+
+        interface "similarity_search()" as sim_if
+        interface "upsert_documents()" as upsert_if
+        interface "get_count()" as count_if
+        interface "get_by_id()" as get_if
+
+        vector_mgr -up- sim_if
+        vector_mgr -up- upsert_if
+        vector_mgr -up- count_if
+        vector_mgr -up- get_if
+        vector_mgr --> chroma
+        chroma --> chroma_files
+    }
+
+    ' BM25 Storage
+    package "BM25 Storage" {
+        component [BM25IndexManager] <<manager>> as bm25_mgr
+        component [LlamaIndex BM25Retriever] <<backend>> as bm25_ret
+        folder "bm25_index/" <<persist>> as bm25_files
+
+        interface "build_index()" as build_if
+        interface "search_with_filters()" as search_if
+        interface "get_retriever()" as ret_if
+
+        bm25_mgr -up- build_if
+        bm25_mgr -up- search_if
+        bm25_mgr -up- ret_if
+        bm25_mgr --> bm25_ret
+        bm25_ret --> bm25_files
+    }
+
+    ' Graph Storage
+    package "Graph Storage" {
+        component [GraphStoreManager] <<manager>> as graph_mgr
+        component [SimplePropertyGraphStore] <<backend>> as simple_graph
+        component [KuzuPropertyGraphStore] <<backend>> as kuzu_graph
+        folder "graph_index/" <<persist>> as graph_files
+
+        interface "add_triplet()" as triplet_if
+        interface "query()" as gquery_if
+        interface "persist()" as gpersist_if
+
+        graph_mgr -up- triplet_if
+        graph_mgr -up- gquery_if
+        graph_mgr -up- gpersist_if
+        graph_mgr --> simple_graph : default
+        graph_mgr --> kuzu_graph : optional
+        simple_graph --> graph_files
+    }
+}
+
+' Notes
+note right of vector_mgr
+    Configuration:
+    - persist_dir: ./chroma_db
+    - collection_name: doc_serve_collection
+    - metric: cosine
+end note
+
+note right of chroma
+    ChromaDB Features:
+    - HNSW indexing
+    - Metadata filtering
+    - Batch operations
+end note
+
+note right of bm25_mgr
+    Configuration:
+    - persist_dir: ./bm25_index
+    - similarity_top_k: configurable
+end note
+
+note right of bm25_ret
+    BM25 Features:
+    - Token-based scoring
+    - IDF weighting
+    - Async retrieval
+end note
+
+note right of graph_mgr
+    Configuration:
+    - persist_dir: ./graph_index
+    - store_type: simple | kuzu
+    - enabled: ENABLE_GRAPH_INDEX
+end note
+
+note right of simple_graph
+    Graph Features:
+    - Subject-Predicate-Object
+    - Entity types
+    - Source chunk linking
+end note
+
+@enduml

@@ -1,0 +1,45 @@
+flowchart LR
+    Query[Query Vector]
+    Doc1[Doc Vector 1]
+    Doc2[Doc Vector 2]
+    Doc3[Doc Vector 3]
+
+    Query -->|"Cosine Distance"| CalcDist
+
+    subgraph CalcDist["Distance Calculation"]
+        D1["distance1 = 0.15"]
+        D2["distance2 = 0.32"]
+        D3["distance3 = 0.08"]
+    end
+
+    CalcDist --> Convert
+
+    subgraph Convert["Similarity Conversion"]
+        S1["similarity1 = 1 - 0.15 = 0.85"]
+        S2["similarity2 = 1 - 0.32 = 0.68"]
+        S3["similarity3 = 1 - 0.08 = 0.92"]
+    end
+
+    Convert --> Filter
+
+    subgraph Filter["Threshold Filter (0.7)"]
+        Keep1["0.85 >= 0.7 (keep)"]
+        Keep3["0.92 >= 0.7 (keep)"]
+        Skip2["0.68 < 0.7 (skip)"]
+    end
+
+    Filter --> Sort
+
+    subgraph Sort["Sort Descending"]
+        Result["[Doc3: 0.92, Doc1: 0.85]"]
+    end
+
+    classDef vector fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef calc fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef filter fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+    classDef result fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+
+    class Query,Doc1,Doc2,Doc3 vector
+    class D1,D2,D3,S1,S2,S3 calc
+    class Keep1,Keep3,Skip2 filter
+    class Result result

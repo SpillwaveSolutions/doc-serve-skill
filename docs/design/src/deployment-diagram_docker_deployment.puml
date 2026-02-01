@@ -1,0 +1,69 @@
+@startuml Docker Deployment
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+title Agent Brain - Docker Deployment
+
+skinparam node {
+    BackgroundColor<<container>> #F3E5F5
+    BackgroundColor<<volume>> #FFF3E0
+    BackgroundColor<<network>> #E3F2FD
+}
+
+node "Docker Host" {
+
+    ' Docker Network
+    node "Docker Network: agent-brain-net" <<network>> as network {
+
+        ' Container
+        node "Container: agent-brain-server" <<container>> as container {
+
+            component [Python 3.11 Runtime] as python
+            component [agent-brain-serve] as server
+            component [Uvicorn ASGI] as uvicorn
+
+            frame "Exposed Ports" {
+                portin "8000/tcp" as port8000
+            }
+
+            python --> server
+            server --> uvicorn
+            uvicorn --> port8000
+        }
+    }
+
+    ' Volumes
+    node "Docker Volumes" <<volume>> as volumes {
+
+        folder "agent-brain-data" as data_vol {
+            database "ChromaDB" as chroma_vol
+            file "BM25 Index" as bm25_vol
+            file "Graph Store" as graph_vol
+        }
+
+        folder "agent-brain-config" as config_vol {
+            file ".env" as env_vol
+        }
+    }
+
+    ' Volume Mounts
+    container ..> data_vol : /app/data
+    container ..> config_vol : /app/.env
+
+    ' External Access
+    actor "Client" as client
+    client --> port8000 : HTTP REST API
+}
+
+note right of container
+    **Docker Run Command**
+    docker run -d \\
+      --name agent-brain \\
+      -p 8000:8000 \\
+      -v agent-brain-data:/app/data \\
+      -v $(pwd)/.env:/app/.env:ro \\
+      -e OPENAI_API_KEY=$OPENAI_API_KEY \\
+      agent-brain-server:latest
+end note
+
+@enduml

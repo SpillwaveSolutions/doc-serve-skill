@@ -1,0 +1,83 @@
+classDiagram
+    class QueryService {
+        -VectorStoreManager vector_store
+        -EmbeddingGenerator embedding_generator
+        -BM25IndexManager bm25_manager
+        -GraphIndexManager graph_index_manager
+
+        +is_ready() bool
+        +execute_query(QueryRequest) QueryResponse
+        +get_document_count() int
+
+        -_execute_vector_query(QueryRequest) list~QueryResult~
+        -_execute_bm25_query(QueryRequest) list~QueryResult~
+        -_execute_hybrid_query(QueryRequest) list~QueryResult~
+        -_execute_graph_query(QueryRequest) list~QueryResult~
+        -_execute_multi_query(QueryRequest) list~QueryResult~
+        -_filter_results(list~QueryResult~, QueryRequest) list~QueryResult~
+        -_build_where_clause(list~str~, list~str~) dict
+    }
+
+    class QueryRequest {
+        +str query
+        +int top_k
+        +float similarity_threshold
+        +QueryMode mode
+        +float alpha
+        +list~str~ source_types
+        +list~str~ languages
+        +list~str~ file_paths
+    }
+
+    class QueryResponse {
+        +list~QueryResult~ results
+        +float query_time_ms
+        +int total_results
+    }
+
+    class QueryResult {
+        +str text
+        +str source
+        +float score
+        +float vector_score
+        +float bm25_score
+        +float graph_score
+        +str chunk_id
+        +str source_type
+        +str language
+        +list~str~ related_entities
+        +list~str~ relationship_path
+        +dict metadata
+    }
+
+    class QueryMode {
+        <<enumeration>>
+        VECTOR
+        BM25
+        HYBRID
+        GRAPH
+        MULTI
+    }
+
+    QueryService --> QueryRequest : receives
+    QueryService --> QueryResponse : returns
+    QueryResponse --> QueryResult : contains
+    QueryRequest --> QueryMode : uses
+
+    class VectorStoreManager {
+        <<interface>>
+    }
+    class EmbeddingGenerator {
+        <<interface>>
+    }
+    class BM25IndexManager {
+        <<interface>>
+    }
+    class GraphIndexManager {
+        <<interface>>
+    }
+
+    QueryService --> VectorStoreManager : uses
+    QueryService --> EmbeddingGenerator : uses
+    QueryService --> BM25IndexManager : uses
+    QueryService --> GraphIndexManager : uses

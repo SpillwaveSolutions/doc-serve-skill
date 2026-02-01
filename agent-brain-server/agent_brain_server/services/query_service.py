@@ -7,8 +7,13 @@ from typing import Any, Optional
 from llama_index.core.retrievers import BaseRetriever
 from llama_index.core.schema import NodeWithScore, QueryBundle, TextNode
 
+from agent_brain_server.config import settings
 from agent_brain_server.indexing import EmbeddingGenerator, get_embedding_generator
 from agent_brain_server.indexing.bm25_index import BM25IndexManager, get_bm25_manager
+from agent_brain_server.indexing.graph_index import (
+    GraphIndexManager,
+    get_graph_index_manager,
+)
 from agent_brain_server.models import (
     QueryMode,
     QueryRequest,
@@ -69,6 +74,7 @@ class QueryService:
         vector_store: Optional[VectorStoreManager] = None,
         embedding_generator: Optional[EmbeddingGenerator] = None,
         bm25_manager: Optional[BM25IndexManager] = None,
+        graph_index_manager: Optional[GraphIndexManager] = None,
     ):
         """
         Initialize the query service.
@@ -77,10 +83,12 @@ class QueryService:
             vector_store: Vector store manager instance.
             embedding_generator: Embedding generator instance.
             bm25_manager: BM25 index manager instance.
+            graph_index_manager: Graph index manager instance (Feature 113).
         """
         self.vector_store = vector_store or get_vector_store()
         self.embedding_generator = embedding_generator or get_embedding_generator()
         self.bm25_manager = bm25_manager or get_bm25_manager()
+        self.graph_index_manager = graph_index_manager or get_graph_index_manager()
 
     def is_ready(self) -> bool:
         """
@@ -115,6 +123,10 @@ class QueryService:
             results = await self._execute_bm25_query(request)
         elif request.mode == QueryMode.VECTOR:
             results = await self._execute_vector_query(request)
+        elif request.mode == QueryMode.GRAPH:
+            results = await self._execute_graph_query(request)
+        elif request.mode == QueryMode.MULTI:
+            results = await self._execute_multi_query(request)
         else:  # HYBRID
             results = await self._execute_hybrid_query(request)
 
@@ -317,6 +329,197 @@ class QueryService:
         fused_nodes = fused_nodes[: request.top_k]
 
         return fused_nodes
+
+    async def _execute_graph_query(
+        self,
+        request: QueryRequest,
+        traversal_depth: int = 2,
+    ) -> list[QueryResult]:
+        """Execute graph-only query using entity relationships.
+
+        Uses the knowledge graph to find documents related to
+        entities mentioned in the query.
+
+        Args:
+            request: Query request.
+            traversal_depth: How many hops to traverse in graph.
+
+        Returns:
+            List of QueryResult from graph retrieval.
+
+        Raises:
+            ValueError: If GraphRAG is not enabled.
+        """
+        if not settings.ENABLE_GRAPH_INDEX:
+            raise ValueError(
+                "GraphRAG not enabled. Set ENABLE_GRAPH_INDEX=true in environment."
+            )
+
+        # Query the graph for related entities
+        graph_results = self.graph_index_manager.query(
+            query_text=request.query,
+            top_k=request.top_k,
+            traversal_depth=traversal_depth,
+        )
+
+        if not graph_results:
+            logger.debug("No graph results found, falling back to vector search")
+            return await self._execute_vector_query(request)
+
+        # Convert graph results to QueryResults
+        results: list[QueryResult] = []
+        chunk_ids = [
+            r.get("source_chunk_id") for r in graph_results if r.get("source_chunk_id")
+        ]
+
+        if not chunk_ids:
+            # No source chunks in graph, fall back to vector search
+            return await self._execute_vector_query(request)
+
+        # Look up the actual documents from vector store
+        for graph_result in graph_results:
+            chunk_id = graph_result.get("source_chunk_id")
+            if not chunk_id:
+                continue
+
+            # Get document from vector store by ID
+            try:
+                doc = await self.vector_store.get_by_id(chunk_id)
+                if doc:
+                    result = QueryResult(
+                        text=doc.get("text", ""),
+                        source=doc.get("metadata", {}).get(
+                            "source",
+                            doc.get("metadata", {}).get("file_path", "unknown"),
+                        ),
+                        score=graph_result.get("graph_score", 0.5),
+                        graph_score=graph_result.get("graph_score", 0.5),
+                        chunk_id=chunk_id,
+                        source_type=doc.get("metadata", {}).get("source_type", "doc"),
+                        language=doc.get("metadata", {}).get("language"),
+                        related_entities=[
+                            graph_result.get("subject", ""),
+                            graph_result.get("object", ""),
+                        ],
+                        relationship_path=[graph_result.get("relationship_path", "")],
+                        metadata={
+                            k: v
+                            for k, v in doc.get("metadata", {}).items()
+                            if k
+                            not in ("source", "file_path", "source_type", "language")
+                        },
+                    )
+                    results.append(result)
+            except Exception as e:
+                logger.debug(f"Failed to retrieve chunk {chunk_id}: {e}")
+                continue
+
+        # If no results from graph, fall back to vector search
+        if not results:
+            logger.debug("No documents found from graph, falling back to vector search")
+            return await self._execute_vector_query(request)
+
+        return results[: request.top_k]
+
+    async def _execute_multi_query(self, request: QueryRequest) -> list[QueryResult]:
+        """Execute multi-retrieval query combining vector, BM25, and graph.
+
+        Uses Reciprocal Rank Fusion (RRF) to combine results from
+        all three retrieval methods.
+
+        Args:
+            request: Query request.
+
+        Returns:
+            List of QueryResult with combined scores.
+        """
+        # Get results from each retriever
+        vector_results = await self._execute_vector_query(request)
+        bm25_results = await self._execute_bm25_query(request)
+
+        # Get graph results if enabled
+        graph_results: list[QueryResult] = []
+        if settings.ENABLE_GRAPH_INDEX:
+            try:
+                graph_results = await self._execute_graph_query(request)
+            except ValueError:
+                pass  # Graph not enabled, skip
+
+        # Apply Reciprocal Rank Fusion
+        rrf_k = settings.GRAPH_RRF_K  # Typical value is 60
+        combined_scores: dict[str, dict[str, Any]] = {}
+
+        # Process vector results
+        for rank, result in enumerate(vector_results):
+            chunk_id = result.chunk_id
+            rrf_score = 1.0 / (rrf_k + rank + 1)
+            if chunk_id not in combined_scores:
+                combined_scores[chunk_id] = {
+                    "result": result,
+                    "rrf_score": 0.0,
+                    "vector_rank": None,
+                    "bm25_rank": None,
+                    "graph_rank": None,
+                }
+            combined_scores[chunk_id]["rrf_score"] += rrf_score
+            combined_scores[chunk_id]["vector_rank"] = rank + 1
+
+        # Process BM25 results
+        for rank, result in enumerate(bm25_results):
+            chunk_id = result.chunk_id
+            rrf_score = 1.0 / (rrf_k + rank + 1)
+            if chunk_id not in combined_scores:
+                combined_scores[chunk_id] = {
+                    "result": result,
+                    "rrf_score": 0.0,
+                    "vector_rank": None,
+                    "bm25_rank": None,
+                    "graph_rank": None,
+                }
+            combined_scores[chunk_id]["rrf_score"] += rrf_score
+            combined_scores[chunk_id]["bm25_rank"] = rank + 1
+
+        # Process graph results
+        for rank, result in enumerate(graph_results):
+            chunk_id = result.chunk_id
+            rrf_score = 1.0 / (rrf_k + rank + 1)
+            if chunk_id not in combined_scores:
+                combined_scores[chunk_id] = {
+                    "result": result,
+                    "rrf_score": 0.0,
+                    "vector_rank": None,
+                    "bm25_rank": None,
+                    "graph_rank": None,
+                }
+            combined_scores[chunk_id]["rrf_score"] += rrf_score
+            combined_scores[chunk_id]["graph_rank"] = rank + 1
+            # Preserve graph-specific fields
+            if result.related_entities:
+                combined_scores[chunk_id][
+                    "result"
+                ].related_entities = result.related_entities
+            if result.relationship_path:
+                combined_scores[chunk_id][
+                    "result"
+                ].relationship_path = result.relationship_path
+            if result.graph_score:
+                combined_scores[chunk_id]["result"].graph_score = result.graph_score
+
+        # Sort by RRF score and take top_k
+        sorted_results = sorted(
+            combined_scores.values(),
+            key=lambda x: x["rrf_score"],
+            reverse=True,
+        )
+
+        # Update scores and return
+        final_results: list[QueryResult] = []
+        for data in sorted_results[: request.top_k]:
+            result = data["result"]
+            result.score = data["rrf_score"]
+            final_results.append(result)
+
+        return final_results
 
     async def get_document_count(self) -> int:
         """

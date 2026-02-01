@@ -1,12 +1,12 @@
-# Doc-Serve Multi-Instance Architecture Specification
+# Agent Brain Multi-Instance Architecture Specification
 
-**Version:** 2.0.0  
-**Date:** 2026-01-27  
+**Version:** 2.0.0
+**Date:** 2026-01-27
 **Status:** Implementation Ready
 
 ## Executive Summary
 
-Refactor doc-serve from a single-instance architecture (tied to install directory) to support concurrent multi-project operation with two deployment modes:
+Refactor Agent Brain from a single-instance architecture (tied to install directory) to support concurrent multi-project operation with two deployment modes:
 
 1. **Mode A: Per-Project (Dedicated)** - One server process per repository
 2. **Mode B: Shared Daemon** - Single process serving multiple repositories
@@ -19,7 +19,7 @@ The key insight: **agents always read the same discovery file** (`<repo>/.claude
 
 ### Current Limitations
 
-1. **Single Instance** - Only one doc-serve can run at a time
+1. **Single Instance** - Only one Agent Brain server can run at a time
 2. **Home Directory Coupling** - State stored globally in `~/.doc-serve` or install location
 3. **Port Conflicts** - No automatic port management
 4. **No Project Isolation** - Indexes mix across projects
@@ -27,7 +27,7 @@ The key insight: **agents always read the same discovery file** (`<repo>/.claude
 
 ### Requirements
 
-1. Run multiple doc-serve instances concurrently (one per project)
+1. Run multiple Agent Brain instances concurrently (one per project)
 2. State travels with project (can be git-ignored)
 3. Collision-free port allocation
 4. Clean agent discovery contract
@@ -318,19 +318,19 @@ Same as current, no `project_id` needed since one server = one project.
 
 ```bash
 # Start server for current project (auto-detects mode from config)
-doc-serve start [--state-dir PATH] [--port PORT] [--mode project|shared]
+agent-brain start [--state-dir PATH] [--port PORT] [--mode project|shared]
 
 # Check status
-doc-serve status [--project PATH]
+agent-brain status [--project PATH]
 
 # Stop server
-doc-serve stop [--project PATH]
+agent-brain stop [--project PATH]
 
 # List all running instances
-doc-serve list
+agent-brain list
 
 # Initialize config for a project
-doc-serve init [--mode project|shared]
+agent-brain init [--mode project|shared]
 ```
 
 ### Examples
@@ -338,19 +338,19 @@ doc-serve init [--mode project|shared]
 ```bash
 # Start per-project server (default)
 cd /path/to/my-repo
-doc-serve start
+agent-brain start
 # → Server started at http://127.0.0.1:49321
 # → State: /path/to/my-repo/.claude/doc-serve/
 
 # Start shared daemon
-doc-serve start --mode shared
+agent-brain start --mode shared
 # → Shared daemon started at http://127.0.0.1:45123
 # → State: ~/.doc-serve/
 
 # Check status from any subdirectory
 cd /path/to/my-repo/src/deep/nested
-doc-serve status
-# → Doc-serve running at http://127.0.0.1:49321 (project mode)
+agent-brain status
+# → Agent Brain running at http://127.0.0.1:49321 (project mode)
 # → Indexed: 1,234 chunks from 56 files
 ```
 

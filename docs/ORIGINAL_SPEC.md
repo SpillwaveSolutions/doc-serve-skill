@@ -18,19 +18,19 @@ Mono repo
    docs/ 
    agent-brain-skill/
    agent-brain-server/
-   agent-brain-cli/ (Command line interface to doc-server)
+   agent-brain-cli/ (Command line interface to agent-brain-server)
    
    
 ```
 
-1. command-line tool, called something like "docserver," that takes a path to a folder containing documents and a port number to run on. This launches folder.
+1. command-line tool, called "agent-brain," that takes a path to a folder containing documents and a port number to run on. This launches the server.
 2. When it starts, it indexes all the documents in that folder, using OpenAI embeddings and stores them in the Chroma vector store.
 3. The tool will expose health endpoints—likely something like a /health or /status route—to indicate if it's up, if indexing is in progress, or if it's finished and ready for querying.
-4. The skill will know how to check this health endpoint to see whether the docserver is running. If not, it can spin it up with the proper folder path and port.
+4. The skill will know how to check this health endpoint to see whether Agent Brain is running. If not, it can spin it up with the proper folder path and port.
 5. Once indexing is complete and the server is ready, the skill can query the vector store over HTTP, sending text queries and getting back relevant document chunks or summaries.
 6. Everything will be running locally, so it stays efficient and fast.
-7. There is a doc-svr-cli to query the DB and test it easily, and turn it off. Add dirs to index, etc. 
-8. Doc-serve-server exposes OpenAPI schema 
+7. There is an agent-brain CLI to query the DB and test it easily, and turn it off. Add dirs to index, etc.
+8. agent-brain-server exposes OpenAPI schema 
 
 It is a fully self-contained system that the skill can start, check, and query as needed. This design gives you flexibility and scalability.
 

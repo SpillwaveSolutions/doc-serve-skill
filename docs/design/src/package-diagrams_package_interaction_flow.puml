@@ -1,0 +1,39 @@
+@startuml Package Interaction Flow
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+title Agent Brain - Package Interaction Flow
+
+actor "User" as user
+participant "Claude Code" as claude
+participant "Plugin" as plugin
+participant "CLI" as cli
+participant "Server" as server
+participant "Services" as services
+participant "Storage" as storage
+database "ChromaDB" as chromadb
+database "BM25 Index" as bm25
+
+' Search Flow
+user -> claude : "/agent-brain-search 'auth flow'"
+claude -> plugin : Load command
+plugin -> cli : subprocess: agent-brain query "auth flow"
+cli -> server : POST /query\n{query: "auth flow", mode: "hybrid"}
+
+server -> services : QueryService.execute_query()
+services -> storage : VectorStoreManager.similarity_search()
+storage -> chromadb : query embeddings
+chromadb --> storage : vector results
+
+services -> storage : BM25IndexManager.search()
+storage -> bm25 : keyword search
+bm25 --> storage : BM25 results
+
+services -> services : Hybrid fusion (RSF)
+services --> server : QueryResponse
+server --> cli : JSON response
+cli --> plugin : Formatted results
+plugin --> claude : Display to user
+claude --> user : Search results
+
+@enduml

@@ -10,6 +10,7 @@ from typing import Any, Callable, Optional, Union
 
 from llama_index.core.schema import TextNode
 
+from agent_brain_server.config import settings
 from agent_brain_server.indexing import (
     BM25IndexManager,
     ContextAwareChunker,
@@ -18,6 +19,10 @@ from agent_brain_server.indexing import (
     get_bm25_manager,
 )
 from agent_brain_server.indexing.chunking import CodeChunk, CodeChunker, TextChunk
+from agent_brain_server.indexing.graph_index import (
+    GraphIndexManager,
+    get_graph_index_manager,
+)
 from agent_brain_server.models import IndexingState, IndexingStatusEnum, IndexRequest
 from agent_brain_server.storage import VectorStoreManager, get_vector_store
 
@@ -43,6 +48,7 @@ class IndexingService:
         chunker: Optional[ContextAwareChunker] = None,
         embedding_generator: Optional[EmbeddingGenerator] = None,
         bm25_manager: Optional[BM25IndexManager] = None,
+        graph_index_manager: Optional[GraphIndexManager] = None,
     ):
         """
         Initialize the indexing service.
@@ -53,12 +59,14 @@ class IndexingService:
             chunker: Text chunker instance.
             embedding_generator: Embedding generator instance.
             bm25_manager: BM25 index manager instance.
+            graph_index_manager: Graph index manager instance (Feature 113).
         """
         self.vector_store = vector_store or get_vector_store()
         self.document_loader = document_loader or DocumentLoader()
         self.chunker = chunker or ContextAwareChunker()
         self.embedding_generator = embedding_generator or EmbeddingGenerator()
         self.bm25_manager = bm25_manager or get_bm25_manager()
+        self.graph_index_manager = graph_index_manager or get_graph_index_manager()
 
         # Internal state
         self._state = IndexingState(
@@ -382,6 +390,21 @@ class IndexingService:
             ]
             self.bm25_manager.build_index(nodes)
 
+            # Step 6: Build graph index if enabled (Feature 113)
+            if settings.ENABLE_GRAPH_INDEX:
+                if progress_callback:
+                    await progress_callback(97, 100, "Building graph index...")
+
+                def graph_progress(current: int, total: int, message: str) -> None:
+                    # Synchronous callback wrapper
+                    logger.debug(f"Graph indexing: {message}")
+
+                triplet_count = self.graph_index_manager.build_from_documents(
+                    chunks,
+                    progress_callback=graph_progress,
+                )
+                logger.info(f"Graph index built with {triplet_count} triplets")
+
             # Mark as completed
             self._state.status = IndexingStatusEnum.COMPLETED
             self._state.completed_at = datetime.now(timezone.utc)
@@ -424,6 +447,9 @@ class IndexingService:
         total_code_chunks = self._total_code_chunks
         supported_languages = sorted(self._supported_languages)
 
+        # Get graph index status (Feature 113)
+        graph_status = self.graph_index_manager.get_status()
+
         return {
             "status": self._state.status.value,
             "is_indexing": self._state.is_indexing,
@@ -446,6 +472,14 @@ class IndexingService:
             ),
             "error": self._state.error,
             "indexed_folders": sorted(self._indexed_folders),
+            # Graph index status (Feature 113)
+            "graph_index": {
+                "enabled": graph_status.enabled,
+                "initialized": graph_status.initialized,
+                "entity_count": graph_status.entity_count,
+                "relationship_count": graph_status.relationship_count,
+                "store_type": graph_status.store_type,
+            },
         }
 
     async def reset(self) -> None:
@@ -453,6 +487,8 @@ class IndexingService:
         async with self._lock:
             await self.vector_store.reset()
             self.bm25_manager.reset()
+            # Clear graph index (Feature 113)
+            self.graph_index_manager.clear()
             self._state = IndexingState(
                 current_job_id="",
                 folder_path="",
@@ -461,6 +497,9 @@ class IndexingService:
                 error=None,
             )
             self._indexed_folders.clear()
+            self._total_doc_chunks = 0
+            self._total_code_chunks = 0
+            self._supported_languages.clear()
             logger.info("Indexing service reset")
 
 

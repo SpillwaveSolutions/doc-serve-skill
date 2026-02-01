@@ -1,0 +1,89 @@
+@startuml Query Service Components
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+title QueryService - Internal Components
+
+skinparam component {
+    BackgroundColor<<mode>> #E3F2FD
+    BackgroundColor<<fusion>> #E8F5E9
+    BackgroundColor<<filter>> #FFF3E0
+}
+
+package "QueryService" as query_svc {
+
+    ' Query Mode Handlers
+    package "Query Mode Handlers" {
+        component [VectorQueryHandler] <<mode>> as vector_handler
+        component [BM25QueryHandler] <<mode>> as bm25_handler
+        component [HybridQueryHandler] <<mode>> as hybrid_handler
+        component [GraphQueryHandler] <<mode>> as graph_handler
+        component [MultiQueryHandler] <<mode>> as multi_handler
+    }
+
+    ' Score Fusion
+    package "Score Fusion" {
+        component [RelativeScoreFusion] <<fusion>> as rsf
+        component [ReciprocalRankFusion] <<fusion>> as rrf
+    }
+
+    ' Result Processing
+    package "Result Processing" {
+        component [ResultFilter] <<filter>> as filter
+        component [ResultFormatter] <<filter>> as formatter
+    }
+}
+
+note right of vector_handler
+    Executes pure semantic search
+    using embedding similarity
+end note
+
+note right of bm25_handler
+    Executes pure keyword search
+    using BM25 algorithm
+end note
+
+note right of rsf
+    Algorithm:
+    1. Normalize scores to [0,1]
+    2. Apply alpha weighting
+    3. Combine: alpha*vector + (1-alpha)*bm25
+end note
+
+note right of rrf
+    Algorithm:
+    1. Rank results per retriever
+    2. RRF score = sum(1/(k+rank))
+    3. k=60 (configurable)
+end note
+
+note right of filter
+    Filters:
+    - source_types
+    - languages
+    - file_paths (wildcards)
+end note
+
+' Internal connections
+vector_handler --> rsf : normalized scores
+bm25_handler --> rsf : normalized scores
+hybrid_handler --> rsf : fusion
+
+vector_handler --> rrf : ranked results
+bm25_handler --> rrf : ranked results
+graph_handler --> rrf : ranked results
+multi_handler --> rrf : multi-fusion
+
+rsf --> filter
+rrf --> filter
+filter --> formatter
+
+' Interfaces
+interface "QueryRequest" as req_if
+interface "QueryResponse" as resp_if
+
+req_if --> query_svc
+query_svc --> resp_if
+
+@enduml

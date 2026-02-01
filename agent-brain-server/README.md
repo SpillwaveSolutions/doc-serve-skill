@@ -46,7 +46,7 @@ The server will start at `http://127.0.0.1:8000`.
 ### Installation
 
 ```bash
-cd doc-serve-server
+cd agent-brain-server
 poetry install
 ```
 

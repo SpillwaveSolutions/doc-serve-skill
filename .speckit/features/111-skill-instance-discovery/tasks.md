@@ -28,7 +28,7 @@
 
 Create a Python module (or shell script section in SKILL.md) that:
 1. Resolves the project root using git or marker-based detection
-2. Constructs the path to `.claude/doc-serve/runtime.json`
+2. Constructs the path to `.claude/Agent Brain/runtime.json`
 3. Reads and parses the runtime state
 4. Validates the server is alive by calling the health endpoint
 5. Returns the base URL for API calls
@@ -64,17 +64,17 @@ Update the skill's main documentation to reflect the new multi-instance architec
 
 ### Acceptance Criteria
 
-- [ ] SKILL.md documents `doc-svr-ctl init` command
-- [ ] SKILL.md documents `doc-svr-ctl start --daemon` with auto-port
-- [ ] SKILL.md documents `doc-svr-ctl stop` command
-- [ ] SKILL.md documents `doc-svr-ctl list` command
+- [ ] SKILL.md documents `agent-brain init` command
+- [ ] SKILL.md documents `agent-brain start --daemon` with auto-port
+- [ ] SKILL.md documents `agent-brain stop` command
+- [ ] SKILL.md documents `agent-brain list` command
 - [ ] SKILL.md explains runtime.json discovery mechanism
 - [ ] SKILL.md examples use discovered port instead of hardcoded 8000
 - [ ] SKILL.md includes troubleshooting for stale server detection
 
 ### File Changes
 
-- `doc-serve-skill/doc-serve/SKILL.md` - Major update
+- `agent-brain-skill/Agent Brain/SKILL.md` - Major update
 
 ---
 
@@ -87,8 +87,8 @@ Update the skill's main documentation to reflect the new multi-instance architec
 ### Description
 
 Add logic to the skill workflow that:
-1. Checks if `.claude/doc-serve/` exists in the project
-2. If not, runs `doc-svr-ctl init` to initialize the project
+1. Checks if `.claude/Agent Brain/` exists in the project
+2. If not, runs `agent-brain init` to initialize the project
 3. Reports initialization result to the user
 
 ### Acceptance Criteria
@@ -114,7 +114,7 @@ This can be a conditional step at the beginning of any skill operation.
 
 Add logic to automatically start the server when no running instance is discovered:
 1. If runtime.json doesn't exist or server is unhealthy, start server
-2. Use `doc-svr-ctl start --daemon` for background operation
+2. Use `agent-brain start --daemon` for background operation
 3. Wait for server to become ready (poll health endpoint)
 4. Report the server URL once ready
 
@@ -128,7 +128,7 @@ Add logic to automatically start the server when no running instance is discover
 
 ### Implementation Notes
 
-Use `doc-svr-ctl start --daemon --wait` if available, or poll health endpoint.
+Use `agent-brain start --daemon --wait` if available, or poll health endpoint.
 
 ---
 
@@ -167,7 +167,7 @@ Add a "status" trigger or integrate into existing workflow.
 ### Description
 
 Add capability to stop the running server:
-1. Run `doc-svr-ctl stop` command
+1. Run `agent-brain stop` command
 2. Report shutdown result
 3. Handle "no server running" case
 
@@ -187,8 +187,8 @@ Add capability to stop the running server:
 
 ### Description
 
-Add capability to list all running doc-serve instances:
-1. Run `doc-svr-ctl list` command
+Add capability to list all running Agent Brain instances:
+1. Run `agent-brain list` command
 2. Parse and format output
 3. Display instance details for each project
 
@@ -240,4 +240,4 @@ T2 (SKILL.md Update) ───┼── T6 (Stop)
 - P1 tasks (T1-T4) are required for MVP functionality
 - P2 tasks (T5-T7) provide complete lifecycle management
 - P3 task (T8) ensures quality and best practices
-- All work is in `doc-serve-skill/doc-serve/` directory
+- All work is in `agent-brain-skill/Agent Brain/` directory

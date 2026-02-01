@@ -1,0 +1,20 @@
+sequenceDiagram
+    participant Client
+    participant QueryService
+    participant BM25Manager as BM25IndexManager
+    participant Retriever as BM25Retriever
+
+    Client->>QueryService: execute_query(request)
+    Note over QueryService: mode = BM25
+
+    QueryService->>BM25Manager: get_retriever(top_k)
+    BM25Manager-->>QueryService: BM25Retriever
+
+    QueryService->>Retriever: aretrieve(query)
+    Note over Retriever: Tokenize query
+    Note over Retriever: Calculate BM25 scores
+    Retriever-->>QueryService: List[NodeWithScore]
+
+    QueryService->>QueryService: Convert to QueryResult
+    QueryService->>QueryService: Apply metadata filters
+    QueryService-->>Client: QueryResponse

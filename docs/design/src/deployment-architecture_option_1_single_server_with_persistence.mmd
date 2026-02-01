@@ -1,0 +1,31 @@
+flowchart TB
+    subgraph Cloud["Cloud VM"]
+        direction TB
+        Nginx[Nginx Reverse Proxy]
+        Supervisor[Supervisor]
+        Server[agent-brain-serve]
+
+        subgraph Storage["Persistent Volume"]
+            ChromaDB[(ChromaDB)]
+            BM25[(BM25 Index)]
+        end
+    end
+
+    Users[Users/Clients]
+    OpenAI[OpenAI API]
+
+    Users -->|"HTTPS :443"| Nginx
+    Nginx -->|":8000"| Server
+    Supervisor -.->|"Manages"| Server
+    Server --> Storage
+    Server --> OpenAI
+
+    classDef proxy fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef server fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef storage fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+    classDef external fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+
+    class Nginx proxy
+    class Supervisor,Server server
+    class ChromaDB,BM25 storage
+    class Users,OpenAI external

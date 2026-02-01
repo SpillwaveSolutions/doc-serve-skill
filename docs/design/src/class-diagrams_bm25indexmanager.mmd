@@ -1,0 +1,40 @@
+classDiagram
+    class BM25IndexManager {
+        -str persist_dir
+        -BM25Retriever _retriever
+
+        +is_initialized bool
+
+        +initialize() None
+        +build_index(nodes) None
+        +persist() None
+        +get_retriever(top_k) BM25Retriever
+        +search_with_filters(query, top_k, source_types, languages, max_results) list~NodeWithScore~
+        +reset() None
+    }
+
+    class BM25Retriever {
+        <<llama_index>>
+        +int similarity_top_k
+        +from_defaults(nodes) BM25Retriever
+        +from_persist_dir(path) BM25Retriever
+        +persist(path) None
+        +aretrieve(query) list~NodeWithScore~
+    }
+
+    class NodeWithScore {
+        <<llama_index>>
+        +BaseNode node
+        +float score
+    }
+
+    class BaseNode {
+        <<llama_index>>
+        +str node_id
+        +dict metadata
+        +get_content() str
+    }
+
+    BM25IndexManager --> BM25Retriever : uses
+    BM25Retriever --> NodeWithScore : returns
+    NodeWithScore --> BaseNode : contains

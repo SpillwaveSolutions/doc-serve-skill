@@ -1,0 +1,23 @@
+sequenceDiagram
+    participant CLI
+    participant IndexService
+    participant VectorStore
+    participant BM25Manager
+    participant GraphStore
+
+    CLI->>IndexService: reset()
+
+    IndexService->>VectorStore: reset()
+    VectorStore->>VectorStore: delete_collection()
+    VectorStore->>VectorStore: initialize() (recreate)
+
+    IndexService->>BM25Manager: reset()
+    BM25Manager->>BM25Manager: Delete persist files
+    BM25Manager->>BM25Manager: Clear retriever
+
+    IndexService->>GraphStore: clear()
+    GraphStore->>GraphStore: Clear graph data
+    GraphStore->>GraphStore: Delete persist files
+
+    IndexService->>IndexService: Reset state counters
+    IndexService-->>CLI: Success

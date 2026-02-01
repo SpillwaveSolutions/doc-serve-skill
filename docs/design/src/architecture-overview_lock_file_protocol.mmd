@@ -1,0 +1,19 @@
+sequenceDiagram
+    participant CLI as CLI/Plugin
+    participant Server as Server Process
+    participant Lock as lock.json
+    participant Runtime as runtime.json
+
+    CLI->>Lock: Check stale (PID exists?)
+    alt Lock is stale
+        CLI->>Lock: Clean up stale lock
+    end
+    CLI->>Lock: Acquire lock (write PID)
+    CLI->>Server: Start server (port=0)
+    Server->>Server: Find free port
+    Server->>Runtime: Write runtime.json
+    CLI->>Runtime: Read port from runtime.json
+    CLI->>Server: Connect to server
+    Note over CLI,Server: Normal operation
+    Server->>Lock: Release lock on shutdown
+    Server->>Runtime: Delete runtime.json

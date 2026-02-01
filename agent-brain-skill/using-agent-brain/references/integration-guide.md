@@ -1,6 +1,6 @@
 # Integration Guide
 
-Patterns for integrating doc-serve into scripts, applications, and CI/CD pipelines.
+Patterns for integrating Agent Brain into scripts, applications, and CI/CD pipelines.
 
 ## Contents
 
@@ -15,16 +15,16 @@ Patterns for integrating doc-serve into scripts, applications, and CI/CD pipelin
 
 ```bash
 # Basic query with JSON output
-RESULT=$(doc-svr-ctl query "$QUERY" --mode hybrid --json)
+RESULT=$(agent-brain query "$QUERY" --mode hybrid --json)
 echo "$RESULT" | jq '.results[0].text'
 
 # Check if results found
-if doc-svr-ctl query "search term" --mode bm25 --threshold 0.1 > /dev/null 2>&1; then
+if agent-brain query "search term" --mode bm25 --threshold 0.1 > /dev/null 2>&1; then
     echo "Found matching documents"
 fi
 
 # Iterate over results
-doc-svr-ctl query "error handling" --json | jq -r '.results[].source'
+agent-brain query "error handling" --json | jq -r '.results[].source'
 ```
 
 ---
@@ -55,7 +55,7 @@ def get_server_url():
 
 
 def query_docs(query: str, mode: str = "hybrid", top_k: int = 5) -> list:
-    """Query doc-serve and return results."""
+    """Query Agent Brain and return results."""
     server_url = get_server_url()
     response = requests.post(
         f'{server_url}/query/',
@@ -82,31 +82,31 @@ for r in results:
 set -e
 
 # Initialize and start server
-doc-svr-ctl init
-doc-svr-ctl start --daemon
+agent-brain init
+agent-brain start --daemon
 
 # Wait for server readiness
 for i in {1..10}; do
-    if doc-svr-ctl status > /dev/null 2>&1; then
+    if agent-brain status > /dev/null 2>&1; then
         break
     fi
     sleep 1
 done
 
 # Index documentation
-doc-svr-ctl index ./docs
+agent-brain index ./docs
 
 # Run validation queries
 echo "Checking for deprecated features..."
-if doc-svr-ctl query "deprecated" --mode bm25 --threshold 0.1 --json | jq -e '.total_results > 0' > /dev/null; then
+if agent-brain query "deprecated" --mode bm25 --threshold 0.1 --json | jq -e '.total_results > 0' > /dev/null; then
     echo "Warning: Found deprecated content"
 fi
 
 echo "Verifying API documentation..."
-doc-svr-ctl query "API endpoint" --mode hybrid --threshold 0.5
+agent-brain query "API endpoint" --mode hybrid --threshold 0.5
 
 # Cleanup
-doc-svr-ctl stop
+agent-brain stop
 
 echo "Documentation validation complete"
 ```
@@ -117,22 +117,22 @@ echo "Documentation validation complete"
 
 ```bash
 # Work with multiple projects simultaneously
-cd /project-a && doc-svr-ctl start --daemon  # Auto-port (e.g., 54321)
-cd /project-b && doc-svr-ctl start --daemon  # Different port (e.g., 54322)
+cd /project-a && agent-brain start --daemon  # Auto-port (e.g., 54321)
+cd /project-b && agent-brain start --daemon  # Different port (e.g., 54322)
 
 # List all running instances
-doc-svr-ctl list
+agent-brain list
 # Instance   Project          Port   Status
 # a1b2c3d4   /project-a       54321  running
 # e5f6g7h8   /project-b       54322  running
 
 # Query specific project (from its directory)
-cd /project-a && doc-svr-ctl query "auth module"
-cd /project-b && doc-svr-ctl query "database schema"
+cd /project-a && agent-brain query "auth module"
+cd /project-b && agent-brain query "database schema"
 
 # Cleanup
-cd /project-a && doc-svr-ctl stop
-cd /project-b && doc-svr-ctl stop
+cd /project-a && agent-brain stop
+cd /project-b && agent-brain stop
 ```
 
 ---

@@ -1,0 +1,63 @@
+@startuml External Dependencies
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+title Agent Brain - External Dependencies
+
+skinparam package {
+    BackgroundColor<<server>> #E3F2FD
+    BackgroundColor<<cli>> #E8F5E9
+    BackgroundColor<<external>> #FFF3E0
+}
+
+' Server Dependencies
+package "agent-brain-server dependencies" <<server>> {
+    component [fastapi] as fastapi
+    component [uvicorn] as uvicorn
+    component [pydantic] as pydantic
+    component [pydantic-settings] as pydantic_settings
+
+    component [llama-index-core] as llamaindex_core
+    component [llama-index-retrievers-bm25] as llamaindex_bm25
+    component [llama-index-embeddings-openai] as llamaindex_openai
+
+    component [chromadb] as chromadb
+    component [openai] as openai
+    component [anthropic] as anthropic
+
+    component [tree-sitter] as tree_sitter
+    component [tree-sitter-languages] as ts_langs
+}
+
+' CLI Dependencies
+package "agent-brain-cli dependencies" <<cli>> {
+    component [click] as click
+    component [rich] as rich
+    component [httpx] as httpx
+}
+
+' External Services
+package "External Services" <<external>> {
+    cloud "OpenAI" as openai_cloud
+    cloud "Anthropic" as anthropic_cloud
+}
+
+' Server internal deps
+fastapi --> uvicorn : "ASGI server"
+fastapi --> pydantic : "request validation"
+pydantic --> pydantic_settings : "env config"
+
+llamaindex_core --> llamaindex_bm25 : "keyword search"
+llamaindex_core --> llamaindex_openai : "embeddings"
+llamaindex_core --> chromadb : "vector storage"
+
+openai --> openai_cloud
+anthropic --> anthropic_cloud
+
+tree_sitter --> ts_langs : "language grammars"
+
+' CLI internal deps
+click --> rich : "formatting"
+httpx ..> fastapi : "HTTP calls"
+
+@enduml

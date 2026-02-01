@@ -1,0 +1,39 @@
+flowchart TB
+    subgraph ClaudeCode["Claude Code"]
+        Plugin[Agent Brain Plugin]
+    end
+
+    subgraph System["Developer System"]
+        direction TB
+        CLI[agent-brain CLI]
+
+        subgraph ProjectA["~/projects/project-a/"]
+            ServerA["Server :8001<br/>PID: 12345"]
+            StateA[".claude/agent-brain/"]
+            DocsA["/docs/"]
+        end
+
+        subgraph ProjectB["~/projects/project-b/"]
+            ServerB["Server :8002<br/>PID: 12346"]
+            StateB[".claude/agent-brain/"]
+            DocsB["/src/"]
+        end
+    end
+
+    Plugin --> CLI
+    CLI -->|"Detect project"| ServerA
+    CLI -->|"Detect project"| ServerB
+    ServerA --> StateA
+    ServerB --> StateB
+    ServerA -.->|"Index"| DocsA
+    ServerB -.->|"Index"| DocsB
+
+    classDef plugin fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef server fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef state fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+    classDef docs fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+
+    class Plugin plugin
+    class ServerA,ServerB,CLI server
+    class StateA,StateB state
+    class DocsA,DocsB docs

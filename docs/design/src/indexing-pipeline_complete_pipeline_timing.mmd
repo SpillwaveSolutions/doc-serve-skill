@@ -1,0 +1,22 @@
+gantt
+    title Indexing Pipeline Timing (1000 docs)
+    dateFormat X
+    axisFormat %s
+
+    section Loading
+    File Discovery     :0, 2
+    Content Loading    :2, 5
+
+    section Chunking
+    Document Chunking  :5, 8
+    Code Chunking      :8, 15
+
+    section Embedding
+    Batch 1-10        :15, 25
+    Batch 11-20       :25, 35
+    Batch 21-30       :35, 45
+
+    section Storage
+    Vector Upsert      :45, 48
+    BM25 Build         :48, 50
+    Graph Build        :50, 55

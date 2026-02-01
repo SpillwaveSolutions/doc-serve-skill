@@ -1,0 +1,55 @@
+flowchart TB
+    Document[/LoadedDocument/]
+
+    subgraph Splitting["Text Splitting Strategy"]
+        direction TB
+        SentenceSplitter[LlamaIndex SentenceSplitter]
+
+        Primary["Primary Split: Paragraphs<br/>(\\n\\n)"]
+        Secondary["Secondary Split: Sentences<br/>([.!?]\\s+)"]
+        Fallback["Fallback: Characters"]
+
+        SentenceSplitter --> Primary
+        Primary --> Secondary
+        Secondary --> Fallback
+    end
+
+    Document --> SentenceSplitter
+
+    subgraph ChunkProcessing["Chunk Processing"]
+        direction TB
+        GenID["Generate Stable ID<br/>MD5(source + index)"]
+        TokenCount[Count Tokens]
+        ExtractMeta[Extract Metadata]
+    end
+
+    Fallback --> GenID
+    GenID --> TokenCount
+    TokenCount --> ExtractMeta
+
+    subgraph Metadata["ChunkMetadata"]
+        direction TB
+        ChunkID[chunk_id]
+        Source[source path]
+        ChunkIdx[chunk_index]
+        TotalChunks[total_chunks]
+        SourceType["source_type = 'doc'"]
+        Language[language]
+        HeadingPath[heading_path]
+        SectionTitle[section_title]
+    end
+
+    ExtractMeta --> Metadata
+
+    Metadata --> Output[/List of TextChunk/]
+
+    classDef input fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef split fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef process fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+    classDef meta fill:#DDA0DD,stroke:#333,stroke-width:2px,color:black
+    classDef output fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+
+    class Document,Output input
+    class SentenceSplitter,Primary,Secondary,Fallback split
+    class GenID,TokenCount,ExtractMeta process
+    class ChunkID,Source,ChunkIdx,TotalChunks,SourceType,Language,HeadingPath,SectionTitle meta

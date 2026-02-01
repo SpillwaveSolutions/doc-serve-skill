@@ -1,0 +1,161 @@
+@startuml Graph Building Sequence
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+title Graph Building Sequence - Entity Extraction and Relationship Discovery
+
+participant "IndexingService" as IS
+participant "GraphIndexManager" as GIM
+participant "CodeMetadataExtractor" as CME
+participant "LLMEntityExtractor" as LLM
+participant "Anthropic API" as Claude
+participant "GraphStoreManager" as GSM
+database "Property Graph\n(Kuzu/Memory)" as Graph
+
+== Feature Check ==
+
+IS -> IS : Check ENABLE_GRAPH_INDEX setting
+
+alt GraphRAG Disabled
+    IS -> IS : Skip graph building
+    note right of IS: No-op when disabled
+end
+
+== Build Graph from Documents ==
+
+IS -> GIM : build_from_documents(\n  chunks[],\n  progress_callback)
+activate GIM
+
+group Initialize Graph Store
+    GIM -> GSM : Check is_initialized
+    activate GSM
+    GSM --> GIM : initialized = false
+
+    GIM -> GSM : initialize()
+    GSM -> Graph : Create/load graph
+    activate Graph
+    Graph --> GSM : graph handle
+    deactivate Graph
+    GSM --> GIM : initialized
+    deactivate GSM
+end
+
+loop For each document chunk
+
+    GIM -> GIM : Report progress:\n"Extracting entities: {idx}/{total}"
+
+    GIM -> GIM : _extract_from_document(doc)
+
+    group Get Document Properties
+        GIM -> GIM : text = doc.text or doc.get_content()
+        GIM -> GIM : metadata = doc.metadata.to_dict()
+        GIM -> GIM : chunk_id = doc.chunk_id or doc.id_
+        GIM -> GIM : source_type = metadata.source_type
+        GIM -> GIM : language = metadata.language
+    end
+
+    == Code Metadata Extraction (Fast) ==
+
+    alt source_type == "code" AND GRAPH_USE_CODE_METADATA
+        GIM -> CME : extract_from_metadata(\n  metadata, chunk_id)
+        activate CME
+
+        CME -> CME : Extract symbol triplets
+        note right of CME
+            From metadata:
+            - symbol_name DEFINED_IN file_path
+            - symbol_name HAS_TYPE symbol_type
+            - symbol_name BELONGS_TO parent_class
+            - file_path USES_LANGUAGE language
+        end note
+
+        CME --> GIM : code_triplets[]
+        deactivate CME
+
+        GIM -> CME : extract_from_text(\n  text, language, chunk_id)
+        activate CME
+
+        CME -> CME : Pattern-based extraction
+        note right of CME
+            Regex patterns detect:
+            - import statements
+            - function calls
+            - class inheritance
+            - type references
+        end note
+
+        CME --> GIM : text_triplets[]
+        deactivate CME
+    end
+
+    == LLM Entity Extraction (Comprehensive) ==
+
+    alt GRAPH_USE_LLM_EXTRACTION AND text not empty
+        GIM -> LLM : extract_triplets(\n  text, chunk_id)
+        activate LLM
+
+        LLM -> Claude : Extract entities and relationships
+        activate Claude
+        note right of Claude
+            Model: claude-3-5-haiku
+            Prompt: "Extract knowledge graph
+            triplets from this text.
+            Return as JSON:
+            [{subject, predicate, object,
+              subject_type, object_type}]"
+        end note
+
+        Claude --> LLM : JSON triplets
+        deactivate Claude
+
+        LLM -> LLM : Parse and validate response
+        LLM -> LLM : Create GraphTriple objects
+
+        LLM --> GIM : llm_triplets[]
+        deactivate LLM
+    end
+
+    == Store Triplets ==
+
+    loop For each triplet in all_triplets
+
+        GIM -> GSM : add_triplet(\n  subject, predicate, object,\n  subject_type, object_type,\n  source_chunk_id)
+        activate GSM
+
+        GSM -> Graph : Create/update nodes\nfor subject and object
+        activate Graph
+        Graph --> GSM : node handles
+        deactivate Graph
+
+        GSM -> Graph : Create relationship\nbetween nodes
+        activate Graph
+        Graph --> GSM : success
+        deactivate Graph
+
+        GSM --> GIM : added = true
+        deactivate GSM
+
+        GIM -> GIM : Increment total_triplets
+    end
+
+end
+
+== Persist Graph ==
+
+GIM -> GSM : persist()
+activate GSM
+GSM -> Graph : Save to disk
+activate Graph
+Graph --> GSM : saved
+deactivate Graph
+GSM --> GIM : persisted
+deactivate GSM
+
+GIM -> GIM : Record last_build_time
+GIM -> GIM : Record last_triplet_count
+
+GIM --> IS : total_triplets extracted
+deactivate GIM
+
+@enduml

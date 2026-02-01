@@ -1,0 +1,34 @@
+sequenceDiagram
+    participant IndexService
+    participant VectorStore
+    participant ChromaDB
+    participant BM25Manager
+    participant GraphStore
+
+    Note over IndexService: Step 4: Store in Vector Database
+
+    loop Batch of 40,000 chunks
+        IndexService->>VectorStore: upsert_documents(ids, embeddings, docs, metadata)
+        VectorStore->>ChromaDB: collection.upsert()
+        ChromaDB-->>VectorStore: Success
+    end
+
+    Note over IndexService: Step 5: Build BM25 Index
+
+    IndexService->>IndexService: Convert chunks to TextNodes
+    IndexService->>BM25Manager: build_index(nodes)
+    BM25Manager->>BM25Manager: BM25Retriever.from_defaults(nodes)
+    BM25Manager->>BM25Manager: persist(persist_dir)
+
+    Note over IndexService: Step 6: Build Graph Index (if enabled)
+
+    opt ENABLE_GRAPH_INDEX is True
+        IndexService->>GraphStore: build_from_documents(chunks, callback)
+        loop For each chunk
+            GraphStore->>GraphStore: Extract triplets
+            GraphStore->>GraphStore: add_triplet()
+        end
+        GraphStore->>GraphStore: persist()
+    end
+
+    IndexService->>IndexService: Update state to COMPLETED

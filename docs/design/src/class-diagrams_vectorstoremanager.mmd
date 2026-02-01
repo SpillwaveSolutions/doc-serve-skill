@@ -1,0 +1,47 @@
+classDiagram
+    class VectorStoreManager {
+        -str persist_dir
+        -str collection_name
+        -PersistentClient _client
+        -Collection _collection
+        -asyncio.Lock _lock
+        -bool _initialized
+
+        +is_initialized bool
+
+        +initialize() None
+        +add_documents(ids, embeddings, documents, metadatas) int
+        +upsert_documents(ids, embeddings, documents, metadatas) int
+        +similarity_search(query_embedding, top_k, threshold, where) list~SearchResult~
+        +get_by_id(chunk_id) dict
+        +get_count(where) int
+        +delete_collection() None
+        +reset() None
+        +close() None
+    }
+
+    class SearchResult {
+        +str text
+        +dict metadata
+        +float score
+        +str chunk_id
+    }
+
+    class PersistentClient {
+        <<chromadb>>
+        +get_or_create_collection(name, metadata) Collection
+        +delete_collection(name) None
+    }
+
+    class Collection {
+        <<chromadb>>
+        +add(ids, embeddings, documents, metadatas) None
+        +upsert(ids, embeddings, documents, metadatas) None
+        +query(query_embeddings, n_results, where, include) dict
+        +get(ids, where, include) dict
+        +count() int
+    }
+
+    VectorStoreManager --> SearchResult : returns
+    VectorStoreManager --> PersistentClient : uses
+    VectorStoreManager --> Collection : manages

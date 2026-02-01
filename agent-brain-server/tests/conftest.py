@@ -80,18 +80,31 @@ def reset_singletons():
     """Reset service singletons before each test."""
 
     import agent_brain_server.indexing.bm25_index as bm25_mod
+    import agent_brain_server.indexing.graph_extractors as extractor_mod
+    import agent_brain_server.indexing.graph_index as graph_index_mod
     import agent_brain_server.services.indexing_service as idx_mod
     import agent_brain_server.services.query_service as query_mod
+    import agent_brain_server.storage.graph_store as graph_mod
 
     bm25_mod._bm25_manager = None
     idx_mod._indexing_service = None
     query_mod._query_service = None
+    graph_mod._graph_store_manager = None
+    graph_mod.GraphStoreManager._instance = None
+    graph_index_mod._graph_index_manager = None
+    extractor_mod._llm_extractor = None
+    extractor_mod._code_extractor = None
 
     yield
 
     bm25_mod._bm25_manager = None
     idx_mod._indexing_service = None
     query_mod._query_service = None
+    graph_mod._graph_store_manager = None
+    graph_mod.GraphStoreManager._instance = None
+    graph_index_mod._graph_index_manager = None
+    extractor_mod._llm_extractor = None
+    extractor_mod._code_extractor = None
 
 
 @pytest.fixture

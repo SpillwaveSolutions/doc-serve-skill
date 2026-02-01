@@ -1,0 +1,76 @@
+flowchart TB
+    FolderPath[/Folder Path/]
+
+    subgraph Discovery["File Discovery"]
+        direction TB
+        Walk[Walk Directory Tree]
+        CheckRecursive{Recursive?}
+        Single[Single Level]
+        Deep[Deep Traversal]
+    end
+
+    FolderPath --> Walk
+    Walk --> CheckRecursive
+    CheckRecursive -->|Yes| Deep
+    CheckRecursive -->|No| Single
+    Single --> Filter
+    Deep --> Filter
+
+    subgraph Filter["Extension Filter"]
+        direction TB
+        DocExt[".md, .txt, .rst, .html"]
+        CodeExt[".py, .ts, .js, .java, .go, .rs, .c, .cpp, .cs"]
+        Ignore["Skip: __pycache__, node_modules, .git, etc."]
+    end
+
+    Filter --> Classify
+
+    subgraph Classify["Content Classification"]
+        direction TB
+        IsDoc{Is Document?}
+        IsCode{Is Source Code?}
+        IsTest{Is Test File?}
+
+        DocType[source_type = 'doc']
+        CodeType[source_type = 'code']
+        TestType[source_type = 'test']
+
+        IsDoc -->|Yes| DocType
+        IsDoc -->|No| IsCode
+        IsCode -->|Yes| IsTest
+        IsTest -->|"test_, _test.py"| TestType
+        IsTest -->|No| CodeType
+    end
+
+    DocType --> LangDetect
+    CodeType --> LangDetect
+    TestType --> LangDetect
+
+    subgraph LangDetect["Language Detection"]
+        direction TB
+        ExtMap["Extension Mapping<br/>.py -> python<br/>.ts -> typescript<br/>.java -> java"]
+    end
+
+    LangDetect --> LoadContent
+
+    subgraph LoadContent["Content Loading"]
+        direction TB
+        ReadFile[Read File Content]
+        BuildMeta[Build Metadata]
+        CreateDoc[Create LoadedDocument]
+    end
+
+    ReadFile --> BuildMeta
+    BuildMeta --> CreateDoc
+    CreateDoc --> Output[/List of LoadedDocument/]
+
+    classDef input fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef discovery fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef filter fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+    classDef classify fill:#DDA0DD,stroke:#333,stroke-width:2px,color:black
+    classDef output fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+
+    class FolderPath,Output input
+    class Walk,CheckRecursive,Single,Deep discovery
+    class DocExt,CodeExt,Ignore filter
+    class IsDoc,IsCode,IsTest,DocType,CodeType,TestType classify

@@ -19,9 +19,9 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Add tree-sitter dependencies for Python, TypeScript, JavaScript to doc-serve-server/pyproject.toml
-- [ ] T002 [P] Update doc-serve-server dependencies by running `poetry install` in doc-serve-server/
-- [ ] T003 Verify tree-sitter parsers work with test code snippets in doc-serve-server/
+- [ ] T001 Add tree-sitter dependencies for Python, TypeScript, JavaScript to agent-brain-server/pyproject.toml
+- [ ] T002 [P] Update agent-brain-server dependencies by running `poetry install` in agent-brain-server/
+- [ ] T003 Verify tree-sitter parsers work with test code snippets in agent-brain-server/
 
 ---
 
@@ -31,11 +31,11 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T004 Create CodeChunk dataclass in doc-serve-server/doc_serve_server/indexing/chunking.py
-- [ ] T005 Update ChunkMetadata to support code-specific fields (language, symbol_name, start_line, end_line, section_summary) in doc-serve-server/doc_serve_server/indexing/chunking.py
-- [ ] T006 Add language detection utility for file extensions in doc-serve-server/doc_serve_server/indexing/document_loader.py
-- [ ] T007 Update QueryRequest/Result models with source_type and language filters in doc-serve-server/doc_serve_server/models/query.py
-- [ ] T008 Update IndexRequest model with include_code, languages, exclude_patterns parameters in doc-serve-server/doc_serve_server/models/index.py
+- [ ] T004 Create CodeChunk dataclass in agent-brain-server/agent_brain_server/indexing/chunking.py
+- [ ] T005 Update ChunkMetadata to support code-specific fields (language, symbol_name, start_line, end_line, section_summary) in agent-brain-server/agent_brain_server/indexing/chunking.py
+- [ ] T006 Add language detection utility for file extensions in agent-brain-server/agent_brain_server/indexing/document_loader.py
+- [ ] T007 Update QueryRequest/Result models with source_type and language filters in agent-brain-server/agent_brain_server/models/query.py
+- [ ] T008 Update IndexRequest model with include_code, languages, exclude_patterns parameters in agent-brain-server/agent_brain_server/models/index.py
 
 **Checkpoint**: Foundation ready - user story implementation can now begin.
 
@@ -49,11 +49,11 @@
 
 ### Implementation for User Story 1
 
-- [x] T009 [US1] Extend DocumentLoader.load_files() to support code file extensions (.py, .ts, .tsx, .js, .jsx) in doc-serve-server/doc_serve_server/indexing/document_loader.py
-- [x] T010 [US1] Add CodeChunker class using LlamaIndex CodeSplitter for AST-aware chunking in doc-serve-server/doc_serve_server/indexing/chunking.py
-- [x] T011 [US1] Update IndexingService to handle code files with language detection and CodeChunker in doc-serve-server/doc_serve_server/services/indexing_service.py
-- [x] T012 [US1] Update /index endpoint to accept include_code, languages, exclude_patterns parameters in doc-serve-server/doc_serve_server/api/routers/index.py
-- [x] T013 [US1] Add code chunk counting to /health/status endpoint in doc-serve-server/doc_serve_server/api/routers/health.py
+- [x] T009 [US1] Extend DocumentLoader.load_files() to support code file extensions (.py, .ts, .tsx, .js, .jsx) in agent-brain-server/agent_brain_server/indexing/document_loader.py
+- [x] T010 [US1] Add CodeChunker class using LlamaIndex CodeSplitter for AST-aware chunking in agent-brain-server/agent_brain_server/indexing/chunking.py
+- [x] T011 [US1] Update IndexingService to handle code files with language detection and CodeChunker in agent-brain-server/agent_brain_server/services/indexing_service.py
+- [x] T012 [US1] Update /index endpoint to accept include_code, languages, exclude_patterns parameters in agent-brain-server/agent_brain_server/api/routers/index.py
+- [x] T013 [US1] Add code chunk counting to /health/status endpoint in agent-brain-server/agent_brain_server/api/routers/health.py
 
 **Checkpoint**: User Story 1 is functional - can index code files.
 
@@ -67,10 +67,10 @@
 
 ### Implementation for User Story 2
 
-- [x] T014 [US2] Update /query endpoint with source_type and language filtering in doc-serve-server/doc_serve_server/api/routers/query.py
-- [x] T015 [US2] Update VectorStoreManager.similarity_search() to support ChromaDB where filtering by source_type/language in doc-serve-server/doc_serve_server/storage/vector_store.py
-- [x] T016 [US2] Update BM25Retriever to support metadata filtering for source_type/language in doc-serve-server/doc_serve_server/indexing/bm25_index.py
-- [x] T017 [US2] Update QueryService to handle source_type/language filtering in doc-serve-server/doc_serve_server/services/query_service.py
+- [x] T014 [US2] Update /query endpoint with source_type and language filtering in agent-brain-server/agent_brain_server/api/routers/query.py
+- [x] T015 [US2] Update VectorStoreManager.similarity_search() to support ChromaDB where filtering by source_type/language in agent-brain-server/agent_brain_server/storage/vector_store.py
+- [x] T016 [US2] Update BM25Retriever to support metadata filtering for source_type/language in agent-brain-server/agent_brain_server/indexing/bm25_index.py
+- [x] T017 [US2] Update QueryService to handle source_type/language filtering in agent-brain-server/agent_brain_server/services/query_service.py
 
 **Checkpoint**: User Story 2 is functional - can search across docs and code.
 
@@ -84,10 +84,10 @@
 
 ### Implementation for User Story 3
 
-- [x] T018 [US3] Add language validation to QueryRequest model in doc-serve-server/doc_serve_server/models/query.py
-- [x] T019 [US3] Implement language filtering in VectorStoreManager.similarity_search() in doc-serve-server/doc_serve_server/storage/vector_store.py
-- [x] T020 [US3] Implement language filtering in BM25Retriever.search() in doc-serve-server/doc_serve_server/indexing/bm25_index.py
-- [x] T021 [US3] Add error handling for invalid language parameters in /query endpoint in doc-serve-server/doc_serve_server/api/routers/query.py
+- [x] T018 [US3] Add language validation to QueryRequest model in agent-brain-server/agent_brain_server/models/query.py
+- [x] T019 [US3] Implement language filtering in VectorStoreManager.similarity_search() in agent-brain-server/agent_brain_server/storage/vector_store.py
+- [x] T020 [US3] Implement language filtering in BM25Retriever.search() in agent-brain-server/agent_brain_server/indexing/bm25_index.py
+- [x] T021 [US3] Add error handling for invalid language parameters in /query endpoint in agent-brain-server/agent_brain_server/api/routers/query.py
 
 **Checkpoint**: User Story 3 is functional - can filter by programming language.
 
@@ -101,10 +101,10 @@
 
 ### Implementation for User Story 4
 
-- [x] T022 [US4] Add SummaryExtractor integration to embedding pipeline in doc-serve-server/doc_serve_server/indexing/embedding.py
-- [x] T023 [US4] Create code-specific summary prompts in doc-serve-server/doc_serve_server/indexing/embedding.py
-- [x] T024 [US4] Update CodeChunker to optionally generate summaries during chunking in doc-serve-server/doc_serve_server/indexing/chunking.py
-- [x] T025 [US4] Add summary generation to IndexingService pipeline in doc-serve-server/doc_serve_server/indexing/chunking.py
+- [x] T022 [US4] Add SummaryExtractor integration to embedding pipeline in agent-brain-server/agent_brain_server/indexing/embedding.py
+- [x] T023 [US4] Create code-specific summary prompts in agent-brain-server/agent_brain_server/indexing/embedding.py
+- [x] T024 [US4] Update CodeChunker to optionally generate summaries during chunking in agent-brain-server/agent_brain_server/indexing/chunking.py
+- [x] T025 [US4] Add summary generation to IndexingService pipeline in agent-brain-server/agent_brain_server/indexing/chunking.py
 
 **Checkpoint**: User Story 4 is functional - code chunks include natural language summaries.
 
@@ -118,10 +118,10 @@
 |
 ### Implementation for User Story 5
 |
-- [x] T026 [US5] Implement AST boundary detection in CodeChunker using tree-sitter in doc-serve-server/doc_serve_server/indexing/chunking.py
-- [x] T027 [US5] Add symbol name extraction from AST in CodeChunker in doc-serve-server/doc_serve_server/indexing/chunking.py
-- [x] T028 [US5] Add line number tracking for code chunks in CodeChunker in doc-serve-server/doc_serve_server/indexing/chunking.py
-- [x] T029 [US5] Update chunking tests to verify AST boundary preservation in doc-serve-server/tests/unit/test_chunking.py
+- [x] T026 [US5] Implement AST boundary detection in CodeChunker using tree-sitter in agent-brain-server/agent_brain_server/indexing/chunking.py
+- [x] T027 [US5] Add symbol name extraction from AST in CodeChunker in agent-brain-server/agent_brain_server/indexing/chunking.py
+- [x] T028 [US5] Add line number tracking for code chunks in CodeChunker in agent-brain-server/agent_brain_server/indexing/chunking.py
+- [x] T029 [US5] Update chunking tests to verify AST boundary preservation in agent-brain-server/tests/unit/test_chunking.py
 
 **Checkpoint**: User Story 5 is functional - code chunking respects AST boundaries.
 
@@ -135,9 +135,9 @@
 
 ### Implementation for User Story 6
 
-- [x] T030 [US6] Verify unified search works for SDK documentation + code in doc-serve-server/doc_serve_server/services/query_service.py
-- [x] T031 [US6] Test cross-reference queries with SDK examples in doc-serve-server/tests/integration/test_unified_search.py
-- [x] T032 [US6] Ensure metadata includes file paths and line numbers for citations in doc-serve-server/doc_serve_server/models/query.py
+- [x] T030 [US6] Verify unified search works for SDK documentation + code in agent-brain-server/agent_brain_server/services/query_service.py
+- [x] T031 [US6] Test cross-reference queries with SDK examples in agent-brain-server/tests/integration/test_unified_search.py
+- [x] T032 [US6] Ensure metadata includes file paths and line numbers for citations in agent-brain-server/agent_brain_server/models/query.py
 
 **Checkpoint**: User Story 6 is functional - SDK corpus supports tutorial writing.
 
@@ -147,11 +147,11 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [x] T033 [P] Update doc-svr-ctl index command with --include-code, --languages, --exclude-patterns flags in doc-svr-ctl/doc_svr_ctl/commands/index.py
-- [x] T034 [P] Update doc-svr-ctl query command with --source-type, --language filters in doc-svr-ctl/doc_svr_ctl/commands/query.py
+- [x] T033 [P] Update agent-brain index command with --include-code, --languages, --exclude-patterns flags in agent-brain/agent_brain_cli/commands/index.py
+- [x] T034 [P] Update agent-brain query command with --source-type, --language filters in agent-brain/agent_brain_cli/commands/query.py
 - [x] T035 [P] Update README.md and docs/USER_GUIDE.md with code ingestion features
-- [ ] T036 [P] Update doc-serve-skill/doc-serve/references/api_reference.md with new endpoints
-- [ ] T037 [P] Update doc-serve-skill/doc-serve/references/troubleshooting-guide.md with code-specific issues
+- [ ] T036 [P] Update agent-brain-skill/doc-serve/references/api_reference.md with new endpoints
+- [ ] T037 [P] Update agent-brain-skill/doc-serve/references/troubleshooting-guide.md with code-specific issues
 - [x] T038 Run full test suite: `task pr-qa-gate`
 - [x] T039 Validate quickstart.md scenarios for code ingestion
 
@@ -204,8 +204,8 @@ Task: "Extend DocumentLoader.load_files() to support code file extensions"
 Task: "Update /query endpoint with source_type and language filtering"
 
 # Launch CLI enhancements in parallel during Polish phase:
-Task: "Update doc-svr-ctl index command with --include-code flags"
-Task: "Update doc-svr-ctl query command with --source-type filters"
+Task: "Update agent-brain index command with --include-code flags"
+Task: "Update agent-brain query command with --source-type filters"
 ```
 
 ---

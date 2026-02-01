@@ -4,7 +4,7 @@
 
 Discover from runtime file (multi-instance mode):
 ```bash
-cat .claude/doc-serve/runtime.json | jq -r '.base_url'
+cat .claude/agent-brain/runtime.json | jq -r '.base_url'
 # Example: http://127.0.0.1:54321
 ```
 
@@ -53,9 +53,21 @@ Get detailed indexing status.
   "current_job_id": null,
   "progress_percent": 0.0,
   "last_indexed_at": "2024-12-15T10:00:00Z",
-  "indexed_folders": ["/docs/kubernetes", "/docs/python"]
+  "indexed_folders": ["/docs/kubernetes", "/docs/python"],
+  "graph_index": {
+    "enabled": true,
+    "entity_count": 450,
+    "relationship_count": 1200,
+    "store_type": "simple"
+  }
 }
 ```
+
+**Graph Index Fields** (when `ENABLE_GRAPH_INDEX=true`):
+- `enabled` - Whether graph indexing is active
+- `entity_count` - Number of extracted entities (functions, classes, modules)
+- `relationship_count` - Number of relationships (calls, imports, inherits)
+- `store_type` - Graph store backend (`simple` or `kuzu`)
 
 ---
 
@@ -73,7 +85,9 @@ Execute a semantic search on indexed documents.
   "top_k": 5,
   "similarity_threshold": 0.7,
   "mode": "hybrid",
-  "alpha": 0.5
+  "alpha": 0.5,
+  "traversal_depth": 2,
+  "include_relationships": false
 }
 ```
 
@@ -82,8 +96,10 @@ Execute a semantic search on indexed documents.
 | `query` | string | Yes | - | Search query text |
 | `top_k` | integer | No | 5 | Number of results (1-100) |
 | `similarity_threshold` | float | No | 0.7 | Minimum similarity (0.0-1.0) |
-| `mode` | string | No | hybrid | Retrieval mode (`vector`, `bm25`, `hybrid`) |
+| `mode` | string | No | hybrid | Retrieval mode (`vector`, `bm25`, `hybrid`, `graph`, `multi`) |
 | `alpha` | float | No | 0.5 | Hybrid weight (1.0=vector, 0.0=bm25) |
+| `traversal_depth` | integer | No | 2 | Graph traversal depth for graph/multi modes (1-5) |
+| `include_relationships` | boolean | No | false | Include entity relationships in results |
 
 **Response:**
 
@@ -96,17 +112,34 @@ Execute a semantic search on indexed documents.
       "score": 0.92,
       "vector_score": 0.92,
       "bm25_score": 0.85,
+      "graph_score": 0.78,
       "chunk_id": "chunk_abc123",
       "metadata": {
         "page": 1,
         "section": "Pod Networking"
-      }
+      },
+      "relationships": [
+        {
+          "type": "CALLS",
+          "target": "configure_network",
+          "source_entity": "setup_pod"
+        },
+        {
+          "type": "IMPORTS",
+          "target": "kubernetes.networking",
+          "source_entity": "pod_manager"
+        }
+      ]
     }
   ],
   "query_time_ms": 45.2,
   "total_results": 1
 }
 ```
+
+**Response Fields:**
+- `graph_score` - Graph relevance score (only present in graph/multi modes)
+- `relationships` - Entity relationships (only when `include_relationships=true`)
 
 **Error Responses:**
 
@@ -204,13 +237,21 @@ Interactive API documentation available at:
 The `agent-brain` CLI provides these commands:
 
 ```bash
+# Server lifecycle
+agent-brain init                      # Initialize project config
+agent-brain start --daemon            # Start server with auto-port
+agent-brain stop                      # Stop running server
+agent-brain list                      # List all running instances
+
 # Check server health and status
 agent-brain status
 agent-brain status --json
 
 # Query documents
 agent-brain query "search text"
-agent-brain query "search text" --top-k 10
+agent-brain query "search text" --mode hybrid --top-k 10
+agent-brain query "search text" --mode graph --traversal-depth 3
+agent-brain query "search text" --mode multi --include-relationships
 agent-brain query "search text" --json
 
 # Index documents
@@ -220,6 +261,14 @@ agent-brain index /path/to/docs --recursive
 # Clear index
 agent-brain reset --yes
 ```
+
+**Query Options:**
+- `--mode MODE` - Search mode: bm25, vector, hybrid, graph, multi
+- `--top-k N` - Number of results (default: 5)
+- `--threshold F` - Minimum similarity (default: 0.7)
+- `--alpha F` - Hybrid balance, 0=BM25, 1=Vector (default: 0.5)
+- `--traversal-depth N` - Graph traversal depth (default: 2)
+- `--include-relationships` - Include entity relationships in output
 
 **Global Options:**
 - `--url URL` - Server URL (default: http://127.0.0.1:8000)

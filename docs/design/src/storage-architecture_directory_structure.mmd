@@ -1,0 +1,35 @@
+flowchart TB
+    subgraph ProjectRoot["Project Root"]
+        Claude[".claude/"]
+    end
+
+    subgraph StateDir[".claude/agent-brain/"]
+        Lock[lock.json]
+        Runtime[runtime.json]
+        Config[config.json]
+
+        subgraph ChromaDir["chroma_db/"]
+            SQLite[(chroma.sqlite3)]
+            Parquet[(*.parquet)]
+        end
+
+        subgraph BM25Dir["bm25_index/"]
+            RetrieverJSON[(retriever.json)]
+        end
+
+        subgraph GraphDir["graph_index/"]
+            GraphJSON[(graph_store.json)]
+            MetaJSON[(graph_metadata.json)]
+        end
+    end
+
+    ProjectRoot --> StateDir
+
+    classDef root fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef state fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef file fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+    classDef storage fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+
+    class Claude root
+    class Lock,Runtime,Config state
+    class SQLite,Parquet,RetrieverJSON,GraphJSON,MetaJSON storage

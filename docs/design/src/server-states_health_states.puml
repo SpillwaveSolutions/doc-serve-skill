@@ -1,0 +1,110 @@
+@startuml Health States
+!theme plain
+skinparam state {
+    BackgroundColor<<healthy>> LightGreen
+    BackgroundColor<<warning>> LightYellow
+    BackgroundColor<<error>> LightCoral
+}
+
+title Agent Brain Health States
+
+[*] --> Initializing
+
+state Initializing {
+    Initializing : Server starting
+    Initializing : Services loading
+    Initializing : Vector store connecting
+}
+
+Initializing --> Healthy : All services ready
+Initializing --> Degraded : Partial initialization
+
+state Healthy <<healthy>> {
+    Healthy : All systems operational
+    Healthy : Vector store initialized
+    Healthy : No active errors
+    Healthy : Ready for all query modes
+    ---
+    Healthy : GET /health returns 200
+    Healthy : status: "healthy"
+}
+
+Healthy --> Indexing : Indexing starts
+
+state Indexing <<warning>> {
+    Indexing : Background indexing active
+    Indexing : Queries blocked
+    Indexing : Progress tracked
+    ---
+    Indexing : GET /health returns 200
+    Indexing : status: "indexing"
+    Indexing : message shows progress
+}
+
+Indexing --> Healthy : Indexing completes successfully
+Indexing --> Degraded : Indexing fails
+
+Healthy --> Degraded : Error occurs
+Healthy --> Unhealthy : Critical failure
+
+state Degraded <<warning>> {
+    state "VectorStoreNotInit" as VSNotInit
+    state "LastIndexingFailed" as IndexFailed
+    state "GraphNotEnabled" as GraphOff
+    state "BM25NotReady" as BM25Off
+
+    VSNotInit : Vector store not connected
+    VSNotInit : Needs initialization
+
+    IndexFailed : Previous indexing errored
+    IndexFailed : Error message available
+
+    GraphOff : GraphRAG disabled
+    GraphOff : Graph queries fail
+
+    BM25Off : BM25 index not built
+    BM25Off : BM25 queries fail
+
+    ---
+    Degraded : GET /health returns 200
+    Degraded : status: "degraded"
+    Degraded : Partial functionality
+}
+
+Degraded --> Healthy : Issue resolved
+Degraded --> Indexing : New indexing started
+Degraded --> Unhealthy : Further degradation
+
+state Unhealthy <<error>> {
+    Unhealthy : Critical system failure
+    Unhealthy : Unable to process any requests
+    Unhealthy : Requires restart
+    ---
+    Unhealthy : GET /health may fail
+    Unhealthy : status: "unhealthy"
+}
+
+Unhealthy --> Stopped : Process terminated
+Unhealthy --> Initializing : Restart
+
+note right of Healthy
+    Health Check Response:
+    {
+        "status": "healthy",
+        "message": "Server is running and ready for queries",
+        "timestamp": "2024-01-15T10:30:00Z",
+        "version": "1.2.0",
+        "mode": "project",
+        "instance_id": "abc123"
+    }
+end note
+
+note right of Degraded
+    Degraded Conditions:
+    - Vector store not initialized
+    - Last indexing failed
+    - BM25 index not built
+    - Optional features disabled
+end note
+
+@enduml

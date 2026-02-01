@@ -11,6 +11,7 @@ Agent Brain is a RAG-based document indexing and semantic search system. It's a 
 | agent-brain-server | `agent-brain-server/` | FastAPI REST API server |
 | agent-brain-cli | `agent-brain-cli/` | CLI management tool |
 | agent-brain-skill | `agent-brain-skill/` | Claude Code skill |
+| agent-brain-plugin | `agent-brain-plugin/` | Claude Code plugin (commands, agents, skills) |
 
 ## Technology Stack
 
@@ -221,6 +222,8 @@ Do NOT push code that fails `task before-push`.
 - N/A (naming changes only) (112-agent-brain-naming)
 - Python 3.10+ (existing: ^3.10 in pyproject.toml) + FastAPI, LlamaIndex (llama-index-core ^0.14.0), ChromaDB, langextract (new), llama-index-graph-stores-kuzu (optional) (113-graphrag-integration)
 - ChromaDB (vector), disk-based BM25 index (existing), SimplePropertyGraphStore/Kuzu (new graph storage) (113-graphrag-integration)
+- Markdown (Claude Code plugin format) + Claude Code plugin system, agent-brain-cli v1.2.0+, agent-brain-rag v1.2.0+ (114-agent-brain-plugin)
+- N/A (plugin is markdown files only) (114-agent-brain-plugin)
 
 ## Recent Changes
 - 100-bm25-hybrid-retrieval: Added Python 3.10+ + FastAPI, LlamaIndex, ChromaDB, OpenAI, rank-bm25

@@ -1,6 +1,6 @@
 # Server Discovery Guide
 
-Automatic discovery and management of doc-serve instances.
+Automatic discovery and management of Agent Brain instances.
 
 ## Contents
 
@@ -14,7 +14,7 @@ Automatic discovery and management of doc-serve instances.
 
 ## Runtime File
 
-Doc-serve writes connection details to `.claude/doc-serve/runtime.json`:
+Agent Brain writes connection details to `.claude/doc-serve/runtime.json`:
 
 ```json
 {
@@ -57,7 +57,7 @@ from pathlib import Path
 import urllib.request
 
 def discover_server():
-    """Discover a running doc-serve instance for the current project.
+    """Discover a running Agent Brain instance for the current project.
 
     Returns:
         str: Server base URL if found and healthy, None otherwise.
@@ -110,7 +110,7 @@ def get_server_url():
         return url
 
     # Start server and wait
-    subprocess.run(["doc-svr-ctl", "start", "--daemon"], check=True)
+    subprocess.run(["agent-brain", "start", "--daemon"], check=True)
 
     # Re-discover after startup
     import time
@@ -120,7 +120,7 @@ def get_server_url():
         if url:
             return url
 
-    raise RuntimeError("Failed to start doc-serve server")
+    raise RuntimeError("Failed to start Agent Brain server")
 
 
 # Usage
@@ -130,7 +130,7 @@ if __name__ == "__main__":
         print(f"Connected to: {server_url}")
     else:
         print("No running server found - starting one...")
-        subprocess.run(["doc-svr-ctl", "start", "--daemon"])
+        subprocess.run(["agent-brain", "start", "--daemon"])
 ```
 
 ---
@@ -139,7 +139,7 @@ if __name__ == "__main__":
 
 Multiple Claude agents in the same project share one instance:
 
-1. **First agent** starts server: `doc-svr-ctl start --daemon`
+1. **First agent** starts server: `agent-brain start --daemon`
 2. **Other agents** discover via `runtime.json`
 3. **All agents** use same `base_url`
 4. **Any agent** can stop when work complete
@@ -153,10 +153,10 @@ Lock file protocol prevents race conditions during concurrent startup attempts.
 ### Server Not Found
 
 ```
-Error: No running doc-serve instance found for this project
+Error: No running Agent Brain instance found for this project
 ```
 
-**Solution**: `doc-svr-ctl start --daemon`
+**Solution**: `agent-brain start --daemon`
 
 ### Stale Server State
 
@@ -167,28 +167,28 @@ Warning: Server not responding, cleaning up stale state
 **Solution**: CLI auto-cleans stale files. Manual cleanup:
 ```bash
 rm .claude/doc-serve/runtime.json
-doc-svr-ctl start --daemon
+agent-brain start --daemon
 ```
 
 ### Port Conflict
 
-**Solution**: Use auto-port (default): `doc-svr-ctl start --daemon`
+**Solution**: Use auto-port (default): `agent-brain start --daemon`
 
 ### Multiple Agents Racing
 
-Lock file prevents double-start. If blocked, run `doc-svr-ctl status` to discover existing instance.
+Lock file prevents double-start. If blocked, run `agent-brain status` to discover existing instance.
 
 ### Finding Server Port
 
 ```bash
-doc-svr-ctl status                              # Recommended
+agent-brain status                              # Recommended
 cat .claude/doc-serve/runtime.json | jq '.port' # Direct read
-doc-svr-ctl list                                # All instances
+agent-brain list                                # All instances
 ```
 
 ### Environment Override
 
 ```bash
 export DOC_SERVE_URL="http://127.0.0.1:8000"
-doc-svr-ctl query "search term"
+agent-brain query "search term"
 ```

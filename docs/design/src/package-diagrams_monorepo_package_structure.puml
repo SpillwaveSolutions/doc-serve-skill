@@ -1,0 +1,58 @@
+@startuml Monorepo Package Structure
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+title Agent Brain - Monorepo Package Structure
+
+skinparam package {
+    BackgroundColor<<server>> #E3F2FD
+    BackgroundColor<<cli>> #E8F5E9
+    BackgroundColor<<plugin>> #FFF3E0
+    BackgroundColor<<shared>> #FCE4EC
+}
+
+package "doc-serve/ (monorepo root)" {
+
+    package "agent-brain-server/" <<server>> {
+        package "agent_brain_server" as server_pkg {
+            package "api" as api_pkg
+            package "config" as config_pkg
+            package "indexing" as indexing_pkg
+            package "models" as models_pkg
+            package "services" as services_pkg
+            package "storage" as storage_pkg
+        }
+        folder "tests/" as server_tests
+    }
+
+    package "agent-brain-cli/" <<cli>> {
+        package "agent_brain_cli" as cli_pkg {
+            package "client" as client_pkg
+            package "commands" as commands_pkg
+        }
+        folder "tests/" as cli_tests
+    }
+
+    package "agent-brain-plugin/" <<plugin>> {
+        folder "commands/" as plugin_commands
+        folder "skills/" as plugin_skills
+        folder "agents/" as plugin_agents
+    }
+
+    package "agent-brain-skill/" <<shared>> {
+        folder "doc-serve/" as skill_folder {
+            file "SKILL.md"
+        }
+    }
+
+    folder "docs/" as docs_folder
+    folder "scripts/" as scripts_folder
+    folder "e2e/" as e2e_folder
+
+    ' Dependencies
+    cli_pkg ..> server_pkg : "HTTP API calls"
+    plugin_commands ..> cli_pkg : "subprocess\ninvocation"
+    plugin_skills ..> cli_pkg : "CLI commands"
+}
+
+@enduml

@@ -1,0 +1,40 @@
+flowchart TB
+    Query[/"Query"/]
+
+    subgraph Parallel["Parallel Retrieval"]
+        direction LR
+        V[Vector Search]
+        B[BM25 Search]
+        G[Graph Search]
+    end
+
+    Query --> V
+    Query --> B
+    Query --> G
+
+    V --> RRF
+    B --> RRF
+    G --> RRF
+
+    subgraph RRF["Reciprocal Rank Fusion"]
+        direction TB
+        Rank["Calculate RRF Scores<br/>score = SUM(1 / (k + rank))"]
+        Merge[Merge by chunk_id]
+        Sort[Sort by RRF Score]
+        TopK[Take Top-K]
+    end
+
+    Rank --> Merge
+    Merge --> Sort
+    Sort --> TopK
+
+    TopK --> Response[/"Multi-Retrieval Results"/]
+
+    classDef query fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef search fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef fusion fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+    classDef result fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+
+    class Query,Response query
+    class V,B,G search
+    class Rank,Merge,Sort,TopK fusion

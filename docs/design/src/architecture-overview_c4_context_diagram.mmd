@@ -1,0 +1,27 @@
+C4Context
+    title Agent Brain System Context
+
+    Person(developer, "Developer", "Uses Claude Code for development")
+    Person(devops, "DevOps Engineer", "Manages deployments and monitoring")
+
+    System_Boundary(ab, "Agent Brain System") {
+        System(plugin, "Agent Brain Plugin", "Claude Code plugin with 15 commands")
+        System(server, "Agent Brain Server", "FastAPI REST API for RAG")
+        System(cli, "Agent Brain CLI", "Management tool")
+    }
+
+    System_Ext(claude, "Claude Code", "AI coding assistant")
+    System_Ext(openai, "OpenAI API", "Embeddings (text-embedding-3-large)")
+    System_Ext(anthropic, "Anthropic API", "Summarization (Claude Haiku)")
+    System_Ext(chromadb, "ChromaDB", "Vector database")
+    System_Ext(filesystem, "Filesystem", "Local documents and code")
+
+    Rel(developer, claude, "Uses", "Interactive chat")
+    Rel(claude, plugin, "Invokes", "Slash commands")
+    Rel(plugin, cli, "Delegates to", "Shell commands")
+    Rel(cli, server, "Calls", "REST API")
+    Rel(server, openai, "Generates embeddings", "HTTPS")
+    Rel(server, anthropic, "Generates summaries", "HTTPS")
+    Rel(server, chromadb, "Stores vectors", "Local API")
+    Rel(server, filesystem, "Reads documents", "File I/O")
+    Rel(devops, cli, "Manages", "Terminal")

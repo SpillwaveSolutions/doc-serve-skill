@@ -1,17 +1,17 @@
-# Doc-Serve Quick Start
+# Agent Brain Quick Start
 
-Get up and running with Doc-Serve in minutes using the command-line tools.
+Get up and running with Agent Brain in minutes using the command-line tools.
 
 ## 1. Installation
 
-Install Doc-Serve and the management tool globally using the Task runner:
+Install Agent Brain and the management tool globally using the Task runner:
 
 ```bash
 # Clone the repository
 git clone git@github.com:SpillwaveSolutions/doc-serve.git
 cd doc-serve
 
-# Install tools globally (makes 'doc-serve' and 'agent-brain' available)
+# Install tools globally (makes 'agent-brain-serve' and 'agent-brain' available)
 task install:global
 ```
 
@@ -43,16 +43,16 @@ The server runs in the background with isolated indexes for this project.
 
 ### Option B: Legacy Single-Instance Mode
 
-Start the Doc-Serve API server directly:
+Start the Agent Brain API server directly:
 
 ```bash
-doc-serve
+agent-brain-serve
 ```
-*Keep this terminal open or run in the background with `doc-serve &`.*
+*Keep this terminal open or run in the background with `agent-brain-serve &`.*
 
 ## 4. Index Documents and Code
 
-Doc-Serve can index both documentation and source code for unified search:
+Agent Brain can index both documentation and source code for unified search:
 
 ### Index Documentation Only (Default)
 ```bash
@@ -85,7 +85,7 @@ agent-brain status
 
 ## 5. Query Knowledge
 
-Doc-Serve supports three powerful search modes:
+Agent Brain supports three powerful search modes:
 
 ### Semantic Search (Vector - Default)
 ```bash
@@ -137,7 +137,7 @@ agent-brain query "authenticate_user" --mode bm25 --source-types code
 ```
 
 ### Supported Languages
-Doc-Serve supports AST-aware code ingestion for: **Python, TypeScript, JavaScript, Java, Go, Rust, C, C++, C#**. Other languages are supported via intelligent text-based chunking.
+Agent Brain supports AST-aware code ingestion for: **Python, TypeScript, JavaScript, Java, Go, Rust, C, C++, C#**. Other languages are supported via intelligent text-based chunking.
 
 **C# Support:** Files with `.cs` and `.csx` extensions are parsed with AST-aware chunking, extracting classes, methods, interfaces, and XML documentation comments.
 

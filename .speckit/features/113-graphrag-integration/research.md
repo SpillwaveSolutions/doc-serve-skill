@@ -6,7 +6,7 @@
 
 ## Research Summary
 
-This document captures research findings for implementing GraphRAG capabilities in doc-serve.
+This document captures research findings for implementing GraphRAG capabilities in Agent Brain.
 
 ---
 
@@ -19,7 +19,7 @@ Use LlamaIndex's `PropertyGraphIndex` with `SimplePropertyGraphStore` as the def
 - **Already a dependency**: llama-index-core ^0.14.0 is already installed
 - **Native integration**: PropertyGraphIndex works seamlessly with existing LlamaIndex document structures
 - **Persistence**: SimplePropertyGraphStore provides JSON file persistence via `StorageContext`
-- **No server required**: In-memory with disk persistence, matching doc-serve's local-first philosophy
+- **No server required**: In-memory with disk persistence, matching Agent Brain's local-first philosophy
 
 ### Alternatives Considered
 

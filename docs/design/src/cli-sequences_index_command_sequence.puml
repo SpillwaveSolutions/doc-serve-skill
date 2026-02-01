@@ -1,0 +1,76 @@
+@startuml Index Command Sequence
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+title CLI Index Command Sequence
+
+actor User
+participant "agent-brain CLI" as CLI
+participant "DocServeClient" as Client
+participant "FastAPI Server" as API
+
+== Request ==
+
+User -> CLI : agent-brain index /path/to/docs\n  [--recursive]\n  [--include-code]\n  [--chunk-size 1000]
+activate CLI
+
+CLI -> CLI : Validate path exists
+CLI -> CLI : Validate is directory
+
+alt Validation failed
+    CLI --> User : "Error: Path not found or not a directory"
+    CLI -> CLI : exit(1)
+end
+
+CLI -> Client : Create DocServeClient(base_url)
+activate Client
+
+Client -> API : POST /index\n{\n  folder_path: "/path/to/docs",\n  recursive: true,\n  include_code: true,\n  chunk_size: 1000\n}
+activate API
+
+alt Already indexing
+    API --> Client : 409 Conflict
+    Client --> CLI : ServerError(409)
+    CLI --> User : "Error: Indexing already in progress"
+    CLI --> User : "Wait for completion or check 'status'"
+    CLI -> CLI : exit(1)
+end
+
+API --> Client : 202 Accepted\n{job_id: "job_abc123", status: "started"}
+deactivate API
+
+Client --> CLI : IndexResponse
+deactivate Client
+
+== Progress Monitoring ==
+
+CLI --> User : "Indexing started: job_abc123"
+CLI --> User : "Folder: /path/to/docs"
+
+loop Poll for progress (optional --wait)
+    CLI -> Client : GET /health/status
+    activate Client
+    Client -> API : GET /health/status
+    activate API
+    API --> Client : IndexingStatus
+    deactivate API
+    Client --> CLI : status
+    deactivate Client
+
+    alt Still indexing
+        CLI --> User : "Progress: 45% - Chunking documents..."
+        CLI -> CLI : sleep(2)
+    else Completed
+        CLI --> User : "Indexing complete!"
+        CLI --> User : "Total chunks: 450"
+        CLI -> CLI : break
+    else Failed
+        CLI --> User : "Indexing failed: {error}"
+        CLI -> CLI : exit(1)
+    end
+end
+
+deactivate CLI
+
+@enduml

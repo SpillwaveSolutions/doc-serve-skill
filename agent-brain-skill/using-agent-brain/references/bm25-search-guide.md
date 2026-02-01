@@ -25,13 +25,13 @@ BM25 (Best Matching 25) is a keyword-based search algorithm that finds exact ter
 
 ```bash
 # Basic BM25 search
-doc-svr-ctl query "your exact terms" --mode bm25
+agent-brain query "your exact terms" --mode bm25
 
 # With custom threshold (lower for more results)
-doc-svr-ctl query "functionName" --mode bm25 --threshold 0.1
+agent-brain query "functionName" --mode bm25 --threshold 0.1
 
 # With result count limit
-doc-svr-ctl query "error code" --mode bm25 --top-k 10
+agent-brain query "error code" --mode bm25 --top-k 10
 ```
 
 ### API Usage
@@ -95,7 +95,7 @@ Where:
 
 ### Example 1: Function Name Search
 
-**Query:** `doc-svr-ctl query "recursiveCharacterTextSplitter" --mode bm25`
+**Query:** `agent-brain query "recursiveCharacterTextSplitter" --mode bm25`
 
 **Response:**
 ```json
@@ -121,7 +121,7 @@ Where:
 
 ### Example 2: Error Code Search
 
-**Query:** `doc-svr-ctl query "HTTP 404" --mode bm25`
+**Query:** `agent-brain query "HTTP 404" --mode bm25`
 
 **Response:**
 ```json
@@ -175,7 +175,7 @@ Where:
 
 - **No results found**: Try lowering the threshold or using different terminology
 - **Too many results**: Increase threshold or add more specific terms
-- **Index not ready**: Ensure documents are indexed before searching (`doc-svr-ctl status`)
+- **Index not ready**: Ensure documents are indexed before searching (`agent-brain status`)
 
 ## Integration Examples
 
@@ -183,13 +183,13 @@ Where:
 ```bash
 #!/bin/bash
 # Search for specific error codes
-doc-svr-ctl query "$1" --mode bm25 --json | jq '.results[0].text'
+agent-brain query "$1" --mode bm25 --json | jq '.results[0].text'
 ```
 
 ### With Other Tools
 ```bash
 # Find all mentions of a function
-doc-svr-ctl query "myFunction" --mode bm25 --json | jq -r '.results[].source'
+agent-brain query "myFunction" --mode bm25 --json | jq -r '.results[].source'
 ```
 
 ### API Integration

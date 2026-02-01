@@ -1,0 +1,36 @@
+flowchart LR
+    subgraph ProjectA["Project A"]
+        direction TB
+        PluginA[Plugin Commands]
+        CLIA[CLI]
+        ServerA[Server :8001]
+        StateA[".claude/agent-brain/"]
+    end
+
+    subgraph ProjectB["Project B"]
+        direction TB
+        PluginB[Plugin Commands]
+        CLIB[CLI]
+        ServerB[Server :8002]
+        StateB[".claude/agent-brain/"]
+    end
+
+    subgraph SharedServices["Shared Services"]
+        OpenAI[OpenAI API]
+    end
+
+    PluginA --> CLIA
+    CLIA --> ServerA
+    ServerA --> StateA
+    ServerA --> OpenAI
+
+    PluginB --> CLIB
+    CLIB --> ServerB
+    ServerB --> StateB
+    ServerB --> OpenAI
+
+    classDef project fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef shared fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+
+    class PluginA,CLIA,ServerA,StateA,PluginB,CLIB,ServerB,StateB project
+    class OpenAI shared

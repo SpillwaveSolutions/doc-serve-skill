@@ -1,0 +1,110 @@
+@startuml Plugin Package Structure
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+title agent-brain-plugin - Internal Structure
+
+skinparam package {
+    BackgroundColor<<commands>> #E3F2FD
+    BackgroundColor<<skills>> #E8F5E9
+    BackgroundColor<<agents>> #FFF3E0
+    BackgroundColor<<config>> #FCE4EC
+}
+
+package "agent-brain-plugin" {
+
+    ' Configuration
+    package ".claude-plugin/" <<config>> {
+        file "marketplace.json" as marketplace
+    }
+
+    note right of marketplace
+        name: "agent-brain"
+        version: "1.0.0"
+        description: "..."
+        commands: [...]
+        skills: [...]
+        agents: [...]
+    end note
+
+    ' Commands
+    package "commands/" <<commands>> {
+
+        frame "Search Commands" {
+            file "agent-brain-search.md" as search_cmd
+            file "agent-brain-semantic.md" as semantic_cmd
+            file "agent-brain-keyword.md" as keyword_cmd
+        }
+
+        frame "Setup Commands" {
+            file "agent-brain-install.md" as install_cmd
+            file "agent-brain-setup.md" as setup_cmd
+            file "agent-brain-config.md" as config_cmd
+            file "agent-brain-init.md" as init_cmd
+            file "agent-brain-verify.md" as verify_cmd
+        }
+
+        frame "Server Commands" {
+            file "agent-brain-start.md" as start_cmd
+            file "agent-brain-stop.md" as stop_cmd
+            file "agent-brain-status.md" as status_cmd
+            file "agent-brain-list.md" as list_cmd
+        }
+
+        frame "Indexing Commands" {
+            file "agent-brain-index.md" as index_cmd
+            file "agent-brain-reset.md" as reset_cmd
+        }
+
+        frame "Help" {
+            file "agent-brain-help.md" as help_cmd
+        }
+    }
+
+    ' Skills
+    package "skills/" <<skills>> {
+
+        package "using-agent-brain/" as using_skill {
+            file "SKILL.md" as using_main
+            folder "references/" as using_refs
+        }
+
+        package "agent-brain-setup/" as setup_skill {
+            file "SKILL.md" as setup_main
+            folder "references/" as setup_refs
+        }
+    }
+
+    note right of using_main
+        Search mode guidance
+        When to use each mode
+    end note
+
+    note right of setup_main
+        Installation guidance
+        Configuration help
+    end note
+
+    ' Agents
+    package "agents/" <<agents>> {
+        file "search-assistant.md" as search_agent
+        file "setup-assistant.md" as setup_agent
+    }
+
+    note right of search_agent
+        Helps users find relevant
+        documents and code
+    end note
+
+    note right of setup_agent
+        Guides installation
+        and configuration
+    end note
+}
+
+' Relationships
+marketplace ..> search_cmd : registers
+marketplace ..> using_skill : registers
+marketplace ..> search_agent : registers
+
+@enduml

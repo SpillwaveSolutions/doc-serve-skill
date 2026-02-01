@@ -1,0 +1,84 @@
+flowchart TB
+    subgraph Plugin["Agent Brain Plugin"]
+        direction TB
+        Commands[15 Slash Commands]
+        Skills[2 Skills]
+        Agents[2 Agents]
+        Commands --> Skills
+        Commands --> Agents
+    end
+
+    subgraph CLI["Agent Brain CLI"]
+        direction TB
+        CliMain[Click CLI]
+        ApiClient[API Client]
+        CmdIndex[IndexCommand]
+        CmdQuery[QueryCommand]
+        CmdServer[ServerCommands]
+        CliMain --> CmdIndex
+        CliMain --> CmdQuery
+        CliMain --> CmdServer
+        CmdIndex --> ApiClient
+        CmdQuery --> ApiClient
+        CmdServer --> ApiClient
+    end
+
+    subgraph Server["Agent Brain Server"]
+        direction TB
+        FastAPI[FastAPI App]
+
+        subgraph Routers["API Routers"]
+            HealthRouter[Health Router]
+            IndexRouter[Index Router]
+            QueryRouter[Query Router]
+        end
+
+        subgraph Services["Services"]
+            IndexingService[Indexing Service]
+            QueryService[Query Service]
+        end
+
+        subgraph Indexing["Indexing Pipeline"]
+            DocLoader[Document Loader]
+            CodeChunker[Code Chunker]
+            TextChunker[Text Chunker]
+            Embedder[Embedding Generator]
+            GraphExtractor[Graph Extractors]
+        end
+
+        subgraph Storage["Storage Layer"]
+            VectorStore[Vector Store Manager]
+            BM25Index[BM25 Index Manager]
+            GraphStore[Graph Store Manager]
+        end
+
+        FastAPI --> Routers
+        Routers --> Services
+        IndexingService --> Indexing
+        IndexingService --> Storage
+        QueryService --> Storage
+    end
+
+    subgraph External["External Systems"]
+        ChromaDB[(ChromaDB)]
+        OpenAI[OpenAI API]
+        Anthropic[Anthropic API]
+        Files[/File System/]
+    end
+
+    Plugin -->|"Shell Commands"| CLI
+    CLI -->|"REST API"| Server
+    VectorStore --> ChromaDB
+    Embedder --> OpenAI
+    GraphExtractor --> Anthropic
+    DocLoader --> Files
+
+    classDef primary fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef secondary fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef storage fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+    classDef external fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+
+    class FastAPI,IndexingService,QueryService primary
+    class HealthRouter,IndexRouter,QueryRouter,DocLoader,CodeChunker,TextChunker,Embedder secondary
+    class VectorStore,BM25Index,GraphStore storage
+    class ChromaDB,OpenAI,Anthropic,Files external

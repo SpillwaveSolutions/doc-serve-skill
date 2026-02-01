@@ -28,12 +28,12 @@ curl -X POST http://localhost:8000/query \
 
 ### Query with mode
 ```bash
-doc-svr-ctl query "authentication" --mode bm25
+agent-brain query "authentication" --mode bm25
 ```
 
 ### Query hybrid with alpha
 ```bash
-doc-svr-ctl query "authentication" --mode hybrid --alpha 0.8
+agent-brain query "authentication" --mode hybrid --alpha 0.8
 ```
 
 ## Expected Response Metadata

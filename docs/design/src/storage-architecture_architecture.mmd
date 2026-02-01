@@ -1,0 +1,33 @@
+flowchart TB
+    subgraph VectorStoreManager["VectorStoreManager"]
+        direction TB
+        Init["initialize()"]
+        Add["add_documents()"]
+        Upsert["upsert_documents()"]
+        Search["similarity_search()"]
+        GetByID["get_by_id()"]
+        Reset["reset()"]
+    end
+
+    subgraph ChromaClient["Chroma PersistentClient"]
+        direction TB
+        Settings["Settings"]
+        Collection["Collection hnsw:space=cosine"]
+    end
+
+    subgraph Persistence["Persistence Layer"]
+        direction TB
+        SQLite[(sqlite3 Metadata)]
+        Parquet[(Parquet Vectors)]
+    end
+
+    VectorStoreManager --> ChromaClient
+    ChromaClient --> Persistence
+
+    classDef managerStyle fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef clientStyle fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+    classDef storageStyle fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+
+    class Init,Add,Upsert,Search,GetByID,Reset managerStyle
+    class Settings,Collection clientStyle
+    class SQLite,Parquet storageStyle

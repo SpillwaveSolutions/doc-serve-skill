@@ -1,0 +1,26 @@
+sequenceDiagram
+    participant Client
+    participant QueryService
+    participant EmbeddingGen as EmbeddingGenerator
+    participant VectorStore as VectorStoreManager
+    participant ChromaDB
+
+    Client->>QueryService: execute_query(request)
+    Note over QueryService: mode = VECTOR
+
+    QueryService->>EmbeddingGen: embed_query(query_text)
+    EmbeddingGen->>EmbeddingGen: OpenAI API call
+    EmbeddingGen-->>QueryService: query_embedding [3072 dims]
+
+    QueryService->>VectorStore: similarity_search(embedding, top_k, threshold, where)
+    VectorStore->>ChromaDB: query(embeddings, n_results, where)
+    ChromaDB-->>VectorStore: {ids, documents, metadatas, distances}
+
+    Note over VectorStore: Convert distance to similarity
+    Note over VectorStore: similarity = 1 - distance
+
+    VectorStore-->>QueryService: List[SearchResult]
+
+    QueryService->>QueryService: Convert to QueryResult
+    QueryService->>QueryService: Apply filters (source_types, languages, file_paths)
+    QueryService-->>Client: QueryResponse

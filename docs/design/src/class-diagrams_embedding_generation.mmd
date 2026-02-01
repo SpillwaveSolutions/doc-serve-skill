@@ -1,0 +1,28 @@
+classDiagram
+    class EmbeddingGenerator {
+        -AsyncOpenAI client
+        -str model
+        -int dimensions
+        -int batch_size
+        -AsyncAnthropic anthropic_client
+        -str claude_model
+
+        +embed_query(query_text) list~float~
+        +embed_chunks(chunks, progress_callback) list~list~float~~
+        +generate_summary(text) str
+
+        -_create_batch_embeddings(texts) list~list~float~~
+    }
+
+    class AsyncOpenAI {
+        <<openai>>
+        +embeddings Embeddings
+    }
+
+    class AsyncAnthropic {
+        <<anthropic>>
+        +messages Messages
+    }
+
+    EmbeddingGenerator --> AsyncOpenAI : uses
+    EmbeddingGenerator --> AsyncAnthropic : uses

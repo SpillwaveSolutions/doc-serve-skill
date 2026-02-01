@@ -1,0 +1,74 @@
+flowchart TD
+    Query[/"User Query"/]
+    Router{Query Mode?}
+
+    Query --> Router
+
+    Router -->|"mode=vector"| Vector[Vector Search]
+    Router -->|"mode=bm25"| BM25[BM25 Keyword Search]
+    Router -->|"mode=hybrid"| Hybrid[Hybrid Search]
+    Router -->|"mode=graph"| Graph[Graph Search]
+    Router -->|"mode=multi"| Multi[Multi-Retrieval]
+
+    Vector --> VectorResult[Semantic Results]
+    BM25 --> BM25Result[Keyword Results]
+
+    subgraph HybridFlow["Hybrid Processing"]
+        direction TB
+        HVector[Vector Search]
+        HBM25[BM25 Search]
+        Normalize[Score Normalization]
+        AlphaBlend[Alpha Blending]
+        HVector --> Normalize
+        HBM25 --> Normalize
+        Normalize --> AlphaBlend
+    end
+
+    Hybrid --> HybridFlow
+    HybridFlow --> HybridResult[Combined Results]
+
+    subgraph GraphFlow["Graph Processing"]
+        direction TB
+        EntityExtract[Entity Extraction]
+        GraphTraverse[Graph Traversal]
+        ChunkLookup[Chunk Lookup]
+        EntityExtract --> GraphTraverse
+        GraphTraverse --> ChunkLookup
+    end
+
+    Graph --> GraphFlow
+    GraphFlow --> GraphResult[Graph-Enhanced Results]
+
+    subgraph MultiFlow["Multi-Retrieval"]
+        direction TB
+        MVector[Vector Search]
+        MBM25[BM25 Search]
+        MGraph[Graph Search]
+        RRF[RRF Fusion]
+        MVector --> RRF
+        MBM25 --> RRF
+        MGraph --> RRF
+    end
+
+    Multi --> MultiFlow
+    MultiFlow --> MultiResult[RRF-Ranked Results]
+
+    VectorResult --> Filter[Apply Filters]
+    BM25Result --> Filter
+    HybridResult --> Filter
+    GraphResult --> Filter
+    MultiResult --> Filter
+
+    Filter --> Response[/"QueryResponse"/]
+
+    classDef query fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef router fill:#FFD700,stroke:#333,stroke-width:2px,color:black
+    classDef search fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef result fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+    classDef process fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+
+    class Query,Response query
+    class Router router
+    class Vector,BM25,Hybrid,Graph,Multi search
+    class VectorResult,BM25Result,HybridResult,GraphResult,MultiResult result
+    class HVector,HBM25,Normalize,AlphaBlend,EntityExtract,GraphTraverse,ChunkLookup,MVector,MBM25,MGraph,RRF process

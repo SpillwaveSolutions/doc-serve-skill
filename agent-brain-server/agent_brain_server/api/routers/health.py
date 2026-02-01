@@ -98,4 +98,5 @@ async def indexing_status(request: Request) -> IndexingStatus:
         ),
         indexed_folders=status["indexed_folders"],
         supported_languages=status.get("supported_languages", []),
+        graph_index=status.get("graph_index"),
     )

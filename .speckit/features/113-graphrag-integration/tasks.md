@@ -15,9 +15,9 @@
 
 ## Path Conventions
 
-- **Server**: `doc-serve-server/doc_serve_server/`
-- **CLI**: `doc-svr-ctl/doc_svr_ctl/`
-- **Tests**: `doc-serve-server/tests/`, `doc-svr-ctl/tests/`
+- **Server**: `agent-brain-server/agent_brain_server/`
+- **CLI**: `agent-brain-cli/agent_brain_cli/`
+- **Tests**: `agent-brain-server/tests/`, `agent-brain-cli/tests/`
 
 ---
 
@@ -25,10 +25,10 @@
 
 **Purpose**: Project initialization and configuration
 
-- [ ] T001 Add GraphRAG configuration settings to doc-serve-server/doc_serve_server/config/settings.py
-- [ ] T002 [P] Update doc-serve-server/doc_serve_server/storage_paths.py to include graph_index directory
-- [ ] T003 [P] Add optional dependency groups to doc-serve-server/pyproject.toml for graphrag and graphrag-kuzu
-- [ ] T004 [P] Add GRAPH and MULTI to QueryMode enum in doc-serve-server/doc_serve_server/models/query.py
+- [x] T001 Add GraphRAG configuration settings to agent-brain-server/agent_brain_server/config/settings.py ✅ COMPLETE
+- [x] T002 [P] Update agent-brain-server/agent_brain_server/storage_paths.py to include graph_index directory ✅ COMPLETE
+- [x] T003 [P] Add optional dependency groups to agent-brain-server/pyproject.toml for graphrag and graphrag-kuzu ✅ COMPLETE
+- [x] T004 [P] Add GRAPH and MULTI to QueryMode enum in agent-brain-server/agent_brain_server/models/query.py ✅ COMPLETE
 
 ---
 
@@ -38,15 +38,15 @@
 
 **⚠️ CRITICAL**: No user story work can begin until this phase is complete
 
-- [ ] T005 Create GraphStoreManager class in doc-serve-server/doc_serve_server/storage/graph_store.py
-- [ ] T006 Implement SimplePropertyGraphStore initialization and persistence in graph_store.py
-- [ ] T007 Add Kuzu store factory with fallback in doc-serve-server/doc_serve_server/storage/graph_store.py
-- [ ] T008 [P] Create GraphIndexStatus model in doc-serve-server/doc_serve_server/models/graph.py
-- [ ] T009 [P] Create GraphTriple model in doc-serve-server/doc_serve_server/models/graph.py
-- [ ] T010 [P] Extend QueryResult model with graph_score, related_entities, relationship_path in doc-serve-server/doc_serve_server/models/query.py
-- [ ] T011 [P] Unit test for GraphStoreManager in doc-serve-server/tests/unit/test_graph_store.py
-- [ ] T012 Export graph models from doc-serve-server/doc_serve_server/models/__init__.py
-- [ ] T013 Export graph store from doc-serve-server/doc_serve_server/storage/__init__.py
+- [x] T005 Create GraphStoreManager class in agent-brain-server/agent_brain_server/storage/graph_store.py ✅ COMPLETE
+- [x] T006 Implement SimplePropertyGraphStore initialization and persistence in graph_store.py ✅ COMPLETE
+- [x] T007 Add Kuzu store factory with fallback in agent-brain-server/agent_brain_server/storage/graph_store.py ✅ COMPLETE
+- [x] T008 [P] Create GraphIndexStatus model in agent-brain-server/agent_brain_server/models/graph.py ✅ COMPLETE
+- [x] T009 [P] Create GraphTriple model in agent-brain-server/agent_brain_server/models/graph.py ✅ COMPLETE
+- [x] T010 [P] Extend QueryResult model with graph_score, related_entities, relationship_path in agent-brain-server/agent_brain_server/models/query.py ✅ COMPLETE
+- [x] T011 [P] Unit test for GraphStoreManager in agent-brain-server/tests/unit/test_graph_store.py ✅ COMPLETE (31 tests)
+- [x] T012 Export graph models from agent-brain-server/agent_brain_server/models/__init__.py ✅ COMPLETE
+- [x] T013 Export graph store from agent-brain-server/agent_brain_server/storage/__init__.py ✅ COMPLETE
 
 **Checkpoint**: Graph storage foundation ready - user story implementation can begin
 
@@ -60,25 +60,25 @@
 
 ### Tests for User Story 1
 
-- [ ] T014 [P] [US1] Unit test for DynamicLLMPathExtractor wrapper in doc-serve-server/tests/unit/test_graph_extractors.py
-- [ ] T015 [P] [US1] Unit test for GraphIndexManager in doc-serve-server/tests/unit/test_graph_index.py
-- [ ] T016 [P] [US1] Integration test for graph query execution in doc-serve-server/tests/integration/test_graph_query.py
+- [ ] T014 [P] [US1] Unit test for DynamicLLMPathExtractor wrapper in agent-brain-server/tests/unit/test_graph_extractors.py
+- [ ] T015 [P] [US1] Unit test for GraphIndexManager in agent-brain-server/tests/unit/test_graph_index.py
+- [ ] T016 [P] [US1] Integration test for graph query execution in agent-brain-server/tests/integration/test_graph_query.py
 
 ### Implementation for User Story 1
 
-- [ ] T017 [P] [US1] Create LLM entity extractor wrapper in doc-serve-server/doc_serve_server/indexing/graph_extractors.py
-- [ ] T018 [P] [US1] Create GraphIndexManager class in doc-serve-server/doc_serve_server/indexing/graph_index.py
+- [ ] T017 [P] [US1] Create LLM entity extractor wrapper in agent-brain-server/agent_brain_server/indexing/graph_extractors.py
+- [ ] T018 [P] [US1] Create GraphIndexManager class in agent-brain-server/agent_brain_server/indexing/graph_index.py
 - [ ] T019 [US1] Implement graph index building from documents in graph_index.py
 - [ ] T020 [US1] Implement graph index persistence and loading in graph_index.py
-- [ ] T021 [US1] Add _execute_graph_query method to doc-serve-server/doc_serve_server/services/query_service.py
+- [ ] T021 [US1] Add _execute_graph_query method to agent-brain-server/agent_brain_server/services/query_service.py
 - [ ] T022 [US1] Update execute_query to route GRAPH mode in query_service.py
 - [ ] T023 [US1] Add GraphRAG disabled check with informative error in query_service.py
-- [ ] T024 [US1] Integrate graph building into doc-serve-server/doc_serve_server/services/indexing_service.py
+- [ ] T024 [US1] Integrate graph building into agent-brain-server/agent_brain_server/services/indexing_service.py
 - [ ] T025 [US1] Add progress callback for graph building stage in indexing_service.py
-- [ ] T026 [US1] Update /query endpoint to accept graph parameters in doc-serve-server/doc_serve_server/api/routers/query.py
-- [ ] T027 [US1] Add graph_index to health status in doc-serve-server/doc_serve_server/api/routers/health.py
-- [ ] T028 [US1] Add --mode graph option to doc-svr-ctl/doc_svr_ctl/commands/query.py
-- [ ] T029 [US1] Add graph status to doc-svr-ctl/doc_svr_ctl/commands/status.py
+- [ ] T026 [US1] Update /query endpoint to accept graph parameters in agent-brain-server/agent_brain_server/api/routers/query.py
+- [ ] T027 [US1] Add graph_index to health status in agent-brain-server/agent_brain_server/api/routers/health.py
+- [ ] T028 [US1] Add --mode graph option to agent-brain-cli/agent_brain_cli/commands/query.py
+- [ ] T029 [US1] Add graph status to agent-brain-cli/agent_brain_cli/commands/status.py
 
 **Checkpoint**: User Story 1 complete - GraphRAG enabled, graph-only queries working
 
@@ -92,15 +92,15 @@
 
 ### Tests for User Story 2
 
-- [ ] T030 [P] [US2] Unit test for RRF fusion in doc-serve-server/tests/unit/test_rrf_fusion.py
-- [ ] T031 [P] [US2] Integration test for multi-mode query in doc-serve-server/tests/integration/test_graph_query.py
+- [x] T030 [P] [US2] Unit test for RRF fusion in agent-brain-server/tests/unit/test_rrf_fusion.py (11 tests)
+- [x] T031 [P] [US2] Integration test for multi-mode query in agent-brain-server/tests/integration/test_graph_query.py (4 tests)
 
 ### Implementation for User Story 2
 
-- [ ] T032 [US2] Implement RRF fusion helper function in doc-serve-server/doc_serve_server/services/query_service.py
-- [ ] T033 [US2] Add _execute_multi_query method with parallel execution in query_service.py
-- [ ] T034 [US2] Update execute_query to route MULTI mode in query_service.py
-- [ ] T035 [US2] Add --mode multi option to doc-svr-ctl/doc_svr_ctl/commands/query.py
+- [x] T032 [US2] Implement RRF fusion helper function in agent-brain-server/agent_brain_server/services/query_service.py (in _execute_multi_query)
+- [x] T033 [US2] Add _execute_multi_query method with parallel execution in query_service.py (already implemented in US1)
+- [x] T034 [US2] Update execute_query to route MULTI mode in query_service.py (already implemented in US1)
+- [x] T035 [US2] Add --mode multi option to agent-brain-cli/agent_brain_cli/commands/query.py (already implemented in US1)
 
 **Checkpoint**: User Story 2 complete - multi-mode fusion queries working
 
@@ -114,12 +114,12 @@
 
 ### Tests for User Story 3
 
-- [ ] T036 [P] [US3] Unit test for Kuzu store initialization in doc-serve-server/tests/unit/test_graph_store.py
-- [ ] T037 [P] [US3] Integration test for store type switching in doc-serve-server/tests/integration/test_graph_query.py
+- [ ] T036 [P] [US3] Unit test for Kuzu store initialization in agent-brain-server/tests/unit/test_graph_store.py
+- [ ] T037 [P] [US3] Integration test for store type switching in agent-brain-server/tests/integration/test_graph_query.py
 
 ### Implementation for User Story 3
 
-- [ ] T038 [US3] Implement Kuzu store initialization in doc-serve-server/doc_serve_server/storage/graph_store.py
+- [ ] T038 [US3] Implement Kuzu store initialization in agent-brain-server/agent_brain_server/storage/graph_store.py
 - [ ] T039 [US3] Add store type detection and fallback warning in graph_store.py
 - [ ] T040 [US3] Add store_type to GraphIndexStatus in health responses
 
@@ -135,12 +135,12 @@
 
 ### Tests for User Story 4
 
-- [ ] T041 [P] [US4] Unit test for code metadata extraction in doc-serve-server/tests/unit/test_graph_extractors.py
-- [ ] T042 [P] [US4] Integration test for code relationship queries in doc-serve-server/tests/integration/test_graph_query.py
+- [ ] T041 [P] [US4] Unit test for code metadata extraction in agent-brain-server/tests/unit/test_graph_extractors.py
+- [ ] T042 [P] [US4] Integration test for code relationship queries in agent-brain-server/tests/integration/test_graph_query.py
 
 ### Implementation for User Story 4
 
-- [ ] T043 [US4] Create code metadata extractor in doc-serve-server/doc_serve_server/indexing/graph_extractors.py
+- [ ] T043 [US4] Create code metadata extractor in agent-brain-server/agent_brain_server/indexing/graph_extractors.py
 - [ ] T044 [US4] Extract import relationships from chunk.metadata.imports in graph_extractors.py
 - [ ] T045 [US4] Extract containment relationships from symbol hierarchies in graph_extractors.py
 - [ ] T046 [US4] Integrate code extractor into GraphIndexManager in graph_index.py
@@ -154,13 +154,13 @@
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T048 [P] Add graph rebuild endpoint parameter to doc-serve-server/doc_serve_server/api/routers/index.py
+- [ ] T048 [P] Add graph rebuild endpoint parameter to agent-brain-server/agent_brain_server/api/routers/index.py
 - [ ] T049 [P] Add structured logging for graph operations across all modules
-- [ ] T050 Contract test for QueryMode enum values in doc-serve-server/tests/contract/test_query_modes.py
-- [ ] T051 [P] Update doc-serve-server README with GraphRAG configuration section
+- [ ] T050 Contract test for QueryMode enum values in agent-brain-server/tests/contract/test_query_modes.py
+- [ ] T051 [P] Update agent-brain-server README with GraphRAG configuration section
 - [ ] T052 Run quickstart.md validation script with GraphRAG enabled
 - [ ] T053 Performance testing for graph queries on sample dataset
-- [ ] T054 Update CLI help text for new query modes in doc-svr-ctl
+- [ ] T054 Update CLI help text for new query modes in agent-brain-cli
 
 ---
 

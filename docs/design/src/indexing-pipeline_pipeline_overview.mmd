@@ -1,0 +1,64 @@
+flowchart TB
+    subgraph Input["Input Layer"]
+        Folder[/Folder Path/]
+        Request[IndexRequest]
+    end
+
+    subgraph Loading["Document Loading"]
+        direction TB
+        Discover[File Discovery]
+        Filter[Extension Filter]
+        Classify[Content Classification]
+        Load[Content Loading]
+    end
+
+    subgraph Chunking["Chunking Layer"]
+        direction TB
+        DocChunker[Document Chunker<br/>ContextAwareChunker]
+        CodeChunker[Code Chunker<br/>AST-Aware]
+    end
+
+    subgraph Processing["Processing Layer"]
+        direction TB
+        Metadata[Metadata Extraction]
+        Summary[Summary Generation<br/>Claude Haiku]
+        Embedding[Embedding Generation<br/>OpenAI]
+    end
+
+    subgraph Storage["Storage Layer"]
+        direction TB
+        VectorStore[(ChromaDB)]
+        BM25Index[(BM25 Index)]
+        GraphStore[(Graph Store)]
+    end
+
+    Folder --> Request
+    Request --> Discover
+    Discover --> Filter
+    Filter --> Classify
+    Classify -->|"Doc Files"| Load
+    Classify -->|"Code Files"| Load
+
+    Load -->|"Documents"| DocChunker
+    Load -->|"Source Code"| CodeChunker
+
+    DocChunker --> Metadata
+    CodeChunker --> Metadata
+    Metadata --> Summary
+    Summary --> Embedding
+
+    Embedding --> VectorStore
+    Metadata --> BM25Index
+    Metadata --> GraphStore
+
+    classDef input fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef loading fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef chunking fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+    classDef processing fill:#DDA0DD,stroke:#333,stroke-width:2px,color:black
+    classDef storage fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+
+    class Folder,Request input
+    class Discover,Filter,Classify,Load loading
+    class DocChunker,CodeChunker chunking
+    class Metadata,Summary,Embedding processing
+    class VectorStore,BM25Index,GraphStore storage

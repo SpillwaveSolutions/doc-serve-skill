@@ -1,0 +1,44 @@
+flowchart TB
+    subgraph DataFlow["Data Flow"]
+        direction LR
+        Chunks[/Document Chunks/]
+        Embeddings[/Embeddings/]
+        Nodes[/LlamaIndex Nodes/]
+        Triplets[/Graph Triplets/]
+    end
+
+    subgraph VectorLayer["Vector Storage"]
+        VectorManager[VectorStoreManager]
+        ChromaDB[(ChromaDB<br/>Cosine Similarity)]
+    end
+
+    subgraph KeywordLayer["Keyword Storage"]
+        BM25Manager[BM25IndexManager]
+        BM25Index[(BM25 Index<br/>Disk Persistence)]
+    end
+
+    subgraph GraphLayer["Graph Storage"]
+        GraphManager[GraphStoreManager]
+        SimpleStore[(SimplePropertyGraphStore<br/>JSON Persistence)]
+        KuzuStore[(Kuzu<br/>Embedded Graph DB)]
+    end
+
+    Chunks --> VectorManager
+    Embeddings --> VectorManager
+    VectorManager --> ChromaDB
+
+    Chunks --> Nodes
+    Nodes --> BM25Manager
+    BM25Manager --> BM25Index
+
+    Triplets --> GraphManager
+    GraphManager -->|"default"| SimpleStore
+    GraphManager -->|"optional"| KuzuStore
+
+    classDef data fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef manager fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef storage fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+
+    class Chunks,Embeddings,Nodes,Triplets data
+    class VectorManager,BM25Manager,GraphManager manager
+    class ChromaDB,BM25Index,SimpleStore,KuzuStore storage

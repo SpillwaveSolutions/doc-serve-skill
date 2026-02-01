@@ -1,0 +1,49 @@
+flowchart TB
+    Query[/"Query"/]
+
+    subgraph VectorPath["Vector Path"]
+        direction TB
+        Embed[Generate Embedding]
+        VSim[Vector Similarity Search]
+        VNorm[Normalize Scores 0-1]
+    end
+
+    subgraph BM25Path["BM25 Path"]
+        direction TB
+        Token[Tokenize Query]
+        BScore[BM25 Scoring]
+        BNorm[Normalize Scores 0-1]
+    end
+
+    Query --> Embed
+    Query --> Token
+    Embed --> VSim
+    Token --> BScore
+    VSim --> VNorm
+    BScore --> BNorm
+
+    VNorm --> Combine
+    BNorm --> Combine
+
+    subgraph Fusion["Score Fusion"]
+        direction TB
+        Combine[Combine by chunk_id]
+        Alpha["Apply Alpha Weighting<br/>score = alpha * vector + (1-alpha) * bm25"]
+        Sort[Sort by Combined Score]
+        TopK[Take Top-K]
+    end
+
+    Combine --> Alpha
+    Alpha --> Sort
+    Sort --> TopK
+
+    TopK --> Response[/"Hybrid Results"/]
+
+    classDef query fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef path fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef fusion fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+    classDef result fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+
+    class Query,Response query
+    class Embed,VSim,VNorm,Token,BScore,BNorm path
+    class Combine,Alpha,Sort,TopK fusion

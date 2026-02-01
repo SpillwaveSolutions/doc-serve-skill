@@ -2,17 +2,17 @@
 
 ## Index a C# Project
 
-### 1. Start doc-serve
+### 1. Start agent-brain
 
 ```bash
 cd /path/to/my-csharp-project
-doc-serve start
+agent-brain start
 ```
 
 ### 2. Index with code support
 
 ```bash
-doc-serve index /path/to/my-csharp-project/src --include-code
+agent-brain index /path/to/my-csharp-project/src --include-code
 ```
 
 The system automatically detects `.cs` and `.csx` files and parses them using AST-aware chunking.
@@ -21,16 +21,16 @@ The system automatically detects `.cs` and `.csx` files and parses them using AS
 
 ```bash
 # Search for a specific method
-doc-serve query "GetUserById method"
+agent-brain query "GetUserById method"
 
 # Filter to C# results only
-doc-serve query "authentication" --language csharp
+agent-brain query "authentication" --language csharp
 ```
 
 ### 4. Verify C# indexing
 
 ```bash
-doc-serve status
+agent-brain status
 # → Indexed: 1,234 chunks from 56 files
 # → Languages: python (20), csharp (15), typescript (21)
 ```
@@ -57,7 +57,7 @@ public class AuthService
 }
 ```
 
-Doc-serve extracts:
+Agent Brain extracts:
 - **Symbol name**: `LoginAsync`
 - **Symbol kind**: `method_declaration`
 - **Parameters**: `string email, string password`

@@ -1,0 +1,199 @@
+@startuml Document Indexing Sequence
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+title Document Indexing Sequence - Full Pipeline
+
+actor Client
+participant "FastAPI\n/index" as API
+participant "IndexingService" as IS
+participant "DocumentLoader" as DL
+participant "ContextAwareChunker" as CAC
+participant "EmbeddingGenerator" as EG
+participant "OpenAI API" as OpenAI
+participant "VectorStoreManager" as VS
+participant "BM25IndexManager" as BM25
+database "ChromaDB" as Chroma
+database "BM25 Index\n(disk)" as BM25Disk
+
+== Request Validation ==
+
+Client -> API : POST /index\n{folder_path, chunk_size, chunk_overlap, recursive}
+activate API
+
+API -> API : Validate folder_path exists
+API -> API : Validate is directory
+API -> API : Validate read permissions
+
+alt Validation Failed
+    API --> Client : 400 Bad Request\n"Folder not found / not directory / cannot read"
+end
+
+API -> IS : Check is_indexing
+activate IS
+
+alt Already Indexing
+    IS --> API : is_indexing = true
+    API --> Client : 409 Conflict\n"Indexing already in progress"
+end
+
+deactivate IS
+
+== Start Background Job ==
+
+API -> IS : start_indexing(request)
+activate IS
+
+IS -> IS : Generate job_id\n"job_{uuid[:12]}"
+IS -> IS : Set state to INDEXING
+IS -> IS : Record started_at timestamp
+
+IS -> IS : asyncio.create_task(\n  _run_indexing_pipeline)
+
+IS --> API : job_id
+deactivate IS
+
+API --> Client : 202 Accepted\n{job_id, status: "started"}
+deactivate API
+
+== Background Indexing Pipeline ==
+
+note over IS: Pipeline runs asynchronously\nUse /health/status to monitor
+
+activate IS
+
+group Initialize Vector Store
+    IS -> VS : initialize()
+    activate VS
+    VS -> Chroma : Create/load collection
+    Chroma --> VS : collection handle
+    VS --> IS : initialized
+    deactivate VS
+end
+
+group Step 1: Load Documents
+    IS -> IS : progress_callback(0, 100, "Loading documents...")
+
+    IS -> DL : load_files(\n  folder_path,\n  recursive=True,\n  include_code=True)
+    activate DL
+
+    DL -> DL : Walk directory tree
+
+    loop For each file
+        DL -> DL : Check file extension\n(.md, .txt, .rst, .py, .ts, etc.)
+        DL -> DL : Read file content
+        DL -> DL : Detect source_type\n(doc vs code)
+        DL -> DL : Detect language\n(python, typescript, etc.)
+        DL -> DL : Create Document with metadata
+    end
+
+    DL --> IS : documents[]
+    deactivate DL
+
+    IS -> IS : Set total_documents = len(documents)
+
+    alt No Documents Found
+        IS -> IS : Set status = COMPLETED
+        IS -> IS : Return early
+    end
+end
+
+group Step 2: Chunk Documents
+    IS -> IS : progress_callback(20, 100, "Chunking documents...")
+    IS -> IS : Separate doc_documents and code_documents
+
+    group Chunk Text Documents
+        IS -> CAC : Create chunker(\n  chunk_size=1000,\n  chunk_overlap=200)
+        activate CAC
+
+        IS -> CAC : chunk_documents(\n  doc_documents,\n  progress_callback)
+
+        loop For each document
+            CAC -> CAC : Split by headers/sections
+            CAC -> CAC : Split long sections\nby chunk_size
+            CAC -> CAC : Add overlap text
+            CAC -> CAC : Generate chunk_id (UUID)
+            CAC -> CAC : Create TextChunk with\n  text, chunk_id, metadata
+        end
+
+        CAC --> IS : doc_chunks[]
+        deactivate CAC
+    end
+
+    note right of IS
+        Code documents are handled
+        separately with AST parsing
+        (see Code Indexing Sequence)
+    end note
+end
+
+group Step 3: Generate Embeddings
+    IS -> IS : progress_callback(50, 100, "Generating embeddings...")
+
+    IS -> EG : embed_chunks(\n  chunks[],\n  progress_callback)
+    activate EG
+
+    EG -> EG : Batch chunks (100 per batch)
+
+    loop For each batch
+        EG -> OpenAI : embeddings.create(\n  model="text-embedding-3-large",\n  input=batch_texts)
+        activate OpenAI
+        OpenAI --> EG : embeddings[3072 dims each]
+        deactivate OpenAI
+
+        EG -> EG : Report progress
+    end
+
+    EG --> IS : all_embeddings[]
+    deactivate EG
+end
+
+group Step 4: Store in Vector Database
+    IS -> IS : progress_callback(90, 100, "Storing in vector database...")
+
+    IS -> IS : chroma_batch_size = 40000
+
+    loop For each batch of 40000 chunks
+        IS -> VS : upsert_documents(\n  ids, embeddings,\n  documents, metadatas)
+        activate VS
+
+        VS -> Chroma : upsert(\n  ids, embeddings,\n  documents, metadatas)
+        activate Chroma
+        Chroma --> VS : success
+        deactivate Chroma
+
+        VS --> IS : count upserted
+        deactivate VS
+    end
+end
+
+group Step 5: Build BM25 Index
+    IS -> IS : progress_callback(95, 100, "Building BM25 index...")
+
+    IS -> IS : Convert chunks to\nLlamaIndex TextNode[]
+
+    IS -> BM25 : build_index(nodes)
+    activate BM25
+
+    BM25 -> BM25 : Create BM25Retriever\nfrom nodes
+
+    BM25 -> BM25Disk : persist(persist_dir)
+    activate BM25Disk
+    BM25Disk --> BM25 : saved
+    deactivate BM25Disk
+
+    BM25 --> IS : index built
+    deactivate BM25
+end
+
+group Complete
+    IS -> IS : Set status = COMPLETED
+    IS -> IS : Set completed_at = now()
+    IS -> IS : Add folder to indexed_folders
+    IS -> IS : progress_callback(100, 100, "Complete!")
+end
+
+deactivate IS
+
+@enduml

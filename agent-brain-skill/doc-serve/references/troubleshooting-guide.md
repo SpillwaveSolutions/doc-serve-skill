@@ -21,7 +21,7 @@ This guide covers common issues and their solutions when using Agent Brain for d
 pip install agent-brain-rag agent-brain-cli
 
 # Or run locally
-cd doc-serve-server && poetry run agent-brain-serve
+cd agent-brain-server && poetry run agent-brain-serve
 ```
 
 **Port Already in Use:**
@@ -39,8 +39,8 @@ agent-brain-serve --port 8001
 **Permission Errors:**
 ```bash
 # Check if you can write to the directory
-ls -la doc-serve-server/
-chmod 755 doc-serve-server/
+ls -la agent-brain-server/
+chmod 755 agent-brain-server/
 ```
 
 ### 2. Missing OpenAI API Key
@@ -54,7 +54,7 @@ chmod 755 doc-serve-server/
 
 **Set API Key in .env file:**
 ```bash
-cd doc-serve-server
+cd agent-brain-server
 echo "OPENAI_API_KEY=sk-your-key-here" > .env
 echo "ANTHROPIC_API_KEY=sk-ant-your-key-here" >> .env
 ```
@@ -87,7 +87,7 @@ echo $OPENAI_API_KEY | head -c 15
 
 **Add to .env file:**
 ```bash
-cd doc-serve-server
+cd agent-brain-server
 echo "ANTHROPIC_API_KEY=sk-ant-your-key-here" >> .env
 ```
 
@@ -420,10 +420,10 @@ chmod 644 /path/to/docs/*.md
 
 **Check index directory permissions:**
 ```bash
-ls -la doc-serve-server/
-chmod 755 doc-serve-server/
-mkdir -p doc-serve-server/chroma_db
-chmod 755 doc-serve-server/chroma_db
+ls -la agent-brain-server/
+chmod 755 agent-brain-server/
+mkdir -p agent-brain-server/chroma_db
+chmod 755 agent-brain-server/chroma_db
 ```
 
 **Run as appropriate user:**
@@ -457,7 +457,7 @@ which python
 python --version
 
 # Poetry environment
-cd doc-serve-server && poetry env info
+cd agent-brain-server && poetry env info
 ```
 
 ### Check Logs
@@ -476,7 +476,7 @@ ping -c 3 api.openai.com
 
 If these solutions don't resolve your issue:
 
-1. **Check GitHub Issues**: https://github.com/SpillwaveSolutions/doc-serve-skill/issues
+1. **Check GitHub Issues**: https://github.com/SpillwaveSolutions/agent-brain/issues
 2. **Provide diagnostic info**: Run the diagnostic commands above
 3. **Include error messages**: Copy full error output
 4. **Describe your setup**: OS, Python version, installation method

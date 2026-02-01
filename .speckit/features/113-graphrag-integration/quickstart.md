@@ -5,11 +5,11 @@
 
 ## Overview
 
-This guide shows how to enable and use the GraphRAG feature in doc-serve.
+This guide shows how to enable and use the GraphRAG feature in Agent Brain.
 
 ## Prerequisites
 
-- doc-serve installed and working
+- Agent Brain installed and working
 - Documents indexed (vector + BM25)
 - OpenAI API key configured (for LLM extraction)
 
@@ -36,7 +36,7 @@ poetry install --with graphrag
 
 ```bash
 # Using CLI
-doc-svr-ctl index /path/to/docs --rebuild
+agent-brain index /path/to/docs --rebuild
 
 # Or via API
 curl -X POST http://localhost:8000/index \
@@ -52,7 +52,7 @@ Find results based on entity relationships:
 
 ```bash
 # CLI
-doc-svr-ctl query "authentication" --mode graph
+agent-brain query "authentication" --mode graph
 
 # API
 curl -X POST http://localhost:8000/query \
@@ -71,7 +71,7 @@ Combine vector, BM25, and graph for best results:
 
 ```bash
 # CLI
-doc-svr-ctl query "user login flow" --mode multi
+agent-brain query "user login flow" --mode multi
 
 # API
 curl -X POST http://localhost:8000/query \
@@ -98,7 +98,7 @@ curl -X POST http://localhost:8000/query \
 
 ```bash
 # CLI
-doc-svr-ctl status
+agent-brain status
 
 # API
 curl http://localhost:8000/health/status
@@ -140,14 +140,14 @@ echo $ENABLE_GRAPH_INDEX
 export ENABLE_GRAPH_INDEX=true
 
 # Restart server
-doc-svr-ctl stop && doc-svr-ctl start
+agent-brain stop && agent-brain start
 ```
 
 ### Graph Index Not Building
 
 Check logs for extraction errors:
 ```bash
-doc-svr-ctl logs | grep -i graph
+agent-brain logs | grep -i graph
 ```
 
 ### Slow Graph Queries
@@ -163,7 +163,7 @@ doc-svr-ctl logs | grep -i graph
 Query for all modules that import a specific class:
 
 ```bash
-doc-svr-ctl query "modules that import AuthService" --mode graph
+agent-brain query "modules that import AuthService" --mode graph
 ```
 
 This will traverse import relationships to find related code.

@@ -1,0 +1,109 @@
+@startuml BM25 Query Sequence
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+title BM25 Query Sequence - Keyword-Based Search
+
+actor Client
+participant "FastAPI\n/query" as API
+participant "QueryService" as QS
+participant "BM25IndexManager" as BM25
+participant "BM25Retriever\n(LlamaIndex)" as Retriever
+database "BM25 Index\n(disk)" as Index
+
+== Request Validation ==
+
+Client -> API : POST /query\n{query, mode: "bm25", top_k}
+activate API
+
+API -> API : Validate query
+API -> QS : Check is_ready()
+activate QS
+QS --> API : ready = true
+deactivate QS
+
+== Query Execution ==
+
+API -> QS : execute_query(request)
+activate QS
+note right of QS: Start timing
+
+QS -> QS : Check mode == BM25
+QS -> QS : _execute_bm25_query()
+
+group BM25 Index Check
+    QS -> BM25 : Check is_initialized
+    activate BM25
+
+    alt BM25 Not Initialized
+        BM25 --> QS : RuntimeError("BM25 index not initialized")
+        QS --> API : 500 Internal Server Error
+        API --> Client : Error response
+    end
+
+    BM25 --> QS : initialized = true
+    deactivate BM25
+end
+
+group BM25 Retrieval
+    QS -> BM25 : get_retriever(top_k)
+    activate BM25
+    BM25 -> BM25 : Set similarity_top_k = top_k
+    BM25 --> QS : BM25Retriever
+    deactivate BM25
+
+    QS -> Retriever : aretrieve(query)
+    activate Retriever
+
+    Retriever -> Retriever : Tokenize query
+    note right of Retriever
+        Tokenization:
+        - Lowercase
+        - Remove punctuation
+        - Split on whitespace
+    end note
+
+    Retriever -> Index : Load index data
+    activate Index
+    Index --> Retriever : corpus, doc_freqs, idf
+    deactivate Index
+
+    Retriever -> Retriever : Calculate BM25 scores
+    note right of Retriever
+        BM25 Score =
+        sum of IDF * (tf * (k1+1)) /
+        (tf + k1 * (1 - b + b * dl/avgdl))
+
+        Where:
+        - tf = term frequency in doc
+        - dl = document length
+        - avgdl = average doc length
+        - k1, b = tuning parameters
+    end note
+
+    Retriever -> Retriever : Sort by score, take top_k
+    Retriever --> QS : NodeWithScore[]
+    deactivate Retriever
+end
+
+group Result Transformation
+    QS -> QS : Convert NodeWithScore[]\nto QueryResult[]
+    note right of QS
+        For each node:
+        - Get text via get_content()
+        - Extract source from metadata
+        - Set bm25_score = node.score
+        - Extract source_type, language
+    end note
+end
+
+QS -> QS : Calculate query_time_ms
+
+QS --> API : QueryResponse(\n  results,\n  query_time_ms,\n  total_results)
+deactivate QS
+
+API --> Client : 200 OK\n{results[], query_time_ms, total_results}
+deactivate API
+
+@enduml

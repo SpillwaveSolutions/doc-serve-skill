@@ -25,13 +25,13 @@ Vector search uses semantic similarity to find documents based on meaning rather
 
 ```bash
 # Basic vector search (default mode)
-doc-svr-ctl query "how does authentication work"
+agent-brain query "how does authentication work"
 
 # Explicit vector mode
-doc-svr-ctl query "troubleshooting guide" --mode vector
+agent-brain query "troubleshooting guide" --mode vector
 
 # With custom settings
-doc-svr-ctl query "error handling patterns" --mode vector --threshold 0.5 --top-k 10
+agent-brain query "error handling patterns" --mode vector --threshold 0.5 --top-k 10
 ```
 
 ### API Usage
@@ -91,7 +91,7 @@ Vector search uses:
 
 ### Example 1: Conceptual Query
 
-**Query:** `doc-svr-ctl query "how does user authentication work"`
+**Query:** `agent-brain query "how does user authentication work"`
 
 **Response:**
 ```json
@@ -129,7 +129,7 @@ Vector search uses:
 
 ### Example 2: Troubleshooting Query
 
-**Query:** `doc-svr-ctl query "connection problems and solutions"`
+**Query:** `agent-brain query "connection problems and solutions"`
 
 **Response:**
 ```json
@@ -193,13 +193,13 @@ Vector search uses:
 ```bash
 #!/bin/bash
 # Semantic search for troubleshooting
-doc-svr-ctl query "fix $1 problem" --mode vector --json | jq '.results[0].text'
+agent-brain query "fix $1 problem" --mode vector --json | jq '.results[0].text'
 ```
 
 ### With Other Tools
 ```bash
 # Find related documentation
-doc-svr-ctl query "best practices for $TOPIC" --mode vector --json | jq -r '.results[].source'
+agent-brain query "best practices for $TOPIC" --mode vector --json | jq -r '.results[].source'
 ```
 
 ### API Integration

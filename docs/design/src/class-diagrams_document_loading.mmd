@@ -1,0 +1,30 @@
+classDiagram
+    class DocumentLoader {
+        -LanguageDetector language_detector
+
+        +load_files(folder_path, recursive, include_code) list~LoadedDocument~
+        +load_single_file(file_path) LoadedDocument
+
+        -_discover_files(folder_path, recursive, include_code) list~Path~
+        -_should_skip_dir(dir_name) bool
+        -_classify_file(file_path) tuple
+    }
+
+    class LoadedDocument {
+        +str text
+        +str source
+        +str file_name
+        +dict metadata
+    }
+
+    class LanguageDetector {
+        -dict _extension_map
+
+        +detect_language(file_path) str
+        +get_supported_languages() list~str~
+        +is_code_file(file_path) bool
+        +is_test_file(file_path) bool
+    }
+
+    DocumentLoader --> LoadedDocument : creates
+    DocumentLoader --> LanguageDetector : uses

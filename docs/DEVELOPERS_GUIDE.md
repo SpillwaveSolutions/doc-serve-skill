@@ -103,8 +103,8 @@ flowchart TB
 
 ### Installation
 ```bash
-git clone git@github.com:SpillwaveSolutions/doc-serve.git
-cd doc-serve
+git clone git@github.com:SpillwaveSolutions/agent-brain.git
+cd agent-brain
 task install
 ```
 

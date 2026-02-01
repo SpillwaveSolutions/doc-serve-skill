@@ -1,0 +1,75 @@
+@startuml Environment Configuration
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+title Agent Brain - Environment Configuration Flow
+
+skinparam note {
+    BackgroundColor #FFFDE7
+}
+
+' Configuration Sources
+rectangle "Configuration Sources" {
+    file "CLI Arguments\n(--port, --host)" as cli_args
+    file "Environment Variables\n(OPENAI_API_KEY, etc.)" as env_vars
+    file ".env File\n(project root)" as env_file
+    file "config.json\n(.claude/agent-brain/)" as config_json
+    file "Default Values\n(settings.py)" as defaults
+}
+
+' Configuration Loading
+rectangle "Pydantic Settings" as pydantic {
+    component [Settings Class] as settings
+}
+
+' Precedence Flow
+cli_args --> settings : "Highest Priority"
+env_vars --> settings : "High Priority"
+env_file --> settings : "Medium Priority"
+config_json --> settings : "Low Priority"
+defaults --> settings : "Lowest Priority"
+
+' Configuration Categories
+rectangle "Configuration Categories" {
+
+    frame "API Configuration" {
+        component [API_HOST: 127.0.0.1] as api_host
+        component [API_PORT: 8000] as api_port
+        component [DEBUG: false] as debug
+    }
+
+    frame "External Services" {
+        component [OPENAI_API_KEY] as openai_key
+        component [ANTHROPIC_API_KEY] as anthropic_key
+        component [EMBEDDING_MODEL:\ntext-embedding-3-large] as embed_model
+        component [CLAUDE_MODEL:\nclaude-3-5-haiku] as claude_model
+    }
+
+    frame "Storage Paths" {
+        component [CHROMA_PERSIST_DIR:\n./chroma_db] as chroma_path
+        component [BM25_INDEX_PATH:\n./bm25_index] as bm25_path
+        component [GRAPH_INDEX_PATH:\n./graph_index] as graph_path
+    }
+
+    frame "Feature Flags" {
+        component [ENABLE_GRAPH_INDEX: false] as graph_flag
+        component [GRAPH_STORE_TYPE: simple] as graph_type
+    }
+}
+
+settings --> api_host
+settings --> api_port
+settings --> openai_key
+settings --> chroma_path
+settings --> graph_flag
+
+note bottom of pydantic
+    **Configuration Precedence**
+    1. CLI arguments (highest)
+    2. Environment variables
+    3. .env file
+    4. config.json (project-specific)
+    5. Default values (lowest)
+end note
+
+@enduml

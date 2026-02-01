@@ -12,6 +12,7 @@ SUBDIRECTORIES = [
     "data/chroma_db",
     "data/bm25_index",
     "data/llamaindex",
+    "data/graph_index",
     "logs",
 ]
 
@@ -48,6 +49,7 @@ def resolve_storage_paths(state_dir: Path) -> dict[str, Path]:
         "chroma_db": state_dir / "data" / "chroma_db",
         "bm25_index": state_dir / "data" / "bm25_index",
         "llamaindex": state_dir / "data" / "llamaindex",
+        "graph_index": state_dir / "data" / "graph_index",
         "logs": state_dir / "logs",
     }
 

@@ -15,19 +15,19 @@
 
 **Purpose**: Project initialization and basic structure
 
-- [x] T001 [P] Add `rank-bm25` and `llama-index-retrievers-bm25` to `doc-serve-server/pyproject.toml`
-- [x] T002 [P] Update `doc-serve-server` dependencies by running `poetry install` in `doc-serve-server/`
-- [x] T003 [P] Add `BM25_INDEX_PATH` to `doc-serve-server/doc_serve_server/config/settings.py`
+- [x] T001 [P] Add `rank-bm25` and `llama-index-retrievers-bm25` to `agent-brain-server/pyproject.toml`
+- [x] T002 [P] Update `agent-brain-server` dependencies by running `poetry install` in `agent-brain-server/`
+- [x] T003 [P] Add `BM25_INDEX_PATH` to `agent-brain-server/agent_brain_server/config/settings.py`
 
 ## Phase 2: Foundational (Blocking Prerequisites)
 
 **Purpose**: Core infrastructure that MUST be complete before ANY user story can be implemented
 
-- [x] T004 Implement `BM25IndexManager` in `doc_serve_server/indexing/bm25_index.py` for index persistence
-- [x] T005 Update `QueryMode` enum and add it to `doc_serve_server/models/query.py`
-- [x] T006 Update `QueryRequest` with `mode` and `alpha` fields in `doc_serve_server/models/query.py`
-- [x] T007 Update `QueryResult` to include `vector_score` and `bm25_score` in `doc_serve_server/models/query.py`
-- [x] T008 Update `IndexingService` in `doc_serve_server/services/indexing_service.py` to build BM25 index during ingestion
+- [x] T004 Implement `BM25IndexManager` in `agent_brain_server/indexing/bm25_index.py` for index persistence
+- [x] T005 Update `QueryMode` enum and add it to `agent_brain_server/models/query.py`
+- [x] T006 Update `QueryRequest` with `mode` and `alpha` fields in `agent_brain_server/models/query.py`
+- [x] T007 Update `QueryResult` to include `vector_score` and `bm25_score` in `agent_brain_server/models/query.py`
+- [x] T008 Update `IndexingService` in `agent_brain_server/services/indexing_service.py` to build BM25 index during ingestion
 
 **Checkpoint**: Foundation ready - user story implementation can now begin.
 
@@ -37,10 +37,10 @@
 
 **Independent Test**: POST to `/query` with `mode=bm25` and verify exact matches are returned.
 
-- [x] T009 [P] [US1] Create unit test for BM25 retrieval in `doc-serve-server/tests/unit/test_bm25_retrieval.py`
-- [x] T010 [US1] Implement BM25 retrieval logic in `doc_serve_server/services/query_service.py`
-- [x] T011 [US1] Update `/query` endpoint in `doc_serve_server/api/routers/query.py` to handle `mode=bm25`
-- [x] T012 [US1] Integration test for BM25 mode in `doc-serve-server/tests/integration/test_bm25_api.py`
+- [x] T009 [P] [US1] Create unit test for BM25 retrieval in `agent-brain-server/tests/unit/test_bm25_retrieval.py`
+- [x] T010 [US1] Implement BM25 retrieval logic in `agent_brain_server/services/query_service.py`
+- [x] T011 [US1] Update `/query` endpoint in `agent_brain_server/api/routers/query.py` to handle `mode=bm25`
+- [x] T012 [US1] Integration test for BM25 mode in `agent-brain-server/tests/integration/test_bm25_api.py`
 
 **Checkpoint**: User Story 1 is functional.
 
@@ -50,10 +50,10 @@
 
 **Independent Test**: POST to `/query` with `mode=hybrid` and verify blended results.
 
-- [x] T013 [P] [US2] Create unit test for Hybrid fusion logic in `doc-serve-server/tests/unit/test_hybrid_fusion.py`
-- [x] T014 [US2] Implement Hybrid retrieval with `QueryFusionRetriever` (relative_score) in `doc_serve_server/services/query_service.py`
-- [x] T015 [US2] Update `/query` endpoint in `doc_serve_server/api/routers/query.py` to handle `mode=hybrid`
-- [x] T016 [US2] Integration test for Hybrid mode in `doc-serve-server/tests/integration/test_hybrid_api.py`
+- [x] T013 [P] [US2] Create unit test for Hybrid fusion logic in `agent-brain-server/tests/unit/test_hybrid_fusion.py`
+- [x] T014 [US2] Implement Hybrid retrieval with `QueryFusionRetriever` (relative_score) in `agent_brain_server/services/query_service.py`
+- [x] T015 [US2] Update `/query` endpoint in `agent_brain_server/api/routers/query.py` to handle `mode=hybrid`
+- [x] T016 [US2] Integration test for Hybrid mode in `agent-brain-server/tests/integration/test_hybrid_api.py`
 
 **Checkpoint**: Hybrid Search is functional.
 
@@ -63,21 +63,21 @@
 
 **Independent Test**: Verify results change when switching alpha between 0.0 and 1.0.
 
-- [x] T017 [US3] Implement alpha weighting in `doc_serve_server/services/query_service.py` (use Relative Score Fusion)
-- [x] T018 [US3] Add validation for alpha (0.0-1.0) in `doc_serve_server/models/query.py`
-- [x] T019 [US3] Integration test for alpha weighting in `doc-serve-server/tests/integration/test_alpha_weighting.py`
+- [x] T017 [US3] Implement alpha weighting in `agent_brain_server/services/query_service.py` (use Relative Score Fusion)
+- [x] T018 [US3] Add validation for alpha (0.0-1.0) in `agent_brain_server/models/query.py`
+- [x] T019 [US3] Integration test for alpha weighting in `agent-brain-server/tests/integration/test_alpha_weighting.py`
 
 **Checkpoint**: Alpha weighting is functional.
 
 ## Phase 6: User Story 4 - CLI Search Mode Selection (Priority: P2)
 
-**Goal**: Select search mode and alpha via `doc-svr-ctl`.
+**Goal**: Select search mode and alpha via `agent-brain`.
 
-**Independent Test**: Run `doc-svr-ctl query "text" --mode bm25` and check results.
+**Independent Test**: Run `agent-brain query "text" --mode bm25` and check results.
 
-- [x] T020 [US4] Add `--mode` and `--alpha` options to `doc-svr-ctl/doc_svr_ctl/commands/query.py`
-- [x] T021 [US4] Update `doc-svr-ctl/doc_svr_ctl/client/api_client.py` to pass new parameters to API
-- [x] T022 [US4] Integration test for CLI query options in `doc-svr-ctl/tests/test_cli_query_modes.py`
+- [x] T020 [US4] Add `--mode` and `--alpha` options to `agent-brain/agent_brain_cli/commands/query.py`
+- [x] T021 [US4] Update `agent-brain/agent_brain_cli/client/api_client.py` to pass new parameters to API
+- [x] T022 [US4] Integration test for CLI query options in `agent-brain/tests/test_cli_query_modes.py`
 
 **Checkpoint**: CLI support is functional.
 
@@ -87,15 +87,15 @@
 
 **Independent Test**: Verify `vector_score` and `bm25_score` are present in API response.
 
-- [x] T023 [US5] Ensure `vector_score` and `bm25_score` are populated in `doc_serve_server/services/query_service.py`
-- [x] T024 [US5] Update `doc_svr_ctl/doc_svr_ctl/commands/query.py` to display scores if requested (or in verbose mode)
+- [x] T023 [US5] Ensure `vector_score` and `bm25_score` are populated in `agent_brain_server/services/query_service.py`
+- [x] T024 [US5] Update `agent_brain_cli/agent_brain_cli/commands/query.py` to display scores if requested (or in verbose mode)
 
 ## Phase 8: Polish & Cross-Cutting Concerns
 
 **Purpose**: Improvements that affect multiple user stories
 
 - [x] T025 [P] Update `README.md` and `docs/USER_GUIDE.md` with hybrid search instructions
-- [x] T026 [P] Update `doc-serve-skill/doc-serve/references/api_reference.md`
+- [x] T026 [P] Update `agent-brain-skill/doc-serve/references/api_reference.md`
 - [x] T027 Run full test suite: `task pr-qa-gate`
 - [x] T028 Validate `quickstart.md` scenarios
 
