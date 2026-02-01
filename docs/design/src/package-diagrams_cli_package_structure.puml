@@ -1,0 +1,164 @@
+@startuml CLI Package Structure
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+title agent-brain-cli - Internal Package Structure
+
+skinparam package {
+    BackgroundColor<<entry>> #E3F2FD
+    BackgroundColor<<commands>> #E8F5E9
+    BackgroundColor<<client>> #FFF3E0
+}
+
+package "agent_brain_cli" {
+
+    ' Entry Point
+    package "Entry Point" <<entry>> {
+        class "cli.py" as cli_main {
+            + cli(): Click.Group
+            + cli_deprecated()
+            --
+            Commands registered:
+            - init
+            - start
+            - stop
+            - list
+            - status
+            - query
+            - index
+            - reset
+        }
+
+        class "__init__.py" as init {
+            + __version__: str
+        }
+    }
+
+    ' Commands Package
+    package "commands" <<commands>> {
+        class "init.py" as init_cmd {
+            + init_command()
+            --
+            Creates .claude/agent-brain/
+            directory structure
+        }
+
+        class "start.py" as start_cmd {
+            + start_command()
+            --
+            - Discovers project root
+            - Starts server process
+            - Handles daemon mode
+            - Auto-assigns ports
+        }
+
+        class "stop.py" as stop_cmd {
+            + stop_command()
+            --
+            - Reads runtime.json
+            - Sends SIGTERM to server
+            - Cleans up state files
+        }
+
+        class "list_cmd.py" as list_cmd {
+            + list_command()
+            --
+            - Scans for instances
+            - Shows running servers
+            - Displays port/PID info
+        }
+
+        class "status.py" as status_cmd {
+            + status_command()
+            --
+            - Calls /health/status
+            - Shows indexing progress
+            - Displays document counts
+        }
+
+        class "query.py" as query_cmd {
+            + query_command()
+            --
+            - Parses search options
+            - Calls /query endpoint
+            - Formats results (Rich)
+        }
+
+        class "index.py" as index_cmd {
+            + index_command()
+            --
+            - Validates folder path
+            - Calls /index endpoint
+            - Shows progress bar
+        }
+
+        class "reset.py" as reset_cmd {
+            + reset_command()
+            --
+            - Requires --yes flag
+            - Calls DELETE /index
+            - Confirms deletion
+        }
+    }
+
+    ' Client Package
+    package "client" <<client>> {
+        class "api_client.py" as api_client {
+            + DocServeClient
+            + DocServeError
+            + ConnectionError
+            + ServerError
+            --
+            Data Classes:
+            + HealthStatus
+            + IndexingStatus
+            + QueryResult
+            + QueryResponse
+            + IndexResponse
+            --
+            Methods:
+            + health()
+            + status()
+            + query()
+            + index()
+            + reset()
+        }
+    }
+
+    ' Internal Utilities
+    class "discovery.py" as discovery {
+        + discover_project_root()
+        + find_running_instances()
+        + read_runtime_file()
+    }
+
+    class "formatting.py" as formatting {
+        + format_query_results()
+        + format_status()
+        + create_progress_bar()
+    }
+}
+
+' Dependencies
+cli_main --> init_cmd
+cli_main --> start_cmd
+cli_main --> stop_cmd
+cli_main --> list_cmd
+cli_main --> status_cmd
+cli_main --> query_cmd
+cli_main --> index_cmd
+cli_main --> reset_cmd
+
+status_cmd --> api_client
+query_cmd --> api_client
+index_cmd --> api_client
+reset_cmd --> api_client
+
+start_cmd --> discovery
+stop_cmd --> discovery
+list_cmd --> discovery
+
+query_cmd --> formatting
+status_cmd --> formatting
+
+@enduml

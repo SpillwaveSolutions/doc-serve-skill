@@ -1,0 +1,98 @@
+@startuml Hybrid Query Sequence
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+title Hybrid Query Sequence - Combined Vector + BM25 with Score Fusion
+
+actor Client
+participant "FastAPI\n/query" as API
+participant "QueryService" as QS
+participant "EmbeddingGenerator" as EG
+participant "VectorStoreManager" as VS
+participant "BM25IndexManager" as BM25
+
+== Request Validation ==
+
+Client -> API : POST /query\n{query, mode: "hybrid", alpha: 0.5, top_k}
+activate API
+
+API -> QS : execute_query(request)
+activate QS
+note right of QS: alpha = 0.5 means\n50% vector, 50% BM25
+
+== Parallel Search Execution ==
+
+QS -> QS : Get corpus_size for\neffective_top_k
+QS -> VS : get_count()
+activate VS
+VS --> QS : corpus_size
+deactivate VS
+
+QS -> QS : effective_top_k = min(top_k, corpus_size)
+
+par Vector Search
+    QS -> EG : embed_query(query)
+    activate EG
+    EG --> QS : query_embedding
+    deactivate EG
+
+    QS -> VS : similarity_search(\n  query_embedding,\n  effective_top_k,\n  threshold,\n  where_clause)
+    activate VS
+    VS --> QS : vector_results[]
+    deactivate VS
+end
+
+par BM25 Search
+    QS -> BM25 : search_with_filters(\n  query,\n  effective_top_k,\n  source_types,\n  languages)
+    activate BM25
+    BM25 --> QS : bm25_results[]
+    deactivate BM25
+end
+
+== Score Normalization ==
+
+group Normalize Scores
+    QS -> QS : max_vector_score = max(vector_results.scores)
+    QS -> QS : max_bm25_score = max(bm25_results.scores)
+
+    note right of QS
+        Normalization brings both
+        score types to 0-1 range:
+
+        normalized_score = raw_score / max_score
+    end note
+end
+
+== Relative Score Fusion ==
+
+group Combine Results
+    QS -> QS : Create combined_results map
+
+    loop For each vector result
+        QS -> QS : Add to map with:\n  vector_score = score/max_vector\n  bm25_score = 0.0\n  total = alpha * vector_score
+    end
+
+    loop For each BM25 result
+        QS -> QS : If chunk_id exists:\n  Add bm25_score, update total\nElse:\n  Create new entry with bm25 only
+        note right of QS
+            total_score =
+              alpha * vector_score +
+              (1-alpha) * bm25_score
+        end note
+    end
+end
+
+== Final Ranking ==
+
+QS -> QS : Sort by total_score DESC
+QS -> QS : Take top_k results
+QS -> QS : Apply content filters
+
+QS --> API : QueryResponse
+deactivate QS
+
+API --> Client : 200 OK\n{results with both vector_score and bm25_score}
+deactivate API
+
+@enduml

@@ -1,0 +1,164 @@
+@startuml Code Indexing Sequence
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+title Code Indexing Sequence - AST-Aware Chunking
+
+participant "IndexingService" as IS
+participant "DocumentLoader" as DL
+participant "CodeChunker" as CC
+participant "tree-sitter\nParser" as TS
+participant "SummaryExtractor\n(Optional)" as SE
+participant "Anthropic API" as Claude
+
+== Language Detection ==
+
+IS -> DL : load_files(folder_path, include_code=True)
+activate DL
+
+loop For each file
+    DL -> DL : Get file extension
+
+    DL -> DL : Map extension to language
+    note right of DL
+        Extension mappings:
+        .py -> python
+        .ts -> typescript
+        .js -> javascript
+        .java -> java
+        .go -> go
+        .rs -> rust
+        .c -> c
+        .cpp -> cpp
+        .h -> c
+    end note
+
+    DL -> DL : Set source_type = "code"
+    DL -> DL : Set language in metadata
+end
+
+DL --> IS : documents[] with language metadata
+deactivate DL
+
+== Code Chunking by Language ==
+
+IS -> IS : Group code_documents by language
+
+loop For each language (python, typescript, etc.)
+
+    IS -> CC : Create CodeChunker(\n  language=lang,\n  generate_summaries=True)
+    activate CC
+
+    CC -> CC : Load tree-sitter parser\nfor language
+    note right of CC
+        Supported languages:
+        - Python (functions, classes, methods)
+        - TypeScript (functions, classes, interfaces)
+        - JavaScript (functions, classes, methods)
+        - Java (methods, classes)
+        - Go (functions, types)
+        - Rust (functions, impl blocks)
+        - C/C++ (functions)
+    end note
+
+    loop For each code document
+
+        CC -> CC : chunk_code_document(doc)
+
+        group AST Parsing
+            CC -> TS : Parse source code
+            activate TS
+
+            TS -> TS : Build AST
+
+            TS --> CC : syntax tree
+            deactivate TS
+        end
+
+        group Symbol Extraction
+            CC -> CC : Walk AST for code symbols
+            note right of CC
+                Extract:
+                - Function definitions
+                - Class definitions
+                - Method definitions
+                - Type/Interface definitions
+
+                For each symbol:
+                - name
+                - start_line, end_line
+                - docstring (if present)
+                - parent class (for methods)
+            end note
+
+            CC -> CC : Create CodeChunk for each symbol
+            note right of CC
+                CodeChunk contains:
+                - chunk_id (UUID)
+                - text (source code)
+                - metadata:
+                  - source_type: "code"
+                  - language: "python"
+                  - symbol_name: "function_name"
+                  - symbol_type: "function"
+                  - start_line, end_line
+                  - file_path
+            end note
+        end
+
+        group Summary Generation (Optional)
+            alt generate_summaries = true
+                CC -> SE : Create SummaryExtractor
+                activate SE
+
+                loop For each code chunk
+                    SE -> Claude : Summarize code chunk
+                    activate Claude
+                    note right of Claude
+                        Model: claude-3-5-haiku
+                        Prompt: "Summarize this code..."
+                    end note
+                    Claude --> SE : summary text
+                    deactivate Claude
+
+                    SE -> SE : Add summary to\nchunk metadata
+                end
+
+                SE --> CC : chunks with summaries
+                deactivate SE
+            end
+        end
+
+        CC --> IS : code_chunks[] for document
+    end
+
+    deactivate CC
+
+    IS -> IS : Track supported_languages set
+    IS -> IS : Accumulate total_code_chunks
+end
+
+== Fallback Handling ==
+
+alt AST Parsing Fails
+    IS -> IS : Fall back to\nContextAwareChunker
+    note right of IS
+        Treats code as plain text:
+        - Splits by lines/paragraphs
+        - No symbol extraction
+        - Still gets embeddings
+    end note
+end
+
+== Continue to Embedding/Storage ==
+
+note over IS
+    Code chunks continue through
+    the same pipeline as documents:
+    1. Generate embeddings
+    2. Store in ChromaDB
+    3. Build BM25 index
+end note
+
+@enduml

@@ -1,0 +1,60 @@
+flowchart TB
+    Start([Start Indexing])
+
+    Start --> LoadDocs
+
+    subgraph LoadDocs["Document Loading"]
+        Load[Load Files]
+        LoadErr{Error?}
+        Load --> LoadErr
+        LoadErr -->|Yes| LogSkip["Log & Skip File"]
+        LoadErr -->|No| Continue1[Continue]
+        LogSkip --> Continue1
+    end
+
+    Continue1 --> ChunkDocs
+
+    subgraph ChunkDocs["Chunking"]
+        Chunk[Chunk Document]
+        ChunkErr{AST Error?}
+        Chunk --> ChunkErr
+        ChunkErr -->|Yes| Fallback["Fallback to Text Chunking"]
+        ChunkErr -->|No| Continue2[Continue]
+        Fallback --> Continue2
+    end
+
+    Continue2 --> GenEmbed
+
+    subgraph GenEmbed["Embedding"]
+        Embed[Generate Embeddings]
+        EmbedErr{API Error?}
+        Embed --> EmbedErr
+        EmbedErr -->|Yes| Retry["Retry with Backoff"]
+        EmbedErr -->|No| Continue3[Continue]
+        Retry --> RetryFail{Still Failing?}
+        RetryFail -->|Yes| Fail[Fail Pipeline]
+        RetryFail -->|No| Continue3
+    end
+
+    Continue3 --> Store
+
+    subgraph Store["Storage"]
+        VectorStore[Store Vectors]
+        StoreErr{Error?}
+        VectorStore --> StoreErr
+        StoreErr -->|Yes| Fail
+        StoreErr -->|No| Complete
+    end
+
+    Complete([Indexing Complete])
+    Fail([Indexing Failed])
+
+    classDef start fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef error fill:#FFB6C1,stroke:#DC143C,stroke-width:2px,color:black
+    classDef decision fill:#FFD700,stroke:#333,stroke-width:2px,color:black
+    classDef process fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+
+    class Start,Complete start
+    class Fail error
+    class LoadErr,ChunkErr,EmbedErr,StoreErr,RetryFail decision
+    class Load,Chunk,Embed,VectorStore process

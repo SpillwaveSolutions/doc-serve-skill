@@ -1,0 +1,35 @@
+flowchart TB
+    subgraph BM25Manager["BM25IndexManager"]
+        direction TB
+        Init["initialize()"]
+        Build["build_index()"]
+        GetRetriever["get_retriever()"]
+        SearchFilter["search_with_filters()"]
+        Persist["persist()"]
+        Reset["reset()"]
+    end
+
+    subgraph Retriever["BM25Retriever"]
+        direction TB
+        Tokenize[Tokenize Documents]
+        BuildIndex[Build Inverted Index]
+        CalcIDF[Calculate IDF]
+        Retrieve["aretrieve()"]
+    end
+
+    subgraph Persistence["Disk Persistence"]
+        direction TB
+        RetrieverJSON[retriever.json]
+        CorpusData[corpus data]
+    end
+
+    BM25Manager --> Retriever
+    Retriever --> Persistence
+
+    classDef managerStyle fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef retrieverStyle fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+    classDef storageStyle fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+
+    class Init,Build,GetRetriever,SearchFilter,Persist,Reset managerStyle
+    class Tokenize,BuildIndex,CalcIDF,Retrieve retrieverStyle
+    class RetrieverJSON,CorpusData storageStyle

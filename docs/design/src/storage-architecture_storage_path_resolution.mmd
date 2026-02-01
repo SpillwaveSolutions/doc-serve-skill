@@ -1,0 +1,39 @@
+flowchart TB
+    Start([Resolve Paths])
+
+    Start --> CheckStateDir
+
+    CheckStateDir{DOC_SERVE_STATE_DIR<br/>set?}
+
+    CheckStateDir -->|Yes| UseStateDir[Use explicit state dir]
+    CheckStateDir -->|No| CheckProjectDir
+
+    CheckProjectDir{Project directory<br/>specified?}
+
+    CheckProjectDir -->|Yes| ResolveProject[".claude/agent-brain/"]
+    CheckProjectDir -->|No| UseDefaults[Use default paths]
+
+    UseStateDir --> CreateDirs
+    ResolveProject --> CreateDirs
+    UseDefaults --> CreateDirs
+
+    subgraph CreateDirs["Create Directories"]
+        direction TB
+        ChromaPath["chroma_db/"]
+        BM25Path["bm25_index/"]
+        GraphPath["graph_index/"]
+    end
+
+    CreateDirs --> PathDict
+
+    PathDict["Return path dict:<br/>{chroma_db, bm25_index, graph_index}"]
+
+    classDef start fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef decision fill:#FFD700,stroke:#333,stroke-width:2px,color:black
+    classDef action fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef result fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+
+    class Start start
+    class CheckStateDir,CheckProjectDir decision
+    class UseStateDir,ResolveProject,UseDefaults action
+    class ChromaPath,BM25Path,GraphPath,PathDict result

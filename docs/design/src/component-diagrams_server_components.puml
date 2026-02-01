@@ -1,0 +1,124 @@
+@startuml Server Components
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+title agent-brain-server - Component Architecture
+
+skinparam component {
+    BackgroundColor<<router>> #E3F2FD
+    BackgroundColor<<service>> #E8F5E9
+    BackgroundColor<<indexing>> #FFF3E0
+    BackgroundColor<<storage>> #FCE4EC
+    BackgroundColor<<config>> #F3E5F5
+}
+
+' FastAPI Application
+package "FastAPI Application" {
+
+    component [main.py] <<config>> as main
+
+    ' Router Components
+    package "API Routers" {
+        component [HealthRouter] <<router>> as health_router
+        component [QueryRouter] <<router>> as query_router
+        component [IndexRouter] <<router>> as index_router
+    }
+
+    ' Service Components
+    package "Business Services" {
+        component [QueryService] <<service>> as query_svc
+        component [IndexingService] <<service>> as index_svc
+    }
+
+    ' Indexing Components
+    package "Indexing Pipeline" {
+        component [DocumentLoader] <<indexing>> as doc_loader
+        component [ContextAwareChunker] <<indexing>> as text_chunker
+        component [CodeChunker] <<indexing>> as code_chunker
+        component [EmbeddingGenerator] <<indexing>> as embedder
+        component [GraphExtractor] <<indexing>> as graph_extractor
+    }
+
+    ' Storage Components
+    package "Storage Managers" {
+        component [VectorStoreManager] <<storage>> as vector_mgr
+        component [BM25IndexManager] <<storage>> as bm25_mgr
+        component [GraphStoreManager] <<storage>> as graph_mgr
+    }
+
+    ' Configuration
+    component [Settings] <<config>> as settings
+}
+
+' Notes
+note right of health_router
+    GET /health/
+    GET /health/status
+end note
+
+note right of query_router
+    POST /query/
+    GET /query/count
+end note
+
+note right of index_router
+    POST /index/
+    POST /index/add
+    DELETE /index/
+end note
+
+note right of query_svc
+    + execute_query()
+    + get_document_count()
+end note
+
+note right of index_svc
+    + start_indexing()
+    + get_status()
+    + reset()
+end note
+
+note right of vector_mgr
+    Backend: ChromaDB
+    + similarity_search()
+    + upsert_documents()
+end note
+
+note right of bm25_mgr
+    Backend: LlamaIndex BM25
+    + build_index()
+    + get_retriever()
+end note
+
+note right of graph_mgr
+    Backend: Simple/Kuzu
+    + add_triplet()
+    + query()
+end note
+
+' Internal Connections
+main --> health_router : registers
+main --> query_router : registers
+main --> index_router : registers
+
+main ..> settings : configures
+
+health_router --> index_svc : get_status()
+query_router --> query_svc : execute_query()
+index_router --> index_svc : start_indexing()
+
+query_svc --> vector_mgr : similarity_search()
+query_svc --> bm25_mgr : aretrieve()
+query_svc --> graph_mgr : query()
+query_svc --> embedder : embed_query()
+
+index_svc --> doc_loader : load_files()
+index_svc --> text_chunker : chunk_documents()
+index_svc --> code_chunker : chunk_code_document()
+index_svc --> embedder : embed_chunks()
+index_svc --> vector_mgr : upsert_documents()
+index_svc --> bm25_mgr : build_index()
+index_svc --> graph_extractor : extract()
+index_svc --> graph_mgr : add_triplet()
+
+@enduml

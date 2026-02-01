@@ -1,0 +1,213 @@
+@startuml Server Start Sequence
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+title CLI Server Start Sequence
+
+actor User
+participant "agent-brain CLI" as CLI
+participant "File System" as FS
+participant "Git" as Git
+participant "Network\n(socket)" as Net
+participant "uvicorn\nSubprocess" as Server
+participant "Global Registry" as Registry
+
+== Project Resolution ==
+
+User -> CLI : agent-brain start [--port] [--path]
+activate CLI
+
+alt Explicit path provided
+    CLI -> CLI : project_root = Path(path).resolve()
+else Auto-detect project root
+    CLI -> Git : git rev-parse --show-toplevel
+    activate Git
+
+    alt In git repository
+        Git --> CLI : /path/to/git/root
+    else Not in git repo
+        Git --> CLI : error
+        CLI -> CLI : Walk up directory tree
+        CLI -> CLI : Look for .claude/ or pyproject.toml
+    end
+    deactivate Git
+end
+
+CLI -> CLI : state_dir = project_root / ".claude/doc-serve"
+
+== Initialization Check ==
+
+CLI -> FS : Check state_dir.exists()
+activate FS
+FS --> CLI : exists = true/false
+deactivate FS
+
+alt State dir doesn't exist
+    CLI --> User : "Error: Project not initialized"
+    CLI --> User : "Run 'agent-brain init' first"
+    CLI -> CLI : exit(1)
+end
+
+== Existing Server Check ==
+
+CLI -> FS : Read config.json
+activate FS
+FS --> CLI : {bind_host, port_range, auto_port, ...}
+deactivate FS
+
+CLI -> FS : Read runtime.json
+activate FS
+FS --> CLI : {pid, base_url, ...} or None
+deactivate FS
+
+alt runtime.json exists
+    CLI -> CLI : Check process alive\nos.kill(pid, 0)
+
+    alt Process alive
+        CLI -> Net : Check health endpoint\nhttp://host:port/health/
+        activate Net
+        Net --> CLI : 200 OK
+        deactivate Net
+
+        CLI --> User : "Server already running!"
+        CLI --> User : "URL: {base_url}"
+        CLI --> User : "PID: {pid}"
+        CLI -> CLI : return (success)
+    else Process dead
+        CLI --> User : "Cleaning up stale state..."
+        CLI -> FS : Delete runtime.json, lock, pid files
+    end
+end
+
+== Port Selection ==
+
+alt Explicit port provided
+    CLI -> CLI : bind_port = port
+else Auto-port enabled (default)
+    CLI -> CLI : port_range = config.port_range_start..end
+
+    loop For each port in range
+        CLI -> Net : Try socket.bind(host, port)
+        activate Net
+
+        alt Port available
+            Net --> CLI : success
+            CLI -> CLI : bind_port = port
+        else Port in use
+            Net --> CLI : OSError
+            CLI -> CLI : continue to next port
+        end
+        deactivate Net
+    end
+
+    alt No port available
+        CLI --> User : "No available port in range"
+        CLI -> CLI : exit(1)
+    end
+else Fixed port from config
+    CLI -> CLI : bind_port = config.port
+end
+
+== Server Spawn ==
+
+CLI -> CLI : Build server command
+note right of CLI
+    Command:
+    python -m uvicorn
+      agent_brain_server.api.main:app
+      --host {bind_host}
+      --port {bind_port}
+end note
+
+CLI -> CLI : Set environment variables
+note right of CLI
+    DOC_SERVE_PROJECT_ROOT={project_root}
+    DOC_SERVE_STATE_DIR={state_dir}
+end note
+
+alt Foreground mode (--foreground)
+    CLI --> User : "Starting server in foreground..."
+    CLI -> Server : os.execvpe(cmd, env)
+    note right of Server: Takes over process
+else Background mode (default)
+    CLI -> FS : Create logs directory
+    CLI -> FS : Open server.log, server.err
+
+    CLI -> Server : subprocess.Popen(\n  cmd, env,\n  stdout=log,\n  stderr=err,\n  start_new_session=True)
+    activate Server
+    Server --> CLI : process handle
+end
+
+== Runtime State ==
+
+CLI -> FS : Write runtime.json
+activate FS
+note right of FS
+    {
+      "schema_version": "1.0",
+      "mode": "project",
+      "project_root": "/path/to/project",
+      "instance_id": "abc123...",
+      "base_url": "http://127.0.0.1:8042",
+      "bind_host": "127.0.0.1",
+      "port": 8042,
+      "pid": 12345,
+      "started_at": "2024-01-15T..."
+    }
+end note
+FS --> CLI : written
+deactivate FS
+
+CLI -> Registry : Update ~/.doc-serve/registry.json
+activate Registry
+Registry --> CLI : updated
+deactivate Registry
+
+== Health Wait ==
+
+CLI -> CLI : start_time = now()
+
+loop While time < timeout (30s)
+    CLI -> Net : GET http://host:port/health/
+    activate Net
+
+    alt Health check passes
+        Net --> CLI : 200 OK
+        CLI -> CLI : ready = true
+        CLI -> CLI : break loop
+    else Not responding yet
+        Net --> CLI : Connection refused / timeout
+        deactivate Net
+
+        CLI -> Server : Check process.poll()
+        alt Process crashed
+            Server --> CLI : exit_code != None
+            CLI -> CLI : break loop (failure)
+        else Still running
+            Server --> CLI : None
+        end
+
+        CLI -> CLI : sleep(0.5)
+    end
+end
+
+== Result ==
+
+alt Server ready
+    CLI --> User : "Server started successfully!"
+    CLI --> User : "URL: http://127.0.0.1:8042"
+    CLI --> User : "PID: 12345"
+    CLI --> User : "Log: .claude/doc-serve/logs/server.log"
+    deactivate Server
+else Startup failed
+    CLI -> Server : os.kill(pid, SIGTERM)
+    CLI -> FS : Delete runtime.json
+    CLI --> User : "Error: Server failed to start"
+    CLI --> User : "Check logs: .../server.err"
+    CLI -> CLI : exit(1)
+end
+
+deactivate CLI
+
+@enduml

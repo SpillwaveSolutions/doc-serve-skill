@@ -1,0 +1,60 @@
+classDiagram
+    class IndexingService {
+        -VectorStoreManager vector_store
+        -DocumentLoader document_loader
+        -ContextAwareChunker chunker
+        -EmbeddingGenerator embedding_generator
+        -BM25IndexManager bm25_manager
+        -GraphIndexManager graph_index_manager
+        -IndexingState _state
+        -asyncio.Lock _lock
+        -set~str~ _indexed_folders
+        -int _total_doc_chunks
+        -int _total_code_chunks
+        -set~str~ _supported_languages
+
+        +state IndexingState
+        +is_indexing bool
+        +is_ready bool
+
+        +start_indexing(IndexRequest, ProgressCallback) str
+        +get_status() dict
+        +reset() None
+
+        -_run_indexing_pipeline(IndexRequest, str, ProgressCallback) None
+    }
+
+    class IndexRequest {
+        +str folder_path
+        +bool recursive
+        +bool include_code
+        +bool generate_summaries
+        +int chunk_size
+        +int chunk_overlap
+    }
+
+    class IndexingState {
+        +str current_job_id
+        +IndexingStatusEnum status
+        +bool is_indexing
+        +str folder_path
+        +int total_documents
+        +int processed_documents
+        +int total_chunks
+        +int progress_percent
+        +datetime started_at
+        +datetime completed_at
+        +str error
+    }
+
+    class IndexingStatusEnum {
+        <<enumeration>>
+        IDLE
+        INDEXING
+        COMPLETED
+        FAILED
+    }
+
+    IndexingService --> IndexRequest : receives
+    IndexingService --> IndexingState : maintains
+    IndexingState --> IndexingStatusEnum : uses

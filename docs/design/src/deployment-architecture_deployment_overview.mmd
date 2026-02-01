@@ -1,0 +1,49 @@
+flowchart TB
+    subgraph DevLocal["Local Development"]
+        direction TB
+        LocalServer[Single Server<br/>127.0.0.1:8000]
+        LocalCLI[CLI + Plugin]
+        LocalStorage[(Local Files)]
+        LocalServer --> LocalStorage
+        LocalCLI --> LocalServer
+    end
+
+    subgraph MultiInstance["Multi-Instance (Per-Project)"]
+        direction TB
+        ProjectA[Project A Server<br/>:8001]
+        ProjectB[Project B Server<br/>:8002]
+        ProjectC[Project C Server<br/>:8003]
+        StateA[".claude/agent-brain/"]
+        StateB[".claude/agent-brain/"]
+        StateC[".claude/agent-brain/"]
+        ProjectA --> StateA
+        ProjectB --> StateB
+        ProjectC --> StateC
+    end
+
+    subgraph Production["Production Deployment"]
+        direction TB
+        LB[Load Balancer]
+        Server1[Server Instance 1]
+        Server2[Server Instance 2]
+        SharedStorage[(Shared Storage<br/>NFS/S3)]
+        LB --> Server1
+        LB --> Server2
+        Server1 --> SharedStorage
+        Server2 --> SharedStorage
+    end
+
+    OpenAI[OpenAI API]
+    DevLocal --> OpenAI
+    MultiInstance --> OpenAI
+    Production --> OpenAI
+
+    classDef local fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef multi fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef prod fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+    classDef external fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+
+    class LocalServer,LocalCLI,LocalStorage local
+    class ProjectA,ProjectB,ProjectC,StateA,StateB,StateC multi
+    class LB,Server1,Server2,SharedStorage prod
+    class OpenAI external

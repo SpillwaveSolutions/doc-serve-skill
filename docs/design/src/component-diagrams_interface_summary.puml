@@ -1,0 +1,105 @@
+@startuml Interface Summary
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+title Agent Brain - Component Interfaces
+
+' REST API Interfaces
+package "REST API Interfaces" {
+    interface "GET /health/" as health_get {
+        Response: HealthResponse
+        - status: str
+        - version: str
+        - timestamp: str
+    }
+
+    interface "GET /health/status" as status_get {
+        Response: StatusResponse
+        - total_documents: int
+        - total_chunks: int
+        - indexing_in_progress: bool
+        - progress_percent: float
+    }
+
+    interface "POST /query/" as query_post {
+        Request: QueryRequest
+        - query: str
+        - mode: QueryMode
+        - top_k: int
+        - alpha: float
+        Response: QueryResponse
+        - results: list[QueryResult]
+        - query_time_ms: float
+    }
+
+    interface "POST /index/" as index_post {
+        Request: IndexRequest
+        - folder_path: str
+        - include_code: bool
+        - generate_summaries: bool
+        Response: IndexResponse
+        - job_id: str
+        - status: str
+    }
+
+    interface "DELETE /index/" as index_delete {
+        Response: IndexResponse
+        - status: str
+        - message: str
+    }
+}
+
+' Service Interfaces
+package "Service Interfaces" {
+    interface "QueryService" as query_svc_if {
+        + execute_query(QueryRequest) -> QueryResponse
+        + get_document_count() -> int
+        + is_ready() -> bool
+    }
+
+    interface "IndexingService" as index_svc_if {
+        + start_indexing(IndexRequest) -> str
+        + get_status() -> dict
+        + reset() -> None
+        + is_indexing -> bool
+    }
+}
+
+' Storage Interfaces
+package "Storage Interfaces" {
+    interface "VectorStoreManager" as vector_if {
+        + initialize() -> None
+        + upsert_documents(ids, embeddings, docs, meta)
+        + similarity_search(embedding, top_k) -> list
+        + get_count() -> int
+        + get_by_id(id) -> dict | None
+        + reset() -> None
+    }
+
+    interface "BM25IndexManager" as bm25_if {
+        + initialize() -> None
+        + build_index(nodes) -> None
+        + search_with_filters(query, filters) -> list
+        + persist() -> None
+        + reset() -> None
+    }
+
+    interface "GraphStoreManager" as graph_if {
+        + initialize() -> None
+        + add_triplet(subj, pred, obj) -> bool
+        + query(text, depth) -> list
+        + persist() -> None
+        + clear() -> None
+    }
+}
+
+' Connections showing which components implement interfaces
+query_post ..> query_svc_if : uses
+index_post ..> index_svc_if : uses
+query_svc_if ..> vector_if : requires
+query_svc_if ..> bm25_if : requires
+index_svc_if ..> vector_if : requires
+index_svc_if ..> bm25_if : requires
+index_svc_if ..> graph_if : requires
+
+@enduml

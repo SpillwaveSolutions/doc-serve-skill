@@ -6,44 +6,44 @@
 
 ```bash
 cd /path/to/my-repo
-doc-serve init
-# Creates .claude/doc-serve/config.json with defaults
+agent-brain init
+# Creates .claude/agent-brain/config.json with defaults
 ```
 
 ### 2. Start the server
 
 ```bash
-doc-serve start
+agent-brain start
 # → Server started at http://127.0.0.1:49321
-# → State directory: /path/to/my-repo/.claude/doc-serve/
-# → Discovery file: /path/to/my-repo/.claude/doc-serve/runtime.json
+# → State directory: /path/to/my-repo/.claude/agent-brain/
+# → Discovery file: /path/to/my-repo/.claude/agent-brain/runtime.json
 ```
 
 ### 3. Check status (from any subdirectory)
 
 ```bash
 cd /path/to/my-repo/src/deep/nested
-doc-serve status
-# → Doc-serve running at http://127.0.0.1:49321 (project mode)
+agent-brain status
+# → Agent Brain running at http://127.0.0.1:49321 (project mode)
 # → Indexed: 1,234 chunks from 56 files
 ```
 
 ### 4. Index documents
 
 ```bash
-doc-serve index /path/to/my-repo/docs
+agent-brain index /path/to/my-repo/docs
 ```
 
 ### 5. Query
 
 ```bash
-doc-serve query "how does authentication work?"
+agent-brain query "how does authentication work?"
 ```
 
 ### 6. Stop
 
 ```bash
-doc-serve stop
+agent-brain stop
 # → Server stopped. Cleanup complete.
 ```
 
@@ -52,16 +52,16 @@ doc-serve stop
 ```bash
 # Terminal 1
 cd /path/to/project-a
-doc-serve start
+agent-brain start
 # → Started on port 49321
 
 # Terminal 2
 cd /path/to/project-b
-doc-serve start
+agent-brain start
 # → Started on port 49322 (auto-assigned, no conflict)
 
 # List all running instances
-doc-serve list
+agent-brain list
 # → project-a: http://127.0.0.1:49321 (project mode)
 # → project-b: http://127.0.0.1:49322 (project mode)
 ```
@@ -70,19 +70,19 @@ doc-serve list
 
 ```bash
 # Start shared daemon
-doc-serve start --mode shared
+agent-brain start --mode shared
 # → Shared daemon started at http://127.0.0.1:45123
 
 # From project A
 cd /path/to/project-a
-doc-serve init --mode shared
-doc-serve start
+agent-brain init --mode shared
+agent-brain start
 # → Registered with shared daemon at http://127.0.0.1:45123
 
 # From project B
 cd /path/to/project-b
-doc-serve init --mode shared
-doc-serve start
+agent-brain init --mode shared
+agent-brain start
 # → Registered with shared daemon at http://127.0.0.1:45123
 ```
 
@@ -98,10 +98,10 @@ base_url = runtime.base_url  # e.g., "http://127.0.0.1:49321"
 
 ## Verification Checklist
 
-- [ ] `doc-serve init` creates `.claude/doc-serve/config.json`
-- [ ] `doc-serve start` creates `runtime.json` with actual port
-- [ ] `doc-serve status` works from any subdirectory
-- [ ] `doc-serve stop` removes all runtime artifacts
+- [ ] `agent-brain init` creates `.claude/agent-brain/config.json`
+- [ ] `agent-brain start` creates `runtime.json` with actual port
+- [ ] `agent-brain status` works from any subdirectory
+- [ ] `agent-brain stop` removes all runtime artifacts
 - [ ] Two projects can run concurrently on different ports
-- [ ] Crashed instance recovers on next `doc-serve start`
-- [ ] `.claude/doc-serve/runtime.json` is in `.gitignore`
+- [ ] Crashed instance recovers on next `agent-brain start`
+- [ ] `.claude/agent-brain/runtime.json` is in `.gitignore`

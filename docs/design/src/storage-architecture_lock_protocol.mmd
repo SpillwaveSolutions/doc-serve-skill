@@ -1,0 +1,21 @@
+sequenceDiagram
+    participant CLI
+    participant LockFile as lock.json
+    participant OS as Operating System
+
+    CLI->>LockFile: Read lock.json
+    alt Lock exists
+        CLI->>OS: Check if PID exists
+        alt PID is alive
+            CLI-->>CLI: Error: Another instance running
+        else PID is dead (stale)
+            CLI->>LockFile: Delete stale lock
+            CLI->>LockFile: Create new lock
+        end
+    else No lock
+        CLI->>LockFile: Create new lock
+    end
+
+    Note over CLI: Server starts
+
+    CLI->>LockFile: Delete lock on shutdown

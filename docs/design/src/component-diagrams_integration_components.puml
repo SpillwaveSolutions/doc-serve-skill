@@ -1,0 +1,123 @@
+@startuml Integration Components
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+title Agent Brain - Integration Architecture
+
+skinparam component {
+    BackgroundColor<<claude>> #E3F2FD
+    BackgroundColor<<plugin>> #E8F5E9
+    BackgroundColor<<cli>> #FFF3E0
+    BackgroundColor<<server>> #FCE4EC
+}
+
+' Claude Code Environment
+package "Claude Code Environment" <<claude>> {
+
+    actor "User" as user
+    component [Claude Code IDE] as ide
+
+    package "agent-brain-plugin" <<plugin>> {
+        component "Slash Commands\n(15 commands)" as commands
+        note right of commands
+            /agent-brain-search
+            /agent-brain-semantic
+            /agent-brain-keyword
+            /agent-brain-start
+            /agent-brain-stop
+            ...
+        end note
+
+        component "Skills\n(2 skills)" as skills
+        note right of skills
+            using-agent-brain
+            agent-brain-setup
+        end note
+
+        component "Agents\n(2 agents)" as agents
+        note right of agents
+            search-assistant
+            setup-assistant
+        end note
+    }
+
+    user --> ide : Invokes /command
+    ide --> commands : Routes command
+    ide --> skills : Loads context
+    ide --> agents : Activates agent
+}
+
+' CLI Layer
+package "CLI Layer" <<cli>> {
+
+    component [agent-brain CLI] as cli
+    note right of cli
+        Commands:
+        init, start, stop, list
+        status, query, index, reset
+    end note
+
+    component [DocServeClient] as client
+    note right of client
+        HTTP Client:
+        - httpx backend
+        - Error handling
+        - Response parsing
+    end note
+
+    commands --> cli : subprocess\ncall
+    cli --> client : API calls
+}
+
+' Server Layer
+package "Server Layer" <<server>> {
+
+    component "FastAPI Server\n(agent-brain-serve)" as server
+    note right of server
+        Endpoints:
+        /health/*
+        /query/*
+        /index/*
+    end note
+
+    component [Services] as services
+    note right of services
+        QueryService
+        IndexingService
+    end note
+
+    component [Storage] as storage
+    note right of storage
+        VectorStore
+        BM25Index
+        GraphStore
+    end note
+
+    client --> server : HTTP REST
+    server --> services
+    services --> storage
+}
+
+' External Services
+cloud "OpenAI" as openai
+cloud "Anthropic" as anthropic
+
+services --> openai : Embeddings
+services --> anthropic : Summaries
+
+' Communication Flow
+note bottom of client
+    **CLI to Server Communication**
+    - Discovers server via runtime.json
+    - Connects via localhost:PORT
+    - JSON request/response
+end note
+
+note bottom of commands
+    **Plugin to CLI Communication**
+    - Spawns subprocess
+    - Passes arguments
+    - Captures stdout/stderr
+end note
+
+@enduml

@@ -1,0 +1,62 @@
+flowchart TB
+    Query[/"Query Text"/]
+
+    subgraph EntityExtraction["Entity Extraction"]
+        direction TB
+        Parse[Parse Query]
+        Identify["Identify Entities<br/>(CamelCase, snake_case, etc.)"]
+        Clean[Clean & Deduplicate]
+    end
+
+    Query --> Parse
+    Parse --> Identify
+    Identify --> Clean
+
+    Clean --> GraphQuery
+
+    subgraph GraphQuery["Graph Traversal"]
+        direction TB
+        Match[Match Entities in Graph]
+        Traverse["Traverse Relationships<br/>(depth = traversal_depth)"]
+        Collect[Collect Triplets]
+    end
+
+    Match --> Traverse
+    Traverse --> Collect
+
+    Collect --> ChunkLookup
+
+    subgraph ChunkLookup["Document Lookup"]
+        direction TB
+        GetIDs[Get source_chunk_ids]
+        FetchDocs[Fetch from VectorStore]
+        BuildResults[Build QueryResults]
+    end
+
+    GetIDs --> FetchDocs
+    FetchDocs --> BuildResults
+
+    BuildResults --> Fallback
+
+    subgraph Fallback["Fallback Logic"]
+        direction TB
+        Check{Results Found?}
+        VectorFallback[Vector Search Fallback]
+    end
+
+    Check -->|No| VectorFallback
+    Check -->|Yes| Response
+
+    VectorFallback --> Response[/"Graph Results"/]
+
+    classDef queryStyle fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef extractStyle fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef graphStyle fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+    classDef lookupStyle fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+    classDef decisionStyle fill:#FFD700,stroke:#333,stroke-width:2px,color:black
+
+    class Query,Response queryStyle
+    class Parse,Identify,Clean extractStyle
+    class Match,Traverse,Collect graphStyle
+    class GetIDs,FetchDocs,BuildResults lookupStyle
+    class Check decisionStyle

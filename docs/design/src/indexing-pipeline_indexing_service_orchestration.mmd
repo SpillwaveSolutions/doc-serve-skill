@@ -1,0 +1,59 @@
+sequenceDiagram
+    participant Client
+    participant IndexService as IndexingService
+    participant DocLoader as DocumentLoader
+    participant Chunkers
+    participant EmbedGen as EmbeddingGenerator
+    participant Vector as VectorStore
+    participant BM25 as BM25Index
+    participant Graph as GraphIndex
+
+    Client->>IndexService: start_indexing(request)
+    IndexService->>IndexService: Generate job_id
+    IndexService-->>Client: job_id
+
+    Note over IndexService: Async background task
+
+    rect rgb(200, 230, 200)
+        Note over IndexService: Step 1: Load Documents (0-20%)
+        IndexService->>DocLoader: load_files(folder, recursive, include_code)
+        DocLoader->>DocLoader: Discover files
+        DocLoader->>DocLoader: Filter by extension
+        DocLoader->>DocLoader: Classify content type
+        DocLoader-->>IndexService: List[LoadedDocument]
+    end
+
+    rect rgb(200, 200, 230)
+        Note over IndexService: Step 2: Chunk Documents (20-50%)
+        IndexService->>Chunkers: chunk_documents(docs)
+        Chunkers->>Chunkers: Context-aware splitting
+        Chunkers->>Chunkers: AST-aware code splitting
+        Chunkers-->>IndexService: List[TextChunk | CodeChunk]
+    end
+
+    rect rgb(230, 200, 230)
+        Note over IndexService: Step 3: Generate Embeddings (50-90%)
+        IndexService->>EmbedGen: embed_chunks(chunks)
+        EmbedGen->>EmbedGen: Batch API calls
+        EmbedGen-->>IndexService: List[embedding]
+    end
+
+    rect rgb(230, 230, 200)
+        Note over IndexService: Step 4: Store Vectors (90-95%)
+        IndexService->>Vector: upsert_documents(ids, embeddings, docs, metadata)
+        Vector-->>IndexService: Success
+    end
+
+    rect rgb(200, 230, 230)
+        Note over IndexService: Step 5: Build BM25 Index (95-97%)
+        IndexService->>BM25: build_index(nodes)
+        BM25-->>IndexService: Success
+    end
+
+    rect rgb(230, 210, 200)
+        Note over IndexService: Step 6: Build Graph Index (97-100%)
+        IndexService->>Graph: build_from_documents(chunks)
+        Graph-->>IndexService: triplet_count
+    end
+
+    IndexService->>IndexService: Update state to COMPLETED

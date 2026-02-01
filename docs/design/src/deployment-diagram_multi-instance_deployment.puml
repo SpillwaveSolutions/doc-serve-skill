@@ -1,0 +1,72 @@
+@startuml Multi-Instance Deployment
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+title Agent Brain - Multi-Instance Architecture
+
+skinparam node {
+    BackgroundColor<<project>> #E3F2FD
+    BackgroundColor<<shared>> #E8F5E9
+}
+
+node "Developer Machine" {
+
+    ' Project A
+    node "Project A\n(/home/dev/project-a)" <<project>> as proj_a {
+        folder ".claude/agent-brain/" as state_a {
+            file "runtime.json\nport: 8001" as runtime_a
+            database "ChromaDB\n(project-a data)" as chroma_a
+            file "BM25 Index" as bm25_a
+        }
+
+        component [Server Instance\n:8001] as server_a
+        server_a --> state_a
+    }
+
+    ' Project B
+    node "Project B\n(/home/dev/project-b)" <<project>> as proj_b {
+        folder ".claude/agent-brain/" as state_b {
+            file "runtime.json\nport: 8002" as runtime_b
+            database "ChromaDB\n(project-b data)" as chroma_b
+            file "BM25 Index" as bm25_b
+        }
+
+        component [Server Instance\n:8002] as server_b
+        server_b --> state_b
+    }
+
+    ' Project C
+    node "Project C\n(/home/dev/project-c)" <<project>> as proj_c {
+        folder ".claude/agent-brain/" as state_c {
+            file "runtime.json\nport: 8003" as runtime_c
+            database "ChromaDB\n(project-c data)" as chroma_c
+            file "BM25 Index" as bm25_c
+        }
+
+        component [Server Instance\n:8003] as server_c
+        server_c --> state_c
+    }
+
+    ' CLI
+    component [agent-brain CLI] as cli
+
+    cli --> server_a : "agent-brain --project /project-a"
+    cli --> server_b : "agent-brain --project /project-b"
+    cli --> server_c : "agent-brain --project /project-c"
+
+    note bottom of cli
+        CLI auto-discovers active instances
+        via runtime.json files in each project
+    end note
+}
+
+' Instance Discovery Flow
+note right of proj_a
+    **Instance Isolation**
+    - Each project has dedicated state
+    - Ports auto-assigned (0 = find free)
+    - Lock files prevent conflicts
+    - Data never shared between projects
+end note
+
+@enduml

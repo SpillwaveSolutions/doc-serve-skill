@@ -1,0 +1,16 @@
+sequenceDiagram
+    participant CLI
+    participant Server
+    participant OS
+    participant Runtime as runtime.json
+
+    CLI->>Server: Start with --port 0
+    Server->>OS: Bind to port 0
+    OS-->>Server: Assigned port 8001
+    Server->>Runtime: Write {port: 8001}
+    Server-->>CLI: Started
+
+    Note over CLI: Later commands
+    CLI->>Runtime: Read port
+    Runtime-->>CLI: port: 8001
+    CLI->>Server: Connect to :8001

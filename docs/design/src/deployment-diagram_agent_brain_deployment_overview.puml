@@ -1,0 +1,94 @@
+@startuml Agent Brain Deployment Overview
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam componentStyle rectangle
+
+title Agent Brain - System Deployment Architecture
+
+' Define colors
+skinparam node {
+    BackgroundColor<<workstation>> #E3F2FD
+    BackgroundColor<<server>> #E8F5E9
+    BackgroundColor<<storage>> #FFF3E0
+    BackgroundColor<<external>> #FCE4EC
+    BackgroundColor<<container>> #F3E5F5
+}
+
+' External Services Cloud
+cloud "External Services" {
+    node "OpenAI API" <<external>> as openai {
+        component [Embeddings API] as embed_api
+        component [text-embedding-3-large] as embed_model
+    }
+
+    node "Anthropic API" <<external>> as anthropic {
+        component [Claude API] as claude_api
+        component [claude-3-5-haiku] as haiku_model
+    }
+}
+
+' Developer Workstation
+node "Developer Workstation" <<workstation>> as workstation {
+
+    node "Python Virtual Environment" as venv {
+        component [agent-brain-cli] as cli
+        component [agent-brain-server] as server
+
+        frame "Dependencies" {
+            component [FastAPI + Uvicorn] as fastapi
+            component [LlamaIndex] as llamaindex
+            component [ChromaDB Client] as chroma_client
+            component [httpx] as httpx
+            component [Click + Rich] as click
+        }
+    }
+
+    node "Claude Code" <<workstation>> as claude_code {
+        component [agent-brain-plugin] as plugin
+
+        frame "Plugin Components" {
+            component [15 Slash Commands] as commands
+            component [2 Agents] as agents
+            component [2 Skills] as skills
+        }
+    }
+
+    folder ".claude/agent-brain/" as state_dir {
+        file "runtime.json" as runtime
+        file "config.json" as config
+        file "server.lock" as lock
+
+        folder "chroma_db/" as chroma_dir {
+            database "ChromaDB\n(SQLite + Parquet)" as chromadb
+        }
+
+        folder "bm25_index/" as bm25_dir {
+            file "retriever.json" as bm25_json
+            file "docstore.json" as docstore
+        }
+
+        folder "graph_index/" as graph_dir {
+            file "graph_store.json" as graph_json
+            file "graph_metadata.json" as graph_meta
+        }
+    }
+}
+
+' Connections
+cli --> server : HTTP REST\n(localhost:8000+)
+plugin --> cli : subprocess\ncalls
+server --> fastapi
+fastapi --> llamaindex
+llamaindex --> chroma_client
+chroma_client --> chromadb
+
+server --> openai : HTTPS\n(embeddings)
+server --> anthropic : HTTPS\n(summaries)
+
+server ..> runtime : writes
+server ..> lock : acquires
+server ..> chromadb : persists
+server ..> bm25_json : persists
+server ..> graph_json : persists
+
+@enduml

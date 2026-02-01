@@ -1,0 +1,99 @@
+@startuml System Component Overview
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+title Agent Brain - System Component Overview
+
+skinparam component {
+    BackgroundColor<<user>> #E3F2FD
+    BackgroundColor<<api>> #E8F5E9
+    BackgroundColor<<service>> #FFF3E0
+    BackgroundColor<<storage>> #FCE4EC
+    BackgroundColor<<external>> #F3E5F5
+}
+
+' User-facing components
+package "User Interfaces" {
+    component [Claude Code\nPlugin] <<user>> as plugin
+    component [CLI Tool\n(agent-brain)] <<user>> as cli
+}
+
+' API Layer
+package "API Layer" {
+    component [FastAPI Server\n(agent-brain-serve)] <<api>> as server
+
+    interface "REST API" as rest_api
+    interface "/health" as health_if
+    interface "/query" as query_if
+    interface "/index" as index_if
+
+    server -up- rest_api
+    server -up- health_if
+    server -up- query_if
+    server -up- index_if
+}
+
+' Service Layer
+package "Service Layer" {
+    component [QueryService] <<service>> as query_svc
+    component [IndexingService] <<service>> as index_svc
+
+    interface "execute_query()" as exec_query_if
+    interface "start_indexing()" as start_index_if
+    interface "get_status()" as status_if
+
+    query_svc -up- exec_query_if
+    index_svc -up- start_index_if
+    index_svc -up- status_if
+}
+
+' Storage Layer
+package "Storage Layer" {
+    component [VectorStoreManager\n(ChromaDB)] <<storage>> as vector_store
+    component [BM25IndexManager] <<storage>> as bm25_mgr
+    component [GraphStoreManager] <<storage>> as graph_store
+
+    interface "similarity_search()" as sim_search_if
+    interface "upsert_documents()" as upsert_if
+    interface "bm25_search()" as bm25_if
+    interface "graph_query()" as graph_if
+
+    vector_store -up- sim_search_if
+    vector_store -up- upsert_if
+    bm25_mgr -up- bm25_if
+    graph_store -up- graph_if
+}
+
+' External Services
+package "External Services" {
+    component [OpenAI API\n(Embeddings)] <<external>> as openai
+    component [Anthropic API\n(Summaries)] <<external>> as anthropic
+
+    interface "embed()" as embed_if
+    interface "summarize()" as summarize_if
+
+    openai -up- embed_if
+    anthropic -up- summarize_if
+}
+
+' Connections - User to API
+plugin --> rest_api : HTTP
+cli --> rest_api : HTTP
+
+' Connections - API to Service
+query_if --> exec_query_if
+index_if --> start_index_if
+health_if --> status_if
+
+' Connections - Service to Storage
+query_svc --> sim_search_if
+query_svc --> bm25_if
+query_svc --> graph_if
+index_svc --> upsert_if
+index_svc --> bm25_if : build_index()
+
+' Connections - Service to External
+index_svc --> embed_if
+index_svc --> summarize_if
+
+@enduml

@@ -2,14 +2,14 @@
 
 ## Overview
 
-This guide covers common issues and their solutions when using Doc-Serve for document indexing and search.
+This guide covers common issues and their solutions when using Agent Brain for document indexing and search.
 
 ## Common Problems and Solutions
 
 ### 1. Server Won't Start
 
 **Symptoms:**
-- `doc-serve` command fails to start
+- `agent-brain-serve` command fails to start
 - Error messages about missing modules or imports
 - Port already in use errors
 
@@ -21,7 +21,7 @@ This guide covers common issues and their solutions when using Doc-Serve for doc
 pip install agent-brain-rag agent-brain-cli
 
 # Or run locally
-cd doc-serve-server && poetry run doc-serve
+cd agent-brain-server && poetry run agent-brain-serve
 ```
 
 **Port Already in Use:**
@@ -33,14 +33,14 @@ lsof -i :8000
 kill -9 <PID>
 
 # Or use different port
-doc-serve --port 8001
+agent-brain-serve --port 8001
 ```
 
 **Permission Errors:**
 ```bash
 # Check if you can write to the directory
-ls -la doc-serve-server/
-chmod 755 doc-serve-server/
+ls -la agent-brain-server/
+chmod 755 agent-brain-server/
 ```
 
 ### 2. Missing OpenAI API Key
@@ -54,7 +54,7 @@ chmod 755 doc-serve-server/
 
 **Set API Key in .env file:**
 ```bash
-cd doc-serve-server
+cd agent-brain-server
 echo "OPENAI_API_KEY=sk-your-key-here" > .env
 echo "ANTHROPIC_API_KEY=sk-ant-your-key-here" >> .env
 ```
@@ -63,7 +63,7 @@ echo "ANTHROPIC_API_KEY=sk-ant-your-key-here" >> .env
 ```bash
 export OPENAI_API_KEY="sk-your-key-here"
 export ANTHROPIC_API_KEY="sk-ant-your-key-here"
-doc-serve
+agent-brain-serve
 ```
 
 **Get API Keys:**
@@ -87,7 +87,7 @@ echo $OPENAI_API_KEY | head -c 15
 
 **Add to .env file:**
 ```bash
-cd doc-serve-server
+cd agent-brain-server
 echo "ANTHROPIC_API_KEY=sk-ant-your-key-here" >> .env
 ```
 
@@ -99,7 +99,7 @@ echo "ANTHROPIC_API_KEY=sk-ant-your-key-here" >> .env
 ### 4. No Documents Indexed
 
 **Symptoms:**
-- `doc-svr-ctl status` shows 0 documents
+- `agent-brain status` shows 0 documents
 - All queries return empty results
 - Indexing seems to complete but no data
 
@@ -107,13 +107,13 @@ echo "ANTHROPIC_API_KEY=sk-ant-your-key-here" >> .env
 
 **Check if indexing ran:**
 ```bash
-doc-svr-ctl status
+agent-brain status
 # Should show: Total Documents: > 0
 ```
 
 **Run indexing:**
 ```bash
-doc-svr-ctl index /path/to/your/docs
+agent-brain index /path/to/your/docs
 # Wait for completion message
 ```
 
@@ -140,14 +140,14 @@ ls -la /path/to/your/docs
 
 **Wait for indexing to complete:**
 ```bash
-doc-svr-ctl status
+agent-brain status
 # Wait until indexing shows "Idle"
 ```
 
 **Re-index if needed:**
 ```bash
-doc-svr-ctl reset --yes
-doc-svr-ctl index /path/to/docs
+agent-brain reset --yes
+agent-brain index /path/to/docs
 ```
 
 **Check server logs:**
@@ -167,28 +167,28 @@ tail -f server.log
 **Lower threshold:**
 ```bash
 # Default is 0.7, try lower values
-doc-svr-ctl query "your search" --threshold 0.3
+agent-brain query "your search" --threshold 0.3
 ```
 
 **Check query spelling:**
 ```bash
 # Try variations of your query
-doc-svr-ctl query "alternative wording"
+agent-brain query "alternative wording"
 ```
 
 **Use different search modes:**
 ```bash
 # Try BM25 for exact matches
-doc-svr-ctl query "exact term" --mode bm25 --threshold 0.1
+agent-brain query "exact term" --mode bm25 --threshold 0.1
 
 # Try vector for semantic search
-doc-svr-ctl query "conceptual description" --mode vector --threshold 0.5
+agent-brain query "conceptual description" --mode vector --threshold 0.5
 ```
 
 **Verify content exists:**
 ```bash
 # Search for common words
-doc-svr-ctl query "the" --mode bm25 --threshold 0.01
+agent-brain query "the" --mode bm25 --threshold 0.01
 ```
 
 ### 7. Slow Query Performance
@@ -202,13 +202,13 @@ doc-svr-ctl query "the" --mode bm25 --threshold 0.01
 **Use BM25 for speed:**
 ```bash
 # Fastest option, no API calls
-doc-svr-ctl query "exact terms" --mode bm25
+agent-brain query "exact terms" --mode bm25
 ```
 
 **Optimize hybrid settings:**
 ```bash
 # Reduce top-k for faster results
-doc-svr-ctl query "search" --top-k 3 --alpha 0.5
+agent-brain query "search" --top-k 3 --alpha 0.5
 ```
 
 **Check network connectivity:**
@@ -220,26 +220,26 @@ curl -H "Authorization: Bearer $OPENAI_API_KEY" https://api.openai.com/v1/models
 **Monitor server resources:**
 ```bash
 # Check if server is overloaded
-top -p $(pgrep -f "doc-serve")
+top -p $(pgrep -f "agent-brain")
 ```
 
 ### 8. Connection Refused Errors
 
 **Symptoms:**
-- `doc-svr-ctl` commands fail with connection errors
+- `agent-brain` commands fail with connection errors
 - "Unable to connect to server" messages
 
 **Solutions:**
 
 **Start the server (multi-instance mode):**
 ```bash
-doc-svr-ctl start --daemon   # Uses auto-port allocation
-doc-svr-ctl status           # Shows the actual port
+agent-brain start --daemon   # Uses auto-port allocation
+agent-brain status           # Shows the actual port
 ```
 
 **Check server status:**
 ```bash
-doc-svr-ctl status
+agent-brain status
 # Should show server is healthy with port number
 ```
 
@@ -251,7 +251,7 @@ cat .claude/doc-serve/runtime.json | jq '.port'
 
 **List all running instances:**
 ```bash
-doc-svr-ctl list
+agent-brain list
 # Shows all projects with their ports
 ```
 
@@ -259,7 +259,7 @@ doc-svr-ctl list
 ```bash
 # Override URL if needed
 export DOC_SERVE_URL="http://localhost:54321"
-doc-svr-ctl status
+agent-brain status
 ```
 
 ### 8a. Stale Server State (Multi-Instance)
@@ -274,7 +274,7 @@ doc-svr-ctl status
 **Let the CLI handle it:**
 ```bash
 # CLI automatically detects stale state and starts fresh
-doc-svr-ctl start --daemon
+agent-brain start --daemon
 ```
 
 **Manual cleanup:**
@@ -285,7 +285,7 @@ rm .claude/doc-serve/lock.json
 rm .claude/doc-serve/pid
 
 # Start fresh
-doc-svr-ctl start --daemon
+agent-brain start --daemon
 ```
 
 ### 8b. Multiple Agents Racing to Start
@@ -300,18 +300,18 @@ The lock file protocol prevents double-start automatically:
 ```bash
 # First agent wins and starts the server
 # Second agent should detect the running instance
-doc-svr-ctl status
+agent-brain status
 
 # If lock is stale (process died), cleanup happens automatically
-doc-svr-ctl start --daemon
+agent-brain start --daemon
 ```
 
 **If locks persist incorrectly:**
 ```bash
 # Manual lock cleanup (only if process is truly dead)
-ps aux | grep doc-serve  # Verify no process running
+ps aux | grep agent-brain  # Verify no process running
 rm .claude/doc-serve/lock.json
-doc-svr-ctl start --daemon
+agent-brain start --daemon
 ```
 
 ### 9. Invalid API Key Errors
@@ -369,14 +369,14 @@ export WEB_CONCURRENCY=1
 **Monitor resource usage:**
 ```bash
 # Check memory usage
-ps aux | grep doc-serve
-top -p $(pgrep -f "doc-serve")
+ps aux | grep agent-brain
+top -p $(pgrep -f "agent-brain")
 ```
 
 **Restart with clean state:**
 ```bash
-doc-svr-ctl reset --yes
-doc-svr-ctl index /path/to/docs
+agent-brain reset --yes
+agent-brain index /path/to/docs
 ```
 
 ### 11. JSON Parsing Errors
@@ -395,7 +395,7 @@ curl -s http://localhost:8000/health | python -m json.tool
 
 **Validate JSON output:**
 ```bash
-doc-svr-ctl query "test" --json | jq .
+agent-brain query "test" --json | jq .
 ```
 
 **Update CLI version:**
@@ -420,10 +420,10 @@ chmod 644 /path/to/docs/*.md
 
 **Check index directory permissions:**
 ```bash
-ls -la doc-serve-server/
-chmod 755 doc-serve-server/
-mkdir -p doc-serve-server/chroma_db
-chmod 755 doc-serve-server/chroma_db
+ls -la agent-brain-server/
+chmod 755 agent-brain-server/
+mkdir -p agent-brain-server/chroma_db
+chmod 755 agent-brain-server/chroma_db
 ```
 
 **Run as appropriate user:**
@@ -437,13 +437,13 @@ whoami
 ### Check System Status
 ```bash
 # Server health
-doc-svr-ctl status
+agent-brain status
 
 # Check API connectivity
 curl http://localhost:8000/health
 
 # Test basic query
-doc-svr-ctl query "test" --mode bm25
+agent-brain query "test" --mode bm25
 ```
 
 ### Check Environment
@@ -457,7 +457,7 @@ which python
 python --version
 
 # Poetry environment
-cd doc-serve-server && poetry env info
+cd agent-brain-server && poetry env info
 ```
 
 ### Check Logs
@@ -476,7 +476,7 @@ ping -c 3 api.openai.com
 
 If these solutions don't resolve your issue:
 
-1. **Check GitHub Issues**: https://github.com/SpillwaveSolutions/doc-serve-skill/issues
+1. **Check GitHub Issues**: https://github.com/SpillwaveSolutions/agent-brain/issues
 2. **Provide diagnostic info**: Run the diagnostic commands above
 3. **Include error messages**: Copy full error output
 4. **Describe your setup**: OS, Python version, installation method

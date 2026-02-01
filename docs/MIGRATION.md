@@ -1,4 +1,4 @@
-# Migration Guide: Doc-Serve to Agent Brain
+# Migration Guide: doc-serve to Agent Brain
 
 **Version**: 1.1.x to 1.2.0
 **Last Updated**: 2026-01-30
@@ -34,7 +34,7 @@ Starting with v1.2.0, the project is rebranding from "doc-serve" to "agent-brain
 | CLI command | `agent-brain` | `agent-brain` | Deprecated (works until v2.0) |
 | Server command | `doc-serve` | `agent-brain-serve` | Deprecated (works until v2.0) |
 | Skill name | `doc-serve` | `using-agent-brain` | Renamed |
-| Repository | agent-brain-skill | agent-brain | Renamed |
+| Repository | doc-serve-skill | agent-brain | Renamed |
 
 ### Command Name Changes
 

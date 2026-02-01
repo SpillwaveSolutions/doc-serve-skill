@@ -9,7 +9,7 @@
 
 ### User Story 1 - Index C# Source Files (Priority: P1)
 
-As a developer working on a C# project (or a polyglot repository containing C# code), I want doc-serve to recognize, parse, and index `.cs` files so that I can search my C# codebase using semantic and keyword queries just like I can with Python, TypeScript, Java, and other already-supported languages.
+As a developer working on a C# project (or a polyglot repository containing C# code), I want Agent Brain to recognize, parse, and index `.cs` files so that I can search my C# codebase using semantic and keyword queries just like I can with Python, TypeScript, Java, and other already-supported languages.
 
 **Why this priority**: This is the core capability. Without C# file recognition and AST-aware parsing, no other C# indexing feature can work. This delivers immediate value to any user with C# code in their project.
 
@@ -26,7 +26,7 @@ As a developer working on a C# project (or a polyglot repository containing C# c
 
 ### User Story 2 - Extract C# Symbol Metadata (Priority: P2)
 
-As a developer, I want doc-serve to extract rich metadata from C# code (namespaces, classes, interfaces, methods, properties, XML doc comments) so that search results include meaningful context about each code chunk.
+As a developer, I want Agent Brain to extract rich metadata from C# code (namespaces, classes, interfaces, methods, properties, XML doc comments) so that search results include meaningful context about each code chunk.
 
 **Why this priority**: Rich metadata improves search quality and makes results more useful. Without it, C# code is still indexable (US1) but results lack the contextual information that makes code search valuable.
 
@@ -43,7 +43,7 @@ As a developer, I want doc-serve to extract rich metadata from C# code (namespac
 
 ### User Story 3 - Content-Based C# Detection (Priority: P3)
 
-As a developer, I want doc-serve to detect C# code even when file extensions are ambiguous or missing, so that the system correctly identifies and parses C# content in edge cases.
+As a developer, I want Agent Brain to detect C# code even when file extensions are ambiguous or missing, so that the system correctly identifies and parses C# content in edge cases.
 
 **Why this priority**: This is a robustness improvement. Most C# files use `.cs` extensions, so this is a secondary concern. Content-based detection provides a fallback for unusual project structures.
 

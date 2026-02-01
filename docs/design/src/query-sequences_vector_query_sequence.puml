@@ -1,0 +1,92 @@
+@startuml Vector Query Sequence
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+title Vector Query Sequence - Semantic Similarity Search
+
+actor Client
+participant "FastAPI\n/query" as API
+participant "QueryService" as QS
+participant "EmbeddingGenerator" as EG
+participant "OpenAI API" as OpenAI
+participant "VectorStoreManager" as VS
+database "ChromaDB" as Chroma
+
+== Request Validation ==
+
+Client -> API : POST /query\n{query, mode: "vector", top_k, threshold}
+activate API
+
+API -> API : Validate query not empty
+API -> QS : Check is_ready()
+activate QS
+QS --> API : ready = true
+deactivate QS
+
+alt Query Empty
+    API --> Client : 400 Bad Request\n"Query cannot be empty"
+end
+
+alt Service Not Ready
+    API --> Client : 503 Service Unavailable\n"Index not ready"
+end
+
+== Query Execution ==
+
+API -> QS : execute_query(request)
+activate QS
+note right of QS: Start timing
+
+QS -> QS : Check mode == VECTOR
+QS -> QS : _execute_vector_query()
+
+group Embedding Generation
+    QS -> EG : embed_query(query_text)
+    activate EG
+    EG -> OpenAI : Create embedding\nmodel: text-embedding-3-large
+    activate OpenAI
+    OpenAI --> EG : embedding[3072 dimensions]
+    deactivate OpenAI
+    EG --> QS : query_embedding[]
+    deactivate EG
+end
+
+group Vector Similarity Search
+    QS -> VS : similarity_search(\n  query_embedding,\n  top_k,\n  similarity_threshold,\n  where_clause)
+    activate VS
+
+    VS -> Chroma : query(\n  query_embeddings,\n  n_results,\n  where,\n  include)
+    activate Chroma
+    note right of Chroma: Cosine distance search\nusing HNSW index
+    Chroma --> VS : {ids, documents,\n metadatas, distances}
+    deactivate Chroma
+
+    VS -> VS : Convert distances to\nsimilarity scores\n(1 - distance)
+    VS -> VS : Filter by threshold
+    VS -> VS : Sort by score DESC
+    VS --> QS : SearchResult[]
+    deactivate VS
+end
+
+group Result Transformation
+    QS -> QS : Convert SearchResult[]\nto QueryResult[]
+    note right of QS
+        For each result:
+        - Extract text, source, score
+        - Set vector_score = score
+        - Extract source_type, language
+        - Build metadata dict
+    end note
+end
+
+QS -> QS : Apply content filters\n(source_types, languages, file_paths)
+QS -> QS : Calculate query_time_ms
+
+QS --> API : QueryResponse(\n  results,\n  query_time_ms,\n  total_results)
+deactivate QS
+
+API --> Client : 200 OK\n{results[], query_time_ms, total_results}
+deactivate API
+
+@enduml

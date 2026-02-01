@@ -5,7 +5,7 @@
 
 ## Overview
 
-This guide shows how to install the Doc-Serve CLI tools so they're available directly from your terminal.
+This guide shows how to install the Agent Brain CLI tools so they're available directly from your terminal.
 
 ## Installation Options
 
@@ -14,23 +14,23 @@ This guide shows how to install the Doc-Serve CLI tools so they're available dir
 ```bash
 # From the project root directory
 
-# Install doc-svr-ctl (CLI tool)
-pip install -e ./doc-svr-ctl
+# Install agent-brain (CLI tool)
+pip install -e ./agent-brain
 
-# Install doc-serve-server (API server)
-pip install -e ./doc-serve-server
+# Install agent-brain-server (API server)
+pip install -e ./agent-brain-server
 ```
 
 ### Option 2: Using Poetry (For development)
 
 ```bash
-# Install doc-svr-ctl
-cd doc-svr-ctl
+# Install agent-brain
+cd agent-brain
 poetry install
 cd ..
 
-# Install doc-serve-server
-cd doc-serve-server
+# Install agent-brain-server
+cd agent-brain-server
 poetry install
 cd ..
 ```
@@ -40,30 +40,30 @@ cd ..
 After installation, verify the commands are available:
 
 ```bash
-# Check doc-svr-ctl
-doc-svr-ctl --help
-doc-svr-ctl --version
+# Check agent-brain
+agent-brain --help
+agent-brain --version
 
-# Check doc-serve (starts the server)
-doc-serve
+# Check agent-brain-serve (starts the server)
+agent-brain-serve
 # Press Ctrl+C to stop
 ```
 
 ## Available Commands
 
-### doc-svr-ctl
+### agent-brain
 
 ```bash
-doc-svr-ctl status              # Check server health
-doc-svr-ctl query "your query"  # Search indexed documents
-doc-svr-ctl index ./docs        # Index documents from a directory
-doc-svr-ctl reset --yes         # Clear all indexed documents
+agent-brain status              # Check server health
+agent-brain query "your query"  # Search indexed documents
+agent-brain index ./docs        # Index documents from a directory
+agent-brain reset --yes         # Clear all indexed documents
 ```
 
-### doc-serve
+### agent-brain-serve
 
 ```bash
-doc-serve                       # Start the API server
+agent-brain-serve                       # Start the API server
 # Server runs at http://127.0.0.1:8000 by default
 # API docs at http://127.0.0.1:8000/docs
 ```
@@ -85,7 +85,7 @@ Ensure your Python environment's `bin` directory is in your PATH:
 
 ```bash
 # Check where pip installs scripts
-pip show doc-svr-ctl | grep Location
+pip show agent-brain | grep Location
 
 # Or use pip's script location directly
 python -m site --user-base
@@ -99,10 +99,10 @@ If using Poetry, either activate the environment or use `poetry run`:
 ```bash
 # Option 1: Activate environment
 poetry shell
-doc-svr-ctl --help
+agent-brain --help
 
 # Option 2: Use poetry run
-poetry run doc-svr-ctl --help
+poetry run agent-brain --help
 ```
 
 ### Server won't start - port in use
@@ -112,5 +112,5 @@ poetry run doc-svr-ctl --help
 lsof -i :8000
 
 # Use a different port
-API_PORT=8001 doc-serve
+API_PORT=8001 agent-brain-serve
 ```

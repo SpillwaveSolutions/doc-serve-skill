@@ -1,0 +1,108 @@
+@startuml Query Sequence
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+title CLI Query Sequence
+
+actor User
+participant "agent-brain CLI" as CLI
+participant "DocServeClient" as Client
+participant "FastAPI Server" as API
+
+== Command Parsing ==
+
+User -> CLI : agent-brain query "search text"\n  [--mode hybrid]\n  [--top-k 5]\n  [--url http://...]
+activate CLI
+
+CLI -> CLI : Parse options
+note right of CLI
+    Options:
+    --url: Server URL (default: $DOC_SERVE_URL or localhost:8000)
+    --top-k: Number of results (default: 5)
+    --threshold: Min similarity (default: 0.7)
+    --mode: vector|bm25|hybrid|graph|multi
+    --alpha: Hybrid weight (default: 0.5)
+    --json: Output as JSON
+    --full: Show full text
+    --scores: Show individual scores
+    --source-types: Filter by type
+    --languages: Filter by language
+end note
+
+CLI -> CLI : Parse comma-separated filters
+note right of CLI
+    --source-types "doc,code" -> ["doc", "code"]
+    --languages "python,typescript" -> [...]
+    --file-paths "*.py,src/*" -> [...]
+end note
+
+== API Request ==
+
+CLI -> Client : Create DocServeClient(base_url)
+activate Client
+
+Client -> API : POST /query\n{\n  query: "search text",\n  mode: "hybrid",\n  top_k: 5,\n  similarity_threshold: 0.7,\n  alpha: 0.5,\n  source_types: [...],\n  languages: [...]\n}
+activate API
+
+alt Service Not Ready
+    API --> Client : 503 Service Unavailable\n{"detail": "Index not ready"}
+    Client --> CLI : ServerError(503)
+    CLI --> User : "Server Error (503): Index not ready"
+    CLI --> User : "Use 'status' to check, or 'index' to index"
+    CLI -> CLI : exit(1)
+end
+
+alt Connection Failed
+    API --> Client : Connection refused
+    Client --> CLI : ConnectionError
+    CLI --> User : "Connection Error: Unable to reach server"
+    CLI -> CLI : exit(1)
+end
+
+API --> Client : 200 OK\n{\n  results: [...],\n  query_time_ms: 123.45,\n  total_results: 5\n}
+deactivate API
+
+Client --> CLI : QueryResponse
+deactivate Client
+
+== Output Formatting ==
+
+alt JSON output requested
+    CLI -> CLI : Format as JSON
+    CLI --> User : {\n  "query": "search text",\n  "total_results": 5,\n  "query_time_ms": 123.45,\n  "results": [...]\n}
+
+else Rich console output
+    CLI --> User : "\nQuery: search text"
+    CLI --> User : "Found 5 results in 123.5ms\n"
+
+    alt No results
+        CLI --> User : "No matching documents found."
+        CLI --> User : "Tips:\n  - Try different keywords\n  - Lower threshold\n  - Check if documents indexed"
+    else Has results
+        loop For each result
+            CLI -> CLI : Determine score color
+            note right of CLI
+                >= 90%: green
+                >= 80%: yellow
+                < 80%: orange
+            end note
+
+            CLI -> CLI : Truncate text if not --full
+            note right of CLI
+                Default: 300 chars + "..."
+            end note
+
+            CLI --> User : Panel with:\n  [1] source/path  Score: 95.23%
+            CLI --> User : "  {text content...}"
+
+            alt --scores flag
+                CLI --> User : "  [V: 0.92 B: 0.87]"
+            end
+        end
+    end
+end
+
+deactivate CLI
+
+@enduml

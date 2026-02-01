@@ -1,4 +1,4 @@
-# Doc-Serve Product Roadmap
+# Agent Brain Product Roadmap
 
 **Version:** 1.1.0
 **Last Updated:** 2026-01-28
@@ -8,7 +8,7 @@
 
 ## Vision
 
-Doc-Serve is a local-first RAG (Retrieval-Augmented Generation) service that indexes documentation and source code, providing intelligent semantic search via API for CLI tools and Claude integration. The core principles are:
+Agent Brain is a local-first RAG (Retrieval-Augmented Generation) service that indexes documentation and source code, providing intelligent semantic search via API for CLI tools and Claude integration. The core principles are:
 
 - **Privacy First:** Runs entirely on your machine with disk persistence
 - **High Retrieval Quality:** Vector + keyword + hybrid search strategies
@@ -152,7 +152,7 @@ POST /query
 
 ### Scope
 
-Enable running multiple concurrent doc-serve instances with per-project isolation, automatic port allocation, and runtime discovery for agent integration.
+Enable running multiple concurrent Agent Brain instances with per-project isolation, automatic port allocation, and runtime discovery for agent integration.
 
 ### Key Features
 
@@ -166,7 +166,7 @@ Enable running multiple concurrent doc-serve instances with per-project isolatio
 ### New CLI Commands
 
 ```bash
-agent-brain init              # Initialize project for doc-serve
+agent-brain init              # Initialize project for Agent Brain
 agent-brain start --daemon    # Start server with auto-port
 agent-brain stop              # Stop the server
 agent-brain list              # List all running instances
@@ -214,7 +214,7 @@ Add C# language support to the code ingestion pipeline with AST-aware parsing.
 
 ### Scope
 
-Update the doc-serve Claude Code skill to leverage multi-instance architecture for automatic server discovery and lifecycle management.
+Update the Agent Brain Claude Code skill to leverage multi-instance architecture for automatic server discovery and lifecycle management.
 
 ### Key Features
 
@@ -450,13 +450,13 @@ summarization:
 
 ## Corpus/Book Generation Use Cases
 
-Doc-Serve enables creating searchable, AI-queryable corpora from large documentation sets, codebases, or book collections. This is a key differentiator for technical content development.
+Agent Brain enables creating searchable, AI-queryable corpora from large documentation sets, codebases, or book collections. This is a key differentiator for technical content development.
 
 ### Use Case 1: AWS CDK Documentation Corpus
 
 **Problem:** AWS CDK has extensive documentation across multiple languages and services. Developers need quick access to specific patterns and configurations.
 
-**Solution with Doc-Serve:**
+**Solution with Agent Brain:**
 
 ```bash
 # Index AWS CDK documentation
@@ -486,7 +486,7 @@ agent-brain query "S3 bucket with lifecycle rules and versioning"
 
 **Problem:** Building AI applications requires referencing Claude API docs, SDK documentation, and best practices frequently.
 
-**Solution with Doc-Serve:**
+**Solution with Agent Brain:**
 
 ```bash
 # Index Claude documentation
@@ -516,7 +516,7 @@ agent-brain index ~/claude-sdk/src/ --include-code
 
 **Problem:** Large organizations have extensive internal documentation that teams need to search effectively for onboarding and reference.
 
-**Solution with Doc-Serve:**
+**Solution with Agent Brain:**
 
 ```bash
 # Index internal documentation
@@ -542,7 +542,7 @@ agent-brain index ~/company-monorepo/libs/ --include-code
 
 **Problem:** Contributing to large open source projects requires understanding existing patterns, conventions, and implementation details.
 
-**Solution with Doc-Serve:**
+**Solution with Agent Brain:**
 
 ```bash
 # Index project documentation

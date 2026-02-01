@@ -1,0 +1,23 @@
+flowchart LR
+    subgraph Simple["SimplePropertyGraphStore"]
+        direction TB
+        SFeatures["In-Memory<br/>JSON Persistence<br/>No Dependencies<br/>Default Backend"]
+    end
+
+    subgraph Kuzu["KuzuPropertyGraphStore"]
+        direction TB
+        KFeatures["Embedded DB<br/>Native Persistence<br/>Optional Install<br/>Cypher-like Queries"]
+    end
+
+    subgraph Minimal["_MinimalGraphStore"]
+        direction TB
+        MFeatures["Fallback<br/>Basic Operations<br/>Dict Storage<br/>When LlamaIndex Unavailable"]
+    end
+
+    classDef simple fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef kuzu fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef minimal fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+
+    class SFeatures simple
+    class KFeatures kuzu
+    class MFeatures minimal

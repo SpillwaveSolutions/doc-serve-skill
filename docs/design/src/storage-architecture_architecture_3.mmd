@@ -1,0 +1,39 @@
+flowchart TB
+    subgraph GraphStoreManager["GraphStoreManager"]
+        direction TB
+        Init["initialize()"]
+        AddTriplet["add_triplet()"]
+        Persist["persist()"]
+        Load["load()"]
+        Clear["clear()"]
+    end
+
+    subgraph Backends["Storage Backends"]
+        direction TB
+        Simple[SimplePropertyGraphStore]
+        Kuzu[KuzuPropertyGraphStore]
+        Minimal[MinimalGraphStore]
+    end
+
+    subgraph SimpleStore["Simple Store Persistence"]
+        direction TB
+        GraphJSON[graph_store_llamaindex.json]
+        MetaJSON[graph_metadata.json]
+    end
+
+    subgraph KuzuStore["Kuzu Persistence"]
+        direction TB
+        KuzuDB[kuzu_db folder]
+    end
+
+    GraphStoreManager --> Backends
+    Simple --> SimpleStore
+    Kuzu --> KuzuStore
+
+    classDef managerStyle fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef backendStyle fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+    classDef storageStyle fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+
+    class Init,AddTriplet,Persist,Load,Clear managerStyle
+    class Simple,Kuzu,Minimal backendStyle
+    class GraphJSON,MetaJSON,KuzuDB storageStyle

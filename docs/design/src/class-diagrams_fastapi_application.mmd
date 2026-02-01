@@ -1,0 +1,42 @@
+classDiagram
+    class FastAPI {
+        <<fastapi>>
+        +str title
+        +str description
+        +str version
+        +Lifespan lifespan
+        +add_middleware(CORSMiddleware)
+        +include_router(APIRouter)
+    }
+
+    class AppState {
+        +VectorStoreManager vector_store
+        +BM25IndexManager bm25_manager
+        +IndexingService indexing_service
+        +QueryService query_service
+        +str mode
+        +str instance_id
+        +str project_id
+        +dict active_projects
+    }
+
+    class HealthRouter {
+        +GET /health
+        +GET /health/status
+    }
+
+    class IndexRouter {
+        +POST /index
+        +POST /index/add
+        +DELETE /index
+    }
+
+    class QueryRouter {
+        +POST /query
+        +GET /query/count
+    }
+
+    FastAPI --> AppState : stores
+    FastAPI --> HealthRouter : includes
+    FastAPI --> IndexRouter : includes
+    FastAPI --> QueryRouter : includes

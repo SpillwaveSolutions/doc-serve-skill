@@ -1,0 +1,46 @@
+@startuml Indexing Overview
+!theme plain
+
+start
+
+:Receive POST /index request;
+
+if (Validation passes?) then (yes)
+    :Generate job_id;
+    :Return 202 Accepted;
+
+    fork
+        :Load documents;
+        :Separate doc vs code;
+
+        fork
+            :Chunk text documents;
+        fork again
+            :AST-parse code files;
+            :Extract symbols;
+            :Generate summaries;
+        end fork
+
+        :Generate embeddings\n(OpenAI API);
+
+        :Store in ChromaDB;
+
+        :Build BM25 index;
+
+        if (GraphRAG enabled?) then (yes)
+            :Extract code metadata triplets;
+            :Extract LLM triplets;
+            :Store in property graph;
+        else (no)
+        endif
+
+        :Set status = COMPLETED;
+    end fork
+
+else (no)
+    :Return 400/409 error;
+endif
+
+stop
+
+@enduml

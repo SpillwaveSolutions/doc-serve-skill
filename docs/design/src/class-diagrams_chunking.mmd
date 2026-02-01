@@ -1,0 +1,88 @@
+classDiagram
+    class ContextAwareChunker {
+        -int chunk_size
+        -int chunk_overlap
+        -Encoding tokenizer
+        -SentenceSplitter splitter
+
+        +count_tokens(text) int
+        +chunk_documents(documents, progress_callback) list~TextChunk~
+        +chunk_single_document(document) list~TextChunk~
+        +rechunk_with_config(documents, chunk_size, chunk_overlap) list~TextChunk~
+        +get_chunk_stats(chunks) dict
+    }
+
+    class CodeChunker {
+        -str language
+        -int chunk_lines
+        -int chunk_lines_overlap
+        -int max_chars
+        -bool generate_summaries
+        -CodeSplitter code_splitter
+        -Language ts_language
+        -Parser parser
+        -Encoding tokenizer
+
+        +count_tokens(text) int
+        +chunk_code_document(document) list~CodeChunk~
+        +get_code_chunk_stats(chunks) dict
+
+        -_setup_language() None
+        -_get_symbols(text) list~dict~
+        -_extract_xml_doc_comment(text, line) str
+    }
+
+    class TextChunk {
+        +str chunk_id
+        +str text
+        +str source
+        +int chunk_index
+        +int total_chunks
+        +int token_count
+        +ChunkMetadata metadata
+    }
+
+    class CodeChunk {
+        +str chunk_id
+        +str text
+        +str source
+        +int chunk_index
+        +int total_chunks
+        +int token_count
+        +ChunkMetadata metadata
+
+        +create(...)$ CodeChunk
+    }
+
+    class ChunkMetadata {
+        +str chunk_id
+        +str source
+        +str file_name
+        +int chunk_index
+        +int total_chunks
+        +str source_type
+        +datetime created_at
+        +str language
+        +str heading_path
+        +str section_title
+        +str content_type
+        +str symbol_name
+        +str symbol_kind
+        +int start_line
+        +int end_line
+        +str section_summary
+        +str prev_section_summary
+        +str docstring
+        +list~str~ parameters
+        +str return_type
+        +list~str~ decorators
+        +list~str~ imports
+        +dict extra
+
+        +to_dict() dict
+    }
+
+    ContextAwareChunker --> TextChunk : creates
+    CodeChunker --> CodeChunk : creates
+    TextChunk --> ChunkMetadata : contains
+    CodeChunk --> ChunkMetadata : contains

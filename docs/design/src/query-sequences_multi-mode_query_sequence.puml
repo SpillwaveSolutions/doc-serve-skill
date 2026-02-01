@@ -1,0 +1,116 @@
+@startuml Multi-Mode Query Sequence
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+title Multi-Mode Query Sequence - RRF Fusion of Vector + BM25 + Graph
+
+actor Client
+participant "FastAPI\n/query" as API
+participant "QueryService" as QS
+participant "EmbeddingGenerator" as EG
+participant "VectorStoreManager" as VS
+participant "BM25IndexManager" as BM25
+participant "GraphIndexManager" as GIM
+
+== Request ==
+
+Client -> API : POST /query\n{query, mode: "multi", top_k}
+activate API
+
+API -> QS : execute_query(request)
+activate QS
+
+== Parallel Retrieval from All Sources ==
+
+note over QS: Execute all three retrieval\nmethods in parallel
+
+par Vector Search
+    QS -> QS : _execute_vector_query(request)
+    activate QS #lightblue
+    QS -> EG : embed_query
+    EG --> QS : embedding
+    QS -> VS : similarity_search
+    VS --> QS : vector_results[]
+    deactivate QS
+end
+
+par BM25 Search
+    QS -> QS : _execute_bm25_query(request)
+    activate QS #lightgreen
+    QS -> BM25 : get_retriever + aretrieve
+    BM25 --> QS : bm25_results[]
+    deactivate QS
+end
+
+par Graph Search (if enabled)
+    alt ENABLE_GRAPH_INDEX = true
+        QS -> QS : _execute_graph_query(request)
+        activate QS #lightyellow
+        QS -> GIM : query
+        GIM --> QS : graph_results[]
+        deactivate QS
+    else GraphRAG Disabled
+        QS -> QS : graph_results = []
+    end
+end
+
+== Reciprocal Rank Fusion (RRF) ==
+
+QS -> QS : Initialize combined_scores map
+QS -> QS : Set rrf_k = 60 (from settings)
+
+group Process Vector Results
+    loop For rank, result in enumerate(vector_results)
+        QS -> QS : rrf_score = 1.0 / (rrf_k + rank + 1)
+        QS -> QS : Add to combined_scores:\n  chunk_id -> {result, rrf_score, vector_rank}
+    end
+end
+
+group Process BM25 Results
+    loop For rank, result in enumerate(bm25_results)
+        QS -> QS : rrf_score = 1.0 / (rrf_k + rank + 1)
+        alt chunk_id exists in map
+            QS -> QS : Add rrf_score to existing
+            QS -> QS : Set bm25_rank
+        else chunk_id is new
+            QS -> QS : Create new entry
+        end
+    end
+end
+
+group Process Graph Results
+    loop For rank, result in enumerate(graph_results)
+        QS -> QS : rrf_score = 1.0 / (rrf_k + rank + 1)
+        alt chunk_id exists in map
+            QS -> QS : Add rrf_score to existing
+            QS -> QS : Set graph_rank
+            QS -> QS : Preserve related_entities,\nrelationship_path, graph_score
+        else chunk_id is new
+            QS -> QS : Create new entry with\ngraph-specific fields
+        end
+    end
+end
+
+note right of QS
+    RRF Formula:
+    RRF(d) = sum over all rankers r of:
+             1 / (k + rank_r(d))
+
+    Documents ranked highly by
+    multiple systems get boosted
+end note
+
+== Final Ranking ==
+
+QS -> QS : Sort by total rrf_score DESC
+QS -> QS : Take top_k results
+QS -> QS : Update result.score = rrf_score
+
+QS --> API : QueryResponse
+deactivate QS
+
+API --> Client : 200 OK\n{results with combined scores}
+deactivate API
+
+@enduml

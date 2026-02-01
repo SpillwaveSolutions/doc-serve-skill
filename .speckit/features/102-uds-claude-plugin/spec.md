@@ -9,7 +9,7 @@
 
 ### User Story 1 - Unix Domain Socket Communication (Priority: P1)
 
-The doc-serve server supports Unix Domain Socket (UDS) transport for lower-latency local queries.
+The Agent Brain server supports Unix Domain Socket (UDS) transport for lower-latency local queries.
 
 **Why this priority**: UDS provides 10-50x latency improvement over HTTP for local communication. Critical for responsive Claude skill experience.
 
@@ -17,7 +17,7 @@ The doc-serve server supports Unix Domain Socket (UDS) transport for lower-laten
 
 **Acceptance Scenarios**:
 
-1. **Given** server started with UDS enabled, **When** I connect via socket at `/tmp/doc-serve.sock`, **Then** I can send queries and receive responses
+1. **Given** server started with UDS enabled, **When** I connect via socket at `/tmp/Agent Brain.sock`, **Then** I can send queries and receive responses
 2. **Given** UDS transport, **When** I query with same parameters as HTTP, **Then** response format is identical
 3. **Given** UDS enabled, **When** HTTP is also enabled (default), **Then** both transports work simultaneously
 4. **Given** socket path already in use, **When** server starts, **Then** it logs warning and cleans up stale socket
@@ -43,7 +43,7 @@ The Claude skill automatically detects and prefers UDS when available for faster
 
 ### User Story 3 - Server Lifecycle Management (Priority: P2)
 
-The Claude plugin can automatically start, stop, and manage the doc-serve server lifecycle.
+The Claude plugin can automatically start, stop, and manage the Agent Brain server lifecycle.
 
 **Why this priority**: Reduces manual setup. Users shouldn't need to manage server separately.
 
@@ -106,7 +106,7 @@ Claude can break down complex questions into multiple sub-queries for comprehens
 
 - **FR-001**: Server MUST support Unix Domain Socket transport in addition to HTTP
 - **FR-002**: UDS MUST use same request/response format as HTTP (JSON)
-- **FR-003**: Socket path MUST be configurable (default: `/tmp/doc-serve.sock`)
+- **FR-003**: Socket path MUST be configurable (default: `/tmp/Agent Brain.sock`)
 - **FR-004**: Server MUST clean up stale sockets on startup
 - **FR-005**: Claude skill MUST auto-detect and prefer UDS when available
 - **FR-006**: Skill MUST fall back to HTTP if UDS unavailable or fails

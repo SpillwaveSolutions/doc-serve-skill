@@ -1,0 +1,37 @@
+flowchart LR
+    subgraph Developer["Developer Machine"]
+        direction TB
+        Terminal[Terminal]
+        ClaudeCode[Claude Code]
+
+        subgraph CLI["agent-brain CLI"]
+            Commands[Commands]
+            APIClient[API Client]
+        end
+
+        subgraph Server["agent-brain-serve"]
+            FastAPI[FastAPI]
+            Services[Services]
+            Storage[(Local Storage)]
+        end
+
+        Terminal --> Commands
+        ClaudeCode --> Commands
+        Commands --> APIClient
+        APIClient -->|"HTTP :8000"| FastAPI
+        FastAPI --> Services
+        Services --> Storage
+    end
+
+    External[OpenAI API]
+    Services --> External
+
+    classDef local fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef process fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef storage fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+    classDef external fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+
+    class Terminal,ClaudeCode local
+    class Commands,APIClient,FastAPI,Services process
+    class Storage storage
+    class External external

@@ -1,0 +1,50 @@
+flowchart TB
+    subgraph API["API Layer"]
+        FastAPI[FastAPI]
+        Routers[Routers]
+    end
+
+    subgraph Services["Service Layer"]
+        QueryService[QueryService]
+        IndexingService[IndexingService]
+    end
+
+    subgraph Indexing["Indexing Layer"]
+        DocLoader[DocumentLoader]
+        Chunkers[Chunkers]
+        EmbedGen[EmbeddingGenerator]
+        GraphExtract[GraphExtractors]
+    end
+
+    subgraph Storage["Storage Layer"]
+        VectorStore[VectorStoreManager]
+        BM25Manager[BM25IndexManager]
+        GraphStore[GraphStoreManager]
+    end
+
+    subgraph Models["Model Layer"]
+        QueryModels[Query Models]
+        IndexModels[Index Models]
+        GraphModels[Graph Models]
+    end
+
+    FastAPI --> Routers
+    Routers --> Services
+    QueryService --> Storage
+    QueryService --> EmbedGen
+    IndexingService --> Indexing
+    IndexingService --> Storage
+    Services --> Models
+    Indexing --> Models
+
+    classDef api fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef service fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef indexing fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+    classDef storage fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+    classDef model fill:#DDA0DD,stroke:#333,stroke-width:2px,color:black
+
+    class FastAPI,Routers api
+    class QueryService,IndexingService service
+    class DocLoader,Chunkers,EmbedGen,GraphExtract indexing
+    class VectorStore,BM25Manager,GraphStore storage
+    class QueryModels,IndexModels,GraphModels model

@@ -1,0 +1,70 @@
+@startuml Status Check Sequence
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+title CLI Status Check Sequence
+
+actor User
+participant "agent-brain CLI" as CLI
+participant "DocServeClient" as Client
+participant "FastAPI Server" as API
+
+== Request ==
+
+User -> CLI : agent-brain status [--url] [--json]
+activate CLI
+
+CLI -> Client : Create DocServeClient(base_url)
+activate Client
+
+par Health Check
+    Client -> API : GET /health/
+    activate API
+    API --> Client : HealthStatus
+    deactivate API
+end
+
+par Status Check
+    Client -> API : GET /health/status
+    activate API
+    API --> Client : IndexingStatus
+    deactivate API
+end
+
+Client --> CLI : Combined status
+deactivate Client
+
+== Output ==
+
+alt JSON output
+    CLI --> User : {\n  "status": "healthy",\n  "total_chunks": 450,\n  "indexed_folders": [...],\n  "graph_index": {...}\n}
+
+else Rich output
+    CLI --> User : Panel: Server Status
+    CLI --> User : "Status: healthy"
+    CLI --> User : "Version: 1.2.0"
+    CLI --> User : "Mode: project"
+
+    CLI --> User : Panel: Index Status
+    CLI --> User : "Total Chunks: 450"
+    CLI --> User : "Doc Chunks: 300"
+    CLI --> User : "Code Chunks: 150"
+    CLI --> User : "Languages: python, typescript"
+
+    alt GraphRAG enabled
+        CLI --> User : Panel: Graph Index
+        CLI --> User : "Enabled: true"
+        CLI --> User : "Entities: 234"
+        CLI --> User : "Relationships: 567"
+    end
+
+    alt Indexing in progress
+        CLI --> User : "Progress: 75% - Generating embeddings..."
+        CLI --> User : "Job ID: job_abc123"
+    end
+end
+
+deactivate CLI
+
+@enduml

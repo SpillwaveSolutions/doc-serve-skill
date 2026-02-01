@@ -1,0 +1,86 @@
+@startuml Server Lifecycle States
+!theme plain
+skinparam state {
+    BackgroundColor<<active>> LightGreen
+    BackgroundColor<<transitioning>> LightYellow
+    BackgroundColor<<error>> LightCoral
+}
+
+title Agent Brain Server Lifecycle States
+
+[*] --> Stopped
+
+state Stopped {
+    Stopped : No process running
+    Stopped : No runtime.json exists
+    Stopped : Port is available
+}
+
+Stopped --> Starting : CLI "start" command
+
+state Starting <<transitioning>> {
+    Starting : Resolving project root
+    Starting : Reading configuration
+    Starting : Finding available port
+    Starting : Spawning uvicorn process
+    Starting : Writing runtime.json
+    Starting : Waiting for health check
+}
+
+Starting --> Running : Health check passes
+Starting --> Failed : Timeout or process crash
+
+state Running <<active>> {
+    Running : Process alive (PID tracked)
+    Running : runtime.json exists
+    Running : Health endpoint responds
+    Running : Ready for queries
+    ---
+    Running : Monitoring indexing state
+    Running : Serving API requests
+}
+
+Running --> Stopping : CLI "stop" command
+Running --> Stopping : SIGTERM received
+Running --> Failed : Process crash
+Running --> Failed : Unhandled exception
+
+state Stopping <<transitioning>> {
+    Stopping : SIGTERM sent to process
+    Stopping : Waiting for graceful shutdown
+    Stopping : Cleaning up state files
+    Stopping : Removing from registry
+}
+
+Stopping --> Stopped : Process exits gracefully
+Stopping --> ForceKilling : Timeout reached (with --force)
+
+state ForceKilling <<transitioning>> {
+    ForceKilling : SIGKILL sent to process
+    ForceKilling : Waiting for process death
+    ForceKilling : Force cleanup
+}
+
+ForceKilling --> Stopped : Process killed
+ForceKilling --> Failed : SIGKILL ignored
+
+state Failed <<error>> {
+    Failed : Error logged
+    Failed : Stale runtime.json may exist
+    Failed : Manual cleanup may be needed
+}
+
+Failed --> Stopped : Stale cleanup on next start
+Failed --> Stopped : Manual intervention
+
+note right of Starting
+    Startup Timeout: 30 seconds (configurable)
+    Health check interval: 500ms
+end note
+
+note right of Stopping
+    Graceful Timeout: 10 seconds (configurable)
+    Force flag: --force to use SIGKILL
+end note
+
+@enduml

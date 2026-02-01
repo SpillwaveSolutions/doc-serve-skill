@@ -1,0 +1,94 @@
+@startuml Local Development Deployment
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+title Agent Brain - Local Development Environment
+
+skinparam node {
+    BackgroundColor<<app>> #E3F2FD
+    BackgroundColor<<storage>> #FFF3E0
+    BackgroundColor<<config>> #E8F5E9
+}
+
+node "Developer Machine" {
+
+    ' Application Layer
+    node "Application Layer" <<app>> as app_layer {
+
+        frame "CLI Process" {
+            component [agent-brain] as cli_main
+            component [Click Commands] as click_cmds
+            component [Rich Console] as rich
+            component [API Client\n(httpx)] as api_client
+        }
+
+        frame "Server Process (Uvicorn)" {
+            component [FastAPI App] as fastapi
+            component [QueryService] as query_svc
+            component [IndexingService] as index_svc
+            component [BM25IndexManager] as bm25_mgr
+            component [VectorStoreManager] as vector_mgr
+            component [GraphStoreManager] as graph_mgr
+        }
+
+        cli_main --> click_cmds
+        click_cmds --> api_client
+        api_client --> fastapi : HTTP/REST\nport 8000+
+
+        fastapi --> query_svc
+        fastapi --> index_svc
+        index_svc --> bm25_mgr
+        index_svc --> vector_mgr
+        index_svc --> graph_mgr
+        query_svc --> bm25_mgr
+        query_svc --> vector_mgr
+        query_svc --> graph_mgr
+    }
+
+    ' Storage Layer
+    node "Storage Layer" <<storage>> as storage_layer {
+
+        database "ChromaDB\n(Persistent Client)" as chromadb {
+            collections "doc_serve_collection" as collection
+            file "chroma.sqlite3" as sqlite
+            folder "embeddings/" as embeddings
+        }
+
+        folder "BM25 Index" as bm25_store {
+            file "retriever.json\n(index data)" as retriever_json
+            file "docstore.json\n(document cache)" as docstore_json
+        }
+
+        folder "Graph Store" as graph_store {
+            file "graph_store.json\n(triplets)" as triplets
+            file "graph_metadata.json\n(counts)" as metadata
+        }
+    }
+
+    ' Configuration Layer
+    node "Configuration Layer" <<config>> as config_layer {
+
+        file ".env" as env_file
+        file "runtime.json" as runtime_file
+        file "config.json" as config_file
+        file "server.lock" as lock_file
+
+        note right of env_file
+            OPENAI_API_KEY=sk-...
+            ANTHROPIC_API_KEY=sk-ant-...
+            API_PORT=8000
+            ENABLE_GRAPH_INDEX=false
+        end note
+    }
+
+    ' Connections
+    vector_mgr --> chromadb
+    bm25_mgr --> bm25_store
+    graph_mgr --> graph_store
+
+    fastapi ..> env_file : reads
+    fastapi ..> runtime_file : writes on start
+    fastapi ..> lock_file : acquires/releases
+}
+
+@enduml

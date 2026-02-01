@@ -1,0 +1,66 @@
+flowchart TB
+    Chunks[/Document Chunks/]
+
+    subgraph Extraction["Entity Extraction"]
+        direction TB
+        CodeMeta["Code Metadata Extractor<br/>(fast, deterministic)"]
+        TextPattern["Text Pattern Extractor<br/>(regex-based)"]
+        LLMExtract["LLM Extractor<br/>(Claude Haiku)"]
+    end
+
+    Chunks --> CodeMeta
+    Chunks --> TextPattern
+    Chunks --> LLMExtract
+
+    subgraph CodeEntities["Code Entities"]
+        direction TB
+        Classes["Classes / Types"]
+        Functions["Functions / Methods"]
+        Imports["Import Relationships"]
+        Calls["Call Relationships"]
+    end
+
+    CodeMeta --> Classes
+    CodeMeta --> Functions
+    CodeMeta --> Imports
+    CodeMeta --> Calls
+
+    subgraph TextEntities["Text Entities"]
+        direction TB
+        Concepts["Concepts / Topics"]
+        References["Cross-References"]
+    end
+
+    TextPattern --> Concepts
+    LLMExtract --> References
+
+    subgraph Triplets["GraphTriple"]
+        direction TB
+        Subject[subject]
+        SubjectType[subject_type]
+        Predicate[predicate]
+        Object[object]
+        ObjectType[object_type]
+        SourceChunk[source_chunk_id]
+    end
+
+    Classes --> Triplets
+    Functions --> Triplets
+    Imports --> Triplets
+    Calls --> Triplets
+    Concepts --> Triplets
+    References --> Triplets
+
+    Triplets --> GraphStore[(Graph Store)]
+
+    classDef input fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef extract fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef entity fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+    classDef triplet fill:#DDA0DD,stroke:#333,stroke-width:2px,color:black
+    classDef storage fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+
+    class Chunks input
+    class CodeMeta,TextPattern,LLMExtract extract
+    class Classes,Functions,Imports,Calls,Concepts,References entity
+    class Subject,SubjectType,Predicate,Object,ObjectType,SourceChunk triplet
+    class GraphStore storage

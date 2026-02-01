@@ -1,0 +1,129 @@
+@startuml Index States
+!theme plain
+skinparam state {
+    BackgroundColor<<ready>> LightGreen
+    BackgroundColor<<busy>> LightYellow
+    BackgroundColor<<error>> LightCoral
+}
+
+title Agent Brain Index States
+
+[*] --> Empty
+
+state Empty {
+    Empty : No documents indexed
+    Empty : Vector store not initialized
+    Empty : BM25 index empty
+    Empty : Graph index empty
+    ---
+    Empty : Queries return 503
+}
+
+Empty --> Indexing : POST /index request
+
+state Indexing <<busy>> {
+    state "Loading" as Loading
+    state "Chunking" as Chunking
+    state "Embedding" as Embedding
+    state "Storing" as Storing
+    state "BuildingBM25" as BM25
+    state "BuildingGraph" as BuildingGraph
+
+    Loading : Reading files from disk
+    Loading : Detecting languages
+    Loading : Creating Document objects
+
+    Chunking : Splitting text documents
+    Chunking : AST parsing code files
+    Chunking : Extracting symbols
+    Chunking : Generating summaries
+
+    Embedding : Calling OpenAI API
+    Embedding : Batching chunks
+    Embedding : Creating 3072-dim vectors
+
+    Storing : Upserting to ChromaDB
+    Storing : Batching (40k limit)
+
+    BM25 : Building BM25Retriever
+    BM25 : Persisting to disk
+
+    BuildingGraph : Extracting entities
+    BuildingGraph : Storing triplets
+    BuildingGraph : Persisting graph
+
+    [*] --> Loading
+    Loading --> Chunking : Documents loaded
+    Chunking --> Embedding : Chunks created
+    Embedding --> Storing : Embeddings generated
+    Storing --> BM25 : Vectors stored
+    BM25 --> BuildingGraph : BM25 ready
+    BuildingGraph --> [*] : Graph built
+}
+
+Indexing --> Ready : Indexing completed successfully
+Indexing --> Failed : Error during indexing
+
+state Ready <<ready>> {
+    Ready : All indexes populated
+    Ready : Vector store ready
+    Ready : BM25 index ready
+    Ready : Graph index ready (if enabled)
+    ---
+    Ready : Queries return results
+    Ready : Health returns "healthy"
+}
+
+Ready --> Updating : POST /index/add request
+
+state Updating <<busy>> {
+    Updating : Adding new documents
+    Updating : Preserving existing index
+    Updating : Incremental updates
+    ---
+    Updating : Queries still served
+    Updating : May return partial results
+}
+
+Updating --> Ready : Update completed
+Updating --> Ready : Update failed (rollback)
+
+Ready --> Resetting : DELETE /index request
+
+state Resetting <<busy>> {
+    Resetting : Deleting ChromaDB collection
+    Resetting : Clearing BM25 index
+    Resetting : Clearing graph index
+    Resetting : Resetting state counters
+}
+
+Resetting --> Empty : Reset completed
+
+state Failed <<error>> {
+    Failed : error field populated
+    Failed : Partial index may exist
+    Failed : Manual cleanup may be needed
+    ---
+    Failed : Health returns "degraded"
+}
+
+Failed --> Empty : DELETE /index (reset)
+Failed --> Indexing : POST /index (retry)
+
+note right of Indexing
+    Progress tracked via:
+    - /health/status endpoint
+    - progress_percent field
+    - current stage in status
+end note
+
+note right of Ready
+    Index statistics:
+    - total_chunks
+    - total_doc_chunks
+    - total_code_chunks
+    - supported_languages
+    - indexed_folders
+end note
+
+@enduml

@@ -1,0 +1,22 @@
+flowchart LR
+    Results[Retrieval Results]
+
+    subgraph Filters["Content Filters"]
+        direction TB
+        SourceType["source_types<br/>(doc, code, test)"]
+        Languages["languages<br/>(python, typescript, etc.)"]
+        FilePaths["file_paths<br/>(glob patterns)"]
+    end
+
+    Results --> SourceType
+    SourceType --> Languages
+    Languages --> FilePaths
+    FilePaths --> Filtered[Filtered Results]
+
+    classDef input fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef filter fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+    classDef output fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+
+    class Results input
+    class SourceType,Languages,FilePaths filter
+    class Filtered output

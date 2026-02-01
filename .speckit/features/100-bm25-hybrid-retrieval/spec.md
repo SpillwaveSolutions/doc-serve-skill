@@ -4,7 +4,7 @@
 **Created**: 2025-12-18
 **Completed**: 2025-12-18
 **Status**: ✅ COMPLETED - Merged to main
-**PR**: https://github.com/SpillwaveSolutions/doc-serve-skill/pull/2
+**PR**: https://github.com/SpillwaveSolutions/agent-brain/pull/2
 **Input**: Product Roadmap Phase 2
 
 ## User Scenarios & Testing
@@ -62,17 +62,17 @@ A user wants to tune the balance between vector and keyword search in hybrid mod
 
 ### User Story 4 - Search Mode Selection via CLI (Priority: P2)
 
-A user wants to select search mode from the doc-svr-ctl CLI tool without modifying API calls directly.
+A user wants to select search mode from the agent-brain CLI tool without modifying API calls directly.
 
 **Why this priority**: CLI users need the same flexibility as API users. Improves developer experience.
 
-**Independent Test**: Run `doc-svr-ctl query "text" --mode bm25` and verify mode is passed correctly to API.
+**Independent Test**: Run `agent-brain query "text" --mode bm25` and verify mode is passed correctly to API.
 
 **Acceptance Scenarios**:
 
-1. **Given** CLI installed, **When** I run `doc-svr-ctl query "test" --mode bm25`, **Then** query uses BM25 mode
-2. **Given** CLI installed, **When** I run `doc-svr-ctl query "test" --mode hybrid --alpha 0.7`, **Then** query uses hybrid with specified alpha
-3. **Given** CLI installed, **When** I run `doc-svr-ctl query "test"` without mode, **Then** hybrid mode is used by default
+1. **Given** CLI installed, **When** I run `agent-brain query "test" --mode bm25`, **Then** query uses BM25 mode
+2. **Given** CLI installed, **When** I run `agent-brain query "test" --mode hybrid --alpha 0.7`, **Then** query uses hybrid with specified alpha
+3. **Given** CLI installed, **When** I run `agent-brain query "test"` without mode, **Then** hybrid mode is used by default
 
 ---
 

@@ -1,0 +1,16 @@
+sequenceDiagram
+    participant IndexService
+    participant EmbedGen as EmbeddingGenerator
+    participant OpenAI as OpenAI API
+
+    IndexService->>EmbedGen: embed_chunks(chunks, progress_callback)
+
+    loop For each batch (100 chunks)
+        EmbedGen->>EmbedGen: Collect batch texts
+        EmbedGen->>OpenAI: Create embeddings<br/>(model=text-embedding-3-large)
+        OpenAI-->>EmbedGen: List of 3072-dim vectors
+
+        EmbedGen->>IndexService: progress_callback(processed, total)
+    end
+
+    EmbedGen-->>IndexService: List[embedding]

@@ -1,0 +1,28 @@
+flowchart LR
+    Query[/"Query"/]
+
+    Query --> Retrieve
+
+    subgraph Retrieve["Over-Fetch"]
+        Fetch["Retrieve 3x top_k<br/>(or max_results)"]
+    end
+
+    Retrieve --> Filter
+
+    subgraph Filter["Post-Filter"]
+        CheckSource["Check source_type"]
+        CheckLang["Check language"]
+        TakeTopK["Take first top_k"]
+    end
+
+    CheckSource --> CheckLang
+    CheckLang --> TakeTopK
+
+    TakeTopK --> Results[/"Filtered Results"/]
+
+    classDef query fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef process fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef result fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+
+    class Query,Results query
+    class Fetch,CheckSource,CheckLang,TakeTopK process

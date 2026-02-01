@@ -1,0 +1,115 @@
+@startuml Graph Query Sequence
+!theme plain
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+
+title Graph Query Sequence - Knowledge Graph Traversal
+
+actor Client
+participant "FastAPI\n/query" as API
+participant "QueryService" as QS
+participant "GraphIndexManager" as GIM
+participant "GraphStoreManager" as GSM
+participant "VectorStoreManager" as VS
+database "Property Graph" as Graph
+database "ChromaDB" as Chroma
+
+== Request Validation ==
+
+Client -> API : POST /query\n{query, mode: "graph", top_k}
+activate API
+
+API -> QS : execute_query(request)
+activate QS
+
+== Graph Query Execution ==
+
+QS -> QS : Check ENABLE_GRAPH_INDEX setting
+
+alt GraphRAG Disabled
+    QS --> API : ValueError\n"GraphRAG not enabled"
+    API --> Client : 500 Error
+end
+
+QS -> GIM : query(query_text, top_k, traversal_depth)
+activate GIM
+
+group Entity Extraction from Query
+    GIM -> GIM : _extract_query_entities(query_text)
+    note right of GIM
+        Entity detection heuristics:
+        - CamelCase words
+        - ALL_CAPS constants
+        - Capitalized words (class names)
+        - snake_case functions
+        - Significant lowercase terms
+    end note
+    GIM -> GIM : Limit to 10 entities
+end
+
+group Graph Traversal
+    loop For each extracted entity
+        GIM -> GIM : _find_entity_relationships(\n  entity, depth, max_results)
+
+        GIM -> GSM : Get graph_store
+        activate GSM
+        GSM --> GIM : PropertyGraphStore
+        deactivate GSM
+
+        GIM -> Graph : get_triplets()
+        activate Graph
+        Graph --> GIM : all triplets[]
+        deactivate Graph
+
+        GIM -> GIM : Search for matching entities\n(case-insensitive substring match)
+
+        GIM -> GIM : Build result entries with:\n  - entity, subject, predicate, object\n  - source_chunk_id\n  - relationship_path\n  - graph_score = 1.0
+    end
+end
+
+group Deduplication
+    GIM -> GIM : Deduplicate by source_chunk_id\nor relationship_path
+    GIM -> GIM : Limit to top_k unique results
+end
+
+GIM --> QS : graph_results[]
+deactivate GIM
+
+== Document Retrieval ==
+
+alt No Graph Results
+    QS -> QS : Fall back to vector search
+    QS --> API : QueryResponse from vector
+else Has Graph Results
+
+    group Retrieve Source Documents
+        loop For each graph result with source_chunk_id
+            QS -> VS : get_by_id(chunk_id)
+            activate VS
+            VS -> Chroma : get(ids=[chunk_id])
+            activate Chroma
+            Chroma --> VS : {text, metadata}
+            deactivate Chroma
+            VS --> QS : document or None
+            deactivate VS
+
+            alt Document Found
+                QS -> QS : Create QueryResult with:\n  - text from document\n  - graph_score\n  - related_entities\n  - relationship_path
+            end
+        end
+    end
+
+    alt No Documents Retrieved
+        QS -> QS : Fall back to vector search
+    end
+
+end
+
+QS -> QS : Apply content filters
+QS --> API : QueryResponse
+deactivate QS
+
+API --> Client : 200 OK\n{results with graph context}
+deactivate API
+
+@enduml

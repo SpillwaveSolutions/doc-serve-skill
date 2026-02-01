@@ -1,0 +1,40 @@
+flowchart TB
+    Start([Production Checklist])
+
+    Start --> Security
+    subgraph Security["Security"]
+        S1[Set OPENAI_API_KEY securely]
+        S2[Use HTTPS/TLS]
+        S3[Configure CORS appropriately]
+        S4[Run as non-root user]
+    end
+
+    Security --> Persistence
+    subgraph Persistence["Persistence"]
+        P1[Configure persistent storage]
+        P2[Set up backup strategy]
+        P3[Plan for data migration]
+    end
+
+    Persistence --> Monitoring
+    subgraph Monitoring["Monitoring"]
+        M1[Configure health checks]
+        M2[Set up logging]
+        M3[Add metrics endpoint]
+        M4[Configure alerts]
+    end
+
+    Monitoring --> Scaling
+    subgraph Scaling["Scaling"]
+        SC1[Set resource limits]
+        SC2[Configure HPA if K8s]
+        SC3[Consider read replicas]
+    end
+
+    Scaling --> Complete([Ready for Production])
+
+    classDef check fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef section fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+
+    class Start,Complete check
+    class S1,S2,S3,S4,P1,P2,P3,M1,M2,M3,M4,SC1,SC2,SC3 section

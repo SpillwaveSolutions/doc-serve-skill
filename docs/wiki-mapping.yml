@@ -1,12 +1,39 @@
-# Doc-Serve Wiki Mapping
+# Agent Brain Wiki Mapping
 # Maps local markdown files to GitHub Wiki pages for synchronization
 
-# Main documentation files (✅ Imported to Wiki)
+# Main documentation files
 docs:
   USER_GUIDE.md: "User-Guide"
   DEVELOPERS_GUIDE.md: "Developer-Guide"
   QUICK_START.md: "Quick-Start"
   ORIGINAL_SPEC.md: "Original-Specification"
+  MIGRATION.md: "Migration-Guide"
+  # New comprehensive documentation
+  ARCHITECTURE.md: "Architecture-Overview"
+  API_REFERENCE.md: "API-Reference"
+  CONFIGURATION.md: "Configuration-Reference"
+  DEPLOYMENT.md: "Deployment-Guide"
+  GRAPHRAG_GUIDE.md: "GraphRAG-Guide"
+  CODE_INDEXING.md: "Code-Indexing-Guide"
+  PLUGIN_GUIDE.md: "Plugin-Guide"
+
+# Design documentation (diagrams and architecture)
+design:
+  docs/design/README.md: "Design-Overview"
+  docs/design/DIAGRAMS.md: "Diagrams-Index"
+  docs/design/architecture-overview.md: "Design-Architecture-Overview"
+  docs/design/query-architecture.md: "Design-Query-Architecture"
+  docs/design/query-sequences.md: "Design-Query-Sequences"
+  docs/design/indexing-pipeline.md: "Design-Indexing-Pipeline"
+  docs/design/indexing-sequences.md: "Design-Indexing-Sequences"
+  docs/design/storage-architecture.md: "Design-Storage-Architecture"
+  docs/design/class-diagrams.md: "Design-Class-Diagrams"
+  docs/design/deployment-architecture.md: "Design-Deployment-Architecture"
+  docs/design/deployment-diagram.md: "Design-Deployment-Diagram"
+  docs/design/package-diagrams.md: "Design-Package-Diagrams"
+  docs/design/component-diagrams.md: "Design-Component-Diagrams"
+  docs/design/server-states.md: "Design-Server-States"
+  docs/design/cli-sequences.md: "Design-CLI-Sequences"
 
 # Roadmap and planning documents
 roadmaps:
@@ -16,34 +43,21 @@ roadmaps:
 # Plans
 plans:
   docs/plans/e2e_testing_plan.md: "E2E-Testing-Plan"
+  docs/plans/graphrag-integration-plan.md: "GraphRAG-Integration-Plan"
 
-# Specifications (SDD documents) - ✅ Imported to Wiki
-specs:
-  specs/100-bm25-hybrid-retrieval/spec.md: "BM25-Hybrid-Retrieval-Spec"
-  specs/100-bm25-hybrid-retrieval/plan.md: "BM25-Hybrid-Retrieval-Plan"
-  specs/100-bm25-hybrid-retrieval/tasks.md: "BM25-Hybrid-Retrieval-Tasks"
-  specs/100-bm25-hybrid-retrieval/quickstart.md: "BM25-Hybrid-Retrieval-Quickstart"
-  specs/100-bm25-hybrid-retrieval/research.md: "BM25-Hybrid-Retrieval-Research"
-  specs/100-bm25-hybrid-retrieval/data-model.md: "BM25-Hybrid-Retrieval-Data-Model"
-  specs/101-code-ingestion/spec.md: "Code-Ingestion-Spec"
-  specs/102-uds-claude-plugin/spec.md: "UDS-Claude-Plugin-Spec"
-  specs/103-pluggable-providers/spec.md: "Pluggable-Providers-Spec"
-  specs/104-postgresql-backend/spec.md: "PostgreSQL-Backend-Spec"
-  specs/105-aws-bedrock/spec.md: "AWS-Bedrock-Spec"
-  specs/106-vertex-ai/spec.md: "Vertex-AI-Spec"
-
-# Skill documentation - ✅ Imported to Wiki
+# Skill documentation
 skill:
-  agent-brain-skill/doc-serve/SKILL.md: "Agent-Skill-Definition"
-  agent-brain-skill/doc-serve/references/api_reference.md: "Agent-Skill-API-Reference"
-  agent-brain-skill/doc-serve/references/bm25-search-guide.md: "Agent-Skill-BM25-Search-Guide"
-  agent-brain-skill/doc-serve/references/vector-search-guide.md: "Agent-Skill-Vector-Search-Guide"
-  agent-brain-skill/doc-serve/references/hybrid-search-guide.md: "Agent-Skill-Hybrid-Search-Guide"
-  agent-brain-skill/doc-serve/references/server-discovery.md: "Agent-Skill-Server-Discovery-Guide"
-  agent-brain-skill/doc-serve/references/integration-guide.md: "Agent-Skill-Integration-Guide"
-  agent-brain-skill/doc-serve/references/troubleshooting-guide.md: "Agent-Skill-Troubleshooting-Guide"
+  agent-brain-skill/using-agent-brain/SKILL.md: "Agent-Skill-Definition"
+  agent-brain-skill/using-agent-brain/references/api_reference.md: "Agent-Skill-API-Reference"
+  agent-brain-skill/using-agent-brain/references/bm25-search-guide.md: "Agent-Skill-BM25-Search-Guide"
+  agent-brain-skill/using-agent-brain/references/vector-search-guide.md: "Agent-Skill-Vector-Search-Guide"
+  agent-brain-skill/using-agent-brain/references/hybrid-search-guide.md: "Agent-Skill-Hybrid-Search-Guide"
+  agent-brain-skill/using-agent-brain/references/graph-search-guide.md: "Agent-Skill-Graph-Search-Guide"
+  agent-brain-skill/using-agent-brain/references/server-discovery.md: "Agent-Skill-Server-Discovery-Guide"
+  agent-brain-skill/using-agent-brain/references/integration-guide.md: "Agent-Skill-Integration-Guide"
+  agent-brain-skill/using-agent-brain/references/troubleshooting-guide.md: "Agent-Skill-Troubleshooting-Guide"
 
-# Feature 109 - Multi-Instance Architecture (MAJOR FEATURE)
+# Feature 109 - Multi-Instance Architecture
 feature-109:
   .speckit/features/109-multi-instance-architecture/spec.md: "Multi-Instance-Architecture-Spec"
   .speckit/features/109-multi-instance-architecture/plan.md: "Multi-Instance-Architecture-Plan"
@@ -52,48 +66,24 @@ feature-109:
   .speckit/features/109-multi-instance-architecture/data-model.md: "Multi-Instance-Architecture-Data-Model"
   .speckit/features/109-multi-instance-architecture/research.md: "Multi-Instance-Architecture-Research"
 
-# Feature 110 - C# Language Support (minor feature)
-feature-110:
-  .speckit/features/110-csharp-code-indexing/spec.md: "CSharp-Language-Support-Spec"
-  .speckit/features/110-csharp-code-indexing/plan.md: "CSharp-Language-Support-Plan"
-  .speckit/features/110-csharp-code-indexing/tasks.md: "CSharp-Language-Support-Tasks"
-  .speckit/features/110-csharp-code-indexing/quickstart.md: "CSharp-Language-Support-Quickstart"
-  .speckit/features/110-csharp-code-indexing/research.md: "CSharp-Language-Support-Research"
+# Feature 113 - GraphRAG Integration
+feature-113:
+  .speckit/features/113-graphrag-integration/spec.md: "GraphRAG-Integration-Spec"
+  .speckit/features/113-graphrag-integration/plan.md: "GraphRAG-Integration-Plan"
+  .speckit/features/113-graphrag-integration/tasks.md: "GraphRAG-Integration-Tasks"
+  .speckit/features/113-graphrag-integration/quickstart.md: "GraphRAG-Integration-Quickstart"
+  .speckit/features/113-graphrag-integration/research.md: "GraphRAG-Integration-Research"
+  .speckit/features/113-graphrag-integration/data-model.md: "GraphRAG-Integration-Data-Model"
 
-# Feature 111 - Skill Auto-Discovery
-feature-111:
-  .speckit/features/111-skill-instance-discovery/spec.md: "Skill-Auto-Discovery-Spec"
-  .speckit/features/111-skill-instance-discovery/tasks.md: "Skill-Auto-Discovery-Tasks"
+# Feature 114 - Agent Brain Plugin
+feature-114:
+  .speckit/features/114-agent-brain-plugin/spec.md: "Agent-Brain-Plugin-Spec"
+  .speckit/features/114-agent-brain-plugin/plan.md: "Agent-Brain-Plugin-Plan"
+  .speckit/features/114-agent-brain-plugin/tasks.md: "Agent-Brain-Plugin-Tasks"
+  .speckit/features/114-agent-brain-plugin/quickstart.md: "Agent-Brain-Plugin-Quickstart"
+  .speckit/features/114-agent-brain-plugin/research.md: "Agent-Brain-Plugin-Research"
+  .speckit/features/114-agent-brain-plugin/data-model.md: "Agent-Brain-Plugin-Data-Model"
 
-# Wiki Pages Created (✅ Successfully Imported)
-wiki_pages_created:
-  - Home: "Enhanced with BM25 hybrid features, search modes, and CLI examples"
-  - User-Guide: "Complete usage guide with all search modes and alpha weighting"
-  - Developer-Guide: "Architecture overview and development setup"
-  - Quick-Start: "Updated with search mode examples and command reference"
-  - BM25-Hybrid-Retrieval-Spec: "Complete SDD specification with all acceptance criteria"
-  - BM25-Hybrid-Retrieval-Tasks: "All 28 tasks with GitHub issue links and completion status"
-  - API-Reference: "Comprehensive endpoint documentation with examples"
-  - Agent-Skill-Definition: "Updated skill capabilities and usage examples"
-  # New pages for features 109, 110, 111
-  - Multi-Instance-Architecture-Spec: "Feature 109 specification"
-  - Multi-Instance-Architecture-Plan: "Feature 109 implementation plan"
-  - Multi-Instance-Architecture-Tasks: "Feature 109 task breakdown"
-  - Multi-Instance-Architecture-Quickstart: "Feature 109 quickstart guide"
-  - Multi-Instance-Architecture-Data-Model: "Feature 109 data model"
-  - Multi-Instance-Architecture-Research: "Feature 109 research notes"
-  - CSharp-Language-Support-Spec: "Feature 110 specification"
-  - CSharp-Language-Support-Plan: "Feature 110 implementation plan"
-  - CSharp-Language-Support-Tasks: "Feature 110 task breakdown"
-  - CSharp-Language-Support-Quickstart: "Feature 110 quickstart guide"
-  - CSharp-Language-Support-Research: "Feature 110 research notes"
-  - Skill-Auto-Discovery-Spec: "Feature 111 specification"
-  - Skill-Auto-Discovery-Tasks: "Feature 111 task breakdown"
-  # Agent Skill reference pages
-  - Agent-Skill-BM25-Search-Guide: "BM25 search usage guide"
-  - Agent-Skill-Vector-Search-Guide: "Vector search usage guide"
-  - Agent-Skill-Hybrid-Search-Guide: "Hybrid search usage guide"
-  - Agent-Skill-Server-Discovery-Guide: "Server discovery documentation"
-  - Agent-Skill-Integration-Guide: "Integration guide for agents"
-  - Agent-Skill-Troubleshooting-Guide: "Troubleshooting guide"
-  - Agent-Skill-API-Reference: "API reference documentation"
+# Plugin documentation
+plugin:
+  agent-brain-plugin/README.md: "Plugin-README"

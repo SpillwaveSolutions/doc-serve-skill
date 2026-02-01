@@ -1,0 +1,48 @@
+classDiagram
+    class AgentBrainCLI {
+        <<click.Group>>
+        +init()
+        +start()
+        +stop()
+        +list()
+        +status()
+        +index()
+        +query()
+        +reset()
+    }
+
+    class AgentBrainClient {
+        -str base_url
+        -httpx.AsyncClient client
+
+        +health() dict
+        +status() dict
+        +index(folder_path, recursive, include_code) dict
+        +query(query_text, top_k, mode, ...) dict
+        +reset() dict
+        +count() int
+    }
+
+    class StartCommand {
+        +invoke(daemon, port, project_dir)
+    }
+
+    class StopCommand {
+        +invoke(project_dir)
+    }
+
+    class IndexCommand {
+        +invoke(path, recursive, include_code)
+    }
+
+    class QueryCommand {
+        +invoke(query, top_k, mode)
+    }
+
+    AgentBrainCLI --> StartCommand : includes
+    AgentBrainCLI --> StopCommand : includes
+    AgentBrainCLI --> IndexCommand : includes
+    AgentBrainCLI --> QueryCommand : includes
+    StartCommand --> AgentBrainClient : creates
+    IndexCommand --> AgentBrainClient : uses
+    QueryCommand --> AgentBrainClient : uses

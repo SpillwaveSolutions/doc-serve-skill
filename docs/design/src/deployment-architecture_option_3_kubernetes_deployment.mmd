@@ -1,0 +1,51 @@
+flowchart TB
+    subgraph K8s["Kubernetes Cluster"]
+        direction TB
+        Ingress[Ingress Controller]
+
+        subgraph Namespace["agent-brain namespace"]
+            Service[Service :8000]
+            Deploy[Deployment]
+            HPA[HPA]
+
+            subgraph Pods["Pods"]
+                Pod1[Pod 1]
+                Pod2[Pod 2]
+                Pod3[Pod 3]
+            end
+
+            PVC[PersistentVolumeClaim]
+            Secret[Secret]
+            ConfigMap[ConfigMap]
+        end
+
+        subgraph Storage["Storage Class"]
+            PV[PersistentVolume]
+        end
+    end
+
+    Users[Users]
+    OpenAI[OpenAI API]
+
+    Users --> Ingress
+    Ingress --> Service
+    Service --> Pods
+    Deploy --> Pods
+    HPA --> Deploy
+    Pods --> PVC
+    Pods --> Secret
+    Pods --> ConfigMap
+    PVC --> PV
+    Pods --> OpenAI
+
+    classDef ingress fill:#326CE5,stroke:#333,stroke-width:2px,color:white
+    classDef workload fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef storage fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+    classDef config fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+    classDef external fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+
+    class Ingress ingress
+    class Service,Deploy,HPA,Pod1,Pod2,Pod3 workload
+    class PVC,PV storage
+    class Secret,ConfigMap config
+    class Users,OpenAI external

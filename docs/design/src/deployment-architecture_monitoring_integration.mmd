@@ -1,0 +1,30 @@
+flowchart LR
+    Server[Agent Brain Server]
+
+    subgraph Monitoring["Monitoring Stack"]
+        Prometheus[Prometheus]
+        Grafana[Grafana]
+        AlertManager[AlertManager]
+    end
+
+    subgraph Logging["Logging Stack"]
+        Fluentd[Fluentd]
+        Elasticsearch[Elasticsearch]
+        Kibana[Kibana]
+    end
+
+    Server -->|"/metrics"| Prometheus
+    Prometheus --> Grafana
+    Prometheus --> AlertManager
+
+    Server -->|"stdout/stderr"| Fluentd
+    Fluentd --> Elasticsearch
+    Elasticsearch --> Kibana
+
+    classDef server fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef monitor fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef logging fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+
+    class Server server
+    class Prometheus,Grafana,AlertManager monitor
+    class Fluentd,Elasticsearch,Kibana logging

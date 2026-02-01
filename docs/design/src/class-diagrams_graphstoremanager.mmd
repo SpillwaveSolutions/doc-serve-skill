@@ -1,0 +1,55 @@
+classDiagram
+    class GraphStoreManager {
+        -Path persist_dir
+        -str store_type
+        -Any _graph_store
+        -bool _initialized
+        -int _entity_count
+        -int _relationship_count
+        -datetime _last_updated
+
+        +is_initialized bool
+        +entity_count int
+        +relationship_count int
+        +last_updated datetime
+        +graph_store Any
+
+        +get_instance(persist_dir, store_type)$ GraphStoreManager
+        +reset_instance()$ None
+        +initialize() None
+        +persist() None
+        +load() bool
+        +add_triplet(subject, predicate, obj, subject_type, object_type, source_chunk_id) bool
+        +clear() None
+
+        -_initialize_simple_store() None
+        -_initialize_kuzu_store() None
+        -_persist_simple_store() None
+        -_load_simple_store() bool
+        -_update_counts() None
+    }
+
+    class SimplePropertyGraphStore {
+        <<llama_index>>
+        +persist(path) None
+        +from_persist_path(path)$ SimplePropertyGraphStore
+        +upsert_triplet(subject, predicate, object_) None
+        +get_triplets() list
+    }
+
+    class KuzuPropertyGraphStore {
+        <<llama_index_graph_stores>>
+        +database_path str
+    }
+
+    class _MinimalGraphStore {
+        -dict _data
+        -dict _entities
+        -list _relationships
+        +_add_triplet(subject, predicate, obj, ...) None
+        +clear() None
+    }
+
+    GraphStoreManager --> SimplePropertyGraphStore : uses
+    GraphStoreManager --> KuzuPropertyGraphStore : uses
+    GraphStoreManager --> _MinimalGraphStore : fallback

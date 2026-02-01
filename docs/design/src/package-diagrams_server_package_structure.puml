@@ -1,0 +1,263 @@
+@startuml Server Package Structure
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+title agent-brain-server - Internal Package Structure
+
+skinparam package {
+    BackgroundColor<<api>> #E3F2FD
+    BackgroundColor<<core>> #E8F5E9
+    BackgroundColor<<data>> #FFF3E0
+    BackgroundColor<<external>> #FCE4EC
+}
+
+package "agent_brain_server" {
+
+    ' API Layer
+    package "api" <<api>> {
+        class "main.py" as main {
+            + app: FastAPI
+            + lifespan()
+            + run()
+            + cli()
+        }
+
+        package "routers" {
+            class "health.py" as health_router {
+                + router: APIRouter
+                + health_check()
+                + get_status()
+            }
+
+            class "query.py" as query_router {
+                + router: APIRouter
+                + query_documents()
+                + get_document_count()
+            }
+
+            class "index.py" as index_router {
+                + router: APIRouter
+                + index_documents()
+                + add_documents()
+                + reset_index()
+            }
+        }
+    }
+
+    ' Configuration
+    package "config" <<core>> {
+        class "settings.py" as settings {
+            + Settings: BaseSettings
+            + API_HOST: str
+            + API_PORT: int
+            + OPENAI_API_KEY: str
+            + ANTHROPIC_API_KEY: str
+            + EMBEDDING_MODEL: str
+            + CHROMA_PERSIST_DIR: str
+            + ENABLE_GRAPH_INDEX: bool
+            --
+            + get_settings(): Settings
+        }
+    }
+
+    ' Models Layer
+    package "models" <<data>> {
+        class "query.py" as query_models {
+            + QueryMode: Enum
+            + QueryRequest: BaseModel
+            + QueryResponse: BaseModel
+            + QueryResult: BaseModel
+        }
+
+        class "index.py" as index_models {
+            + IndexRequest: BaseModel
+            + IndexResponse: BaseModel
+            + IndexingState: BaseModel
+            + IndexingStatusEnum: Enum
+        }
+
+        class "health.py" as health_models {
+            + HealthResponse: BaseModel
+            + StatusResponse: BaseModel
+        }
+
+        class "graph.py" as graph_models {
+            + GraphIndexStatus: BaseModel
+            + EntityInfo: BaseModel
+            + RelationshipInfo: BaseModel
+        }
+    }
+
+    ' Services Layer
+    package "services" <<core>> {
+        class "query_service.py" as query_service {
+            + QueryService
+            - vector_store: VectorStoreManager
+            - bm25_manager: BM25IndexManager
+            - graph_index_manager: GraphIndexManager
+            --
+            + execute_query()
+            + _execute_vector_query()
+            + _execute_bm25_query()
+            + _execute_hybrid_query()
+            + _execute_graph_query()
+            + _execute_multi_query()
+        }
+
+        class "indexing_service.py" as indexing_service {
+            + IndexingService
+            - vector_store: VectorStoreManager
+            - document_loader: DocumentLoader
+            - chunker: ContextAwareChunker
+            - bm25_manager: BM25IndexManager
+            --
+            + start_indexing()
+            + _run_indexing_pipeline()
+            + get_status()
+            + reset()
+        }
+    }
+
+    ' Indexing Layer
+    package "indexing" <<core>> {
+        class "document_loader.py" as doc_loader {
+            + DocumentLoader
+            + SUPPORTED_EXTENSIONS
+            --
+            + load_files()
+            + _load_document()
+            + _detect_language()
+        }
+
+        class "chunking.py" as chunking {
+            + TextChunk
+            + CodeChunk
+            + ChunkMetadata
+            + ContextAwareChunker
+            + CodeChunker
+            --
+            + chunk_documents()
+            + chunk_code_document()
+        }
+
+        class "embedding.py" as embedding {
+            + EmbeddingGenerator
+            --
+            + embed_query()
+            + embed_chunks()
+        }
+
+        class "bm25_index.py" as bm25 {
+            + BM25IndexManager
+            --
+            + initialize()
+            + build_index()
+            + get_retriever()
+            + search_with_filters()
+        }
+
+        class "graph_index.py" as graph_index {
+            + GraphIndexManager
+            --
+            + build_from_documents()
+            + query()
+            + get_status()
+        }
+
+        class "graph_extractors.py" as extractors {
+            + EntityExtractor
+            + RelationshipExtractor
+            --
+            + extract_from_code()
+            + extract_from_text()
+        }
+    }
+
+    ' Storage Layer
+    package "storage" <<data>> {
+        class "vector_store.py" as vector_store {
+            + VectorStoreManager
+            + SearchResult
+            --
+            + initialize()
+            + add_documents()
+            + upsert_documents()
+            + similarity_search()
+            + get_count()
+            + reset()
+        }
+
+        class "graph_store.py" as graph_store {
+            + GraphStoreManager
+            + _MinimalGraphStore
+            --
+            + initialize()
+            + add_triplet()
+            + persist()
+            + load()
+            + clear()
+        }
+    }
+
+    ' Utility Modules
+    class "runtime.py" as runtime {
+        + RuntimeState
+        + write_runtime()
+        + read_runtime()
+        + delete_runtime()
+    }
+
+    class "locking.py" as locking {
+        + acquire_lock()
+        + release_lock()
+        + is_stale()
+        + cleanup_stale()
+    }
+
+    class "storage_paths.py" as paths {
+        + resolve_state_dir()
+        + resolve_storage_paths()
+    }
+
+    class "project_root.py" as project_root {
+        + resolve_project_root()
+    }
+}
+
+' Dependencies within server
+main --> health_router
+main --> query_router
+main --> index_router
+
+main --> settings
+main --> query_service
+main --> indexing_service
+main --> locking
+main --> runtime
+main --> paths
+
+query_router --> query_service
+query_router --> query_models
+index_router --> indexing_service
+index_router --> index_models
+health_router --> health_models
+
+query_service --> vector_store
+query_service --> bm25
+query_service --> graph_index
+query_service --> embedding
+query_service --> query_models
+
+indexing_service --> vector_store
+indexing_service --> bm25
+indexing_service --> graph_index
+indexing_service --> doc_loader
+indexing_service --> chunking
+indexing_service --> embedding
+indexing_service --> index_models
+
+graph_index --> graph_store
+graph_index --> extractors
+graph_index --> graph_models
+
+@enduml

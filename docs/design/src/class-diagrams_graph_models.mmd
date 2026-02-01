@@ -1,0 +1,39 @@
+classDiagram
+    class GraphTriple {
+        <<frozen>>
+        +str subject
+        +str subject_type
+        +str predicate
+        +str object
+        +str object_type
+        +str source_chunk_id
+    }
+
+    class GraphEntity {
+        <<frozen>>
+        +str name
+        +str entity_type
+        +str description
+        +list~str~ source_chunk_ids
+        +dict properties
+    }
+
+    class GraphIndexStatus {
+        <<frozen>>
+        +bool enabled
+        +bool initialized
+        +int entity_count
+        +int relationship_count
+        +datetime last_updated
+        +str store_type
+    }
+
+    class GraphQueryContext {
+        <<frozen>>
+        +list~str~ related_entities
+        +list~str~ relationship_paths
+        +list~GraphTriple~ subgraph_triplets
+        +float graph_score
+    }
+
+    GraphQueryContext --> GraphTriple : contains

@@ -1,0 +1,68 @@
+flowchart TB
+    CodeFile[/LoadedDocument<br/>source_type='code'/]
+
+    subgraph TreeSitter["Tree-Sitter Parsing"]
+        direction TB
+        LoadLang[Load Language Grammar]
+        ParseAST[Parse to AST]
+        QuerySymbols["Query Symbols<br/>(functions, classes, methods)"]
+    end
+
+    CodeFile --> LoadLang
+    LoadLang --> ParseAST
+    ParseAST --> QuerySymbols
+
+    subgraph CodeSplitter["LlamaIndex CodeSplitter"]
+        direction TB
+        SplitLines["Split by Lines<br/>(chunk_lines=40)"]
+        Overlap["Overlap<br/>(chunk_lines_overlap=15)"]
+        MaxChars["Max Characters<br/>(max_chars=1500)"]
+    end
+
+    QuerySymbols --> SplitLines
+    SplitLines --> Overlap
+    Overlap --> MaxChars
+
+    subgraph Enrichment["Metadata Enrichment"]
+        direction TB
+        MapSymbols[Map Chunks to Symbols]
+        FindBest["Find Dominant Symbol<br/>(prefer symbols starting in chunk)"]
+        ExtractDocstring[Extract Docstrings]
+        GenSummary["Generate Summary<br/>(optional, Claude Haiku)"]
+    end
+
+    MaxChars --> MapSymbols
+    MapSymbols --> FindBest
+    FindBest --> ExtractDocstring
+    ExtractDocstring --> GenSummary
+
+    subgraph CodeMeta["CodeChunk Metadata"]
+        direction TB
+        SymbolName[symbol_name]
+        SymbolKind["symbol_kind<br/>(function, class, method)"]
+        StartLine[start_line]
+        EndLine[end_line]
+        Docstring[docstring]
+        Summary[section_summary]
+        Params[parameters]
+        ReturnType[return_type]
+        Decorators[decorators]
+        Imports[imports]
+    end
+
+    GenSummary --> CodeMeta
+
+    CodeMeta --> Output[/List of CodeChunk/]
+
+    classDef input fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+    classDef parser fill:#87CEEB,stroke:#333,stroke-width:2px,color:darkblue
+    classDef splitter fill:#FFE4B5,stroke:#333,stroke-width:2px,color:black
+    classDef enrich fill:#DDA0DD,stroke:#333,stroke-width:2px,color:black
+    classDef meta fill:#E6E6FA,stroke:#333,stroke-width:2px,color:darkblue
+    classDef output fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+
+    class CodeFile,Output input
+    class LoadLang,ParseAST,QuerySymbols parser
+    class SplitLines,Overlap,MaxChars splitter
+    class MapSymbols,FindBest,ExtractDocstring,GenSummary enrich
+    class SymbolName,SymbolKind,StartLine,EndLine,Docstring,Summary,Params,ReturnType,Decorators,Imports meta

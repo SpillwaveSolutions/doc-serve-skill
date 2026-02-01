@@ -1,0 +1,147 @@
+@startuml Indexing Pipeline
+!theme plain
+skinparam backgroundColor #FEFEFE
+
+title IndexingService - Pipeline Components
+
+skinparam component {
+    BackgroundColor<<load>> #E3F2FD
+    BackgroundColor<<chunk>> #E8F5E9
+    BackgroundColor<<embed>> #FFF3E0
+    BackgroundColor<<store>> #FCE4EC
+}
+
+package "Indexing Pipeline" {
+
+    ' Stage 1: Document Loading
+    package "Stage 1: Load" {
+        component [DocumentLoader] <<load>> as loader
+        note right of loader
+            Supported Formats:
+            - Markdown (.md)
+            - Text (.txt)
+            - Source code (multi-lang)
+            - Documentation files
+        end note
+
+        component [LanguageDetector] <<load>> as lang_detect
+        note right of lang_detect
+            Detection Methods:
+            - File extension mapping
+            - Shebang parsing
+            - Content analysis
+        end note
+    }
+
+    ' Stage 2: Chunking
+    package "Stage 2: Chunk" {
+        component [ContextAwareChunker] <<chunk>> as text_chunk
+        note right of text_chunk
+            Document Chunking:
+            - Respect section boundaries
+            - Semantic paragraph grouping
+            - Configurable size/overlap
+        end note
+
+        component [CodeChunker] <<chunk>> as code_chunk
+        note right of code_chunk
+            Code Chunking:
+            - AST parsing (tree-sitter)
+            - Function/class boundaries
+            - Import grouping
+            - Comment preservation
+        end note
+
+        component [ChunkMetadata] <<chunk>> as chunk_meta
+        note right of chunk_meta
+            Metadata Fields:
+            - source (file path)
+            - source_type (doc/code)
+            - language
+            - chunk_index
+            - symbol_name
+            - start_line/end_line
+        end note
+    }
+
+    ' Stage 3: Embedding
+    package "Stage 3: Embed" {
+        component [EmbeddingGenerator] <<embed>> as embedder
+        note right of embedder
+            Configuration:
+            - Model: text-embedding-3-large
+            - Dimensions: 3072
+            - Batch size: 100
+        end note
+
+        component [BatchProcessor] <<embed>> as batcher
+        note right of batcher
+            Optimizations:
+            - Rate limiting
+            - Retry with backoff
+            - Progress tracking
+        end note
+
+        component [SummaryGenerator] <<embed>> as summarizer
+        note right of summarizer
+            Code Summaries:
+            - Claude Haiku model
+            - Function descriptions
+            - Class overviews
+        end note
+    }
+
+    ' Stage 4: Storage
+    package "Stage 4: Store" {
+        component "VectorStore\n(ChromaDB)" <<store>> as vector_db
+        note right of vector_db
+            Operations:
+            - Upsert documents
+            - HNSW index building
+            - Cosine similarity
+        end note
+
+        component [BM25Index] <<store>> as bm25_idx
+        note right of bm25_idx
+            Operations:
+            - Build from nodes
+            - Persist to JSON
+            - Token-based scoring
+        end note
+
+        component [GraphIndex] <<store>> as graph_idx
+        note right of graph_idx
+            Operations:
+            - Extract triplets
+            - Build relationships
+            - Persist graph
+        end note
+    }
+}
+
+' Flow connections
+loader --> lang_detect : detect language
+lang_detect --> text_chunk : documents
+lang_detect --> code_chunk : source code
+
+text_chunk --> chunk_meta : add metadata
+code_chunk --> chunk_meta : add metadata
+
+chunk_meta --> embedder : chunks with metadata
+embedder --> batcher : batch requests
+batcher --> summarizer : optional summaries
+
+batcher --> vector_db : embeddings
+chunk_meta --> bm25_idx : text nodes
+chunk_meta --> graph_idx : for extraction
+
+' Pipeline interface
+interface "IndexRequest" as idx_req
+interface "IndexResponse" as idx_resp
+interface "ProgressCallback" as progress
+
+idx_req --> loader
+graph_idx --> idx_resp
+batcher ..> progress : status updates
+
+@enduml

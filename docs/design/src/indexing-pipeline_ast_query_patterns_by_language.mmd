@@ -1,0 +1,33 @@
+flowchart LR
+    subgraph Python["Python Queries"]
+        PyFunc["function_definition<br/>@name: identifier"]
+        PyClass["class_definition<br/>@name: identifier"]
+    end
+
+    subgraph TypeScript["TypeScript/JS Queries"]
+        TSFunc["function_declaration<br/>@name: identifier"]
+        TSMethod["method_definition<br/>@name: property_identifier"]
+        TSClass["class_declaration<br/>@name: type_identifier"]
+        TSArrow["variable_declarator<br/>@name + arrow_function"]
+    end
+
+    subgraph Java["Java Queries"]
+        JMethod["method_declaration<br/>@name: identifier"]
+        JClass["class_declaration<br/>@name: identifier"]
+    end
+
+    subgraph Go["Go Queries"]
+        GoFunc["function_declaration<br/>@name: identifier"]
+        GoMethod["method_declaration<br/>@name: field_identifier"]
+        GoType["type_declaration<br/>type_spec @name"]
+    end
+
+    classDef python fill:#3572A5,stroke:#333,stroke-width:2px,color:white
+    classDef typescript fill:#3178C6,stroke:#333,stroke-width:2px,color:white
+    classDef java fill:#B07219,stroke:#333,stroke-width:2px,color:white
+    classDef go fill:#00ADD8,stroke:#333,stroke-width:2px,color:white
+
+    class PyFunc,PyClass python
+    class TSFunc,TSMethod,TSClass,TSArrow typescript
+    class JMethod,JClass java
+    class GoFunc,GoMethod,GoType go

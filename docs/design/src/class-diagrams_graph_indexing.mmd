@@ -1,0 +1,45 @@
+classDiagram
+    class GraphIndexManager {
+        -GraphStoreManager graph_store
+        -LLMEntityExtractor llm_extractor
+        -CodeMetadataExtractor code_extractor
+        -datetime _last_build_time
+        -int _last_triplet_count
+
+        +build_from_documents(documents, progress_callback) int
+        +query(query_text, top_k, traversal_depth) list~dict~
+        +get_graph_context(query_text, top_k, traversal_depth) GraphQueryContext
+        +get_status() GraphIndexStatus
+        +clear() None
+
+        -_extract_from_document(doc) list~GraphTriple~
+        -_get_document_text(doc) str
+        -_get_document_metadata(doc) dict
+        -_get_document_id(doc) str
+        -_extract_query_entities(query_text) list~str~
+        -_find_entity_relationships(entity, depth, max_results) list~dict~
+        -_get_triplet_field(triplet, field, default) Any
+        -_format_relationship_path(triplet) str
+    }
+
+    class LLMEntityExtractor {
+        -AsyncAnthropic client
+        -str model
+        -int max_triplets
+
+        +extract_triplets(text, source_chunk_id) list~GraphTriple~
+
+        -_parse_extraction_response(response, source_chunk_id) list~GraphTriple~
+    }
+
+    class CodeMetadataExtractor {
+        +extract_from_metadata(metadata, source_chunk_id) list~GraphTriple~
+        +extract_from_text(text, language, source_chunk_id) list~GraphTriple~
+
+        -_extract_python_patterns(text, source_chunk_id) list~GraphTriple~
+        -_extract_typescript_patterns(text, source_chunk_id) list~GraphTriple~
+    }
+
+    GraphIndexManager --> LLMEntityExtractor : uses
+    GraphIndexManager --> CodeMetadataExtractor : uses
+    GraphIndexManager --> GraphStoreManager : uses

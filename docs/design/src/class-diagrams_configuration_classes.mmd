@@ -1,0 +1,48 @@
+classDiagram
+    class Settings {
+        <<pydantic_settings.BaseSettings>>
+        +str API_HOST
+        +int API_PORT
+        +bool DEBUG
+        +str OPENAI_API_KEY
+        +str EMBEDDING_MODEL
+        +int EMBEDDING_DIMENSIONS
+        +str ANTHROPIC_API_KEY
+        +str CLAUDE_MODEL
+        +str CHROMA_PERSIST_DIR
+        +str BM25_INDEX_PATH
+        +str COLLECTION_NAME
+        +int DEFAULT_CHUNK_SIZE
+        +int DEFAULT_CHUNK_OVERLAP
+        +int MAX_CHUNK_SIZE
+        +int MIN_CHUNK_SIZE
+        +int DEFAULT_TOP_K
+        +int MAX_TOP_K
+        +float DEFAULT_SIMILARITY_THRESHOLD
+        +int EMBEDDING_BATCH_SIZE
+        +str DOC_SERVE_STATE_DIR
+        +str DOC_SERVE_MODE
+        +bool ENABLE_GRAPH_INDEX
+        +str GRAPH_STORE_TYPE
+        +str GRAPH_INDEX_PATH
+        +str GRAPH_EXTRACTION_MODEL
+        +int GRAPH_MAX_TRIPLETS_PER_CHUNK
+        +bool GRAPH_USE_CODE_METADATA
+        +bool GRAPH_USE_LLM_EXTRACTION
+        +int GRAPH_TRAVERSAL_DEPTH
+        +int GRAPH_RRF_K
+    }
+
+    class RuntimeState {
+        +str mode
+        +str project_root
+        +str bind_host
+        +int port
+        +int pid
+        +str base_url
+        +str instance_id
+        +str project_id
+        +datetime started_at
+    }
+
+    Settings <-- RuntimeState : configured_by

@@ -1,0 +1,20 @@
+flowchart TD
+    Start([Query Type?])
+
+    Start -->|"Exact terms, symbols,<br/>error messages"| BM25
+    Start -->|"Conceptual question,<br/>'how does X work'"| VECTOR
+    Start -->|"General search,<br/>unsure what to use"| HYBRID
+    Start -->|"Entity relationships,<br/>'what uses X'"| GRAPH
+    Start -->|"Maximum recall,<br/>research task"| MULTI
+
+    BM25[Use BM25 Mode]
+    VECTOR[Use Vector Mode]
+    HYBRID[Use Hybrid Mode]
+    GRAPH[Use Graph Mode]
+    MULTI[Use Multi Mode]
+
+    classDef start fill:#FFD700,stroke:#333,stroke-width:2px,color:black
+    classDef mode fill:#90EE90,stroke:#333,stroke-width:2px,color:darkgreen
+
+    class Start start
+    class BM25,VECTOR,HYBRID,GRAPH,MULTI mode

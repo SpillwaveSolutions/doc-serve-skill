@@ -1,0 +1,47 @@
+@startuml State Machine Summary
+!theme plain
+left to right direction
+
+package "Server Lifecycle" {
+    [Stopped] --> [Starting]
+    [Starting] --> [Running]
+    [Running] --> [Stopping]
+    [Stopping] --> [Stopped]
+}
+
+package "Index Lifecycle" {
+    [Empty] --> [Indexing]
+    [Indexing] --> [Ready]
+    [Ready] --> [Updating]
+    [Updating] --> [Ready]
+    [Ready] --> [Resetting]
+    [Resetting] --> [Empty]
+}
+
+package "Health Status" {
+    [Healthy] --> [Indexing_H]
+    [Indexing_H] --> [Healthy]
+    [Healthy] --> [Degraded]
+    [Degraded] --> [Healthy]
+    [Degraded] --> [Unhealthy]
+}
+
+note bottom of "Server Lifecycle"
+    Managed by CLI:
+    - start, stop, list
+end note
+
+note bottom of "Index Lifecycle"
+    Managed by API:
+    - POST /index
+    - POST /index/add
+    - DELETE /index
+end note
+
+note bottom of "Health Status"
+    Monitored by:
+    - GET /health/
+    - GET /health/status
+end note
+
+@enduml
