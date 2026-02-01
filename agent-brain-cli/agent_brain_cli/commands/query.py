@@ -38,8 +38,10 @@ console = Console()
     "-m",
     "--mode",
     default="hybrid",
-    type=click.Choice(["vector", "bm25", "hybrid"], case_sensitive=False),
-    help="Retrieval mode (default: hybrid)",
+    type=click.Choice(
+        ["vector", "bm25", "hybrid", "graph", "multi"], case_sensitive=False
+    ),
+    help="Retrieval mode. 'graph' uses knowledge graph, 'multi' combines all.",
 )
 @click.option(
     "-a",

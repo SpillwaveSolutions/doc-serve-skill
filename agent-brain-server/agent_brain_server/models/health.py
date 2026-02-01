@@ -1,7 +1,7 @@
 """Health status models."""
 
 from datetime import datetime, timezone
-from typing import Literal, Optional
+from typing import Any, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -105,6 +105,11 @@ class IndexingStatus(BaseModel):
         default_factory=list,
         description="List of folders that have been indexed",
     )
+    # Graph index status (Feature 113)
+    graph_index: Optional[dict[str, Any]] = Field(
+        default=None,
+        description="Graph index status with entity_count, relationship_count, etc.",
+    )
 
     model_config = {
         "json_schema_extra": {
@@ -120,6 +125,13 @@ class IndexingStatus(BaseModel):
                     "last_indexed_at": "2024-12-15T10:30:00Z",
                     "indexed_folders": ["/path/to/docs"],
                     "supported_languages": ["python", "typescript", "java"],
+                    "graph_index": {
+                        "enabled": True,
+                        "initialized": True,
+                        "entity_count": 120,
+                        "relationship_count": 250,
+                        "store_type": "simple",
+                    },
                 }
             ]
         }

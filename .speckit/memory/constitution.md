@@ -16,7 +16,7 @@ Templates requiring updates:
 Follow-up TODOs: None
 -->
 
-# Doc-Serve Constitution
+# Agent Brain Constitution
 
 A document indexing and retrieval system providing vector search, BM25 keyword search,
 and hybrid retrieval via REST API, with Claude Code skill integration.
@@ -27,10 +27,10 @@ and hybrid retrieval via REST API, with Claude Code skill integration.
 
 Each package in the monorepo MUST be independently testable and releasable:
 
-- **doc-serve-server**: FastAPI REST server - MUST have its own test suite, dependencies,
+- **agent-brain-server**: FastAPI REST server - MUST have its own test suite, dependencies,
   and deployment configuration
-- **doc-serve-skill**: Claude Code skill - MUST function independently given a running server
-- **doc-svr-ctl**: CLI tool - MUST be installable and usable without importing server internals
+- **agent-brain-skill**: Claude Code skill - MUST function independently given a running server
+- **agent-brain-cli**: CLI tool - MUST be installable and usable without importing server internals
 
 Cross-package dependencies MUST flow in one direction: `skill/ctl → server` (never reverse).
 Shared types or contracts MUST be defined in a shared location or duplicated explicitly.
@@ -123,7 +123,7 @@ Follow conventional commits: `type(scope): description`
 
 ## Governance
 
-This constitution supersedes all other development practices for Doc-Serve.
+This constitution supersedes all other development practices for Agent Brain.
 
 ### Amendment Process
 

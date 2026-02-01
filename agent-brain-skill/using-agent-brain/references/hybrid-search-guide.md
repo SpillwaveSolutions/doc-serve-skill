@@ -25,16 +25,16 @@ Hybrid search combines the best of both vector semantic search and BM25 keyword 
 
 ```bash
 # Basic hybrid search (default mode)
-doc-svr-ctl query "implement authentication with error handling"
+agent-brain query "implement authentication with error handling"
 
 # With alpha weighting (70% vector, 30% BM25)
-doc-svr-ctl query "oauth flow implementation" --alpha 0.7
+agent-brain query "oauth flow implementation" --alpha 0.7
 
 # Show individual scores for debugging
-doc-svr-ctl query "troubleshooting guide" --scores
+agent-brain query "troubleshooting guide" --scores
 
 # Custom settings for precision
-doc-svr-ctl query "api documentation" --alpha 0.8 --threshold 0.6 --top-k 8
+agent-brain query "api documentation" --alpha 0.8 --threshold 0.6 --top-k 8
 ```
 
 ### API Usage
@@ -126,7 +126,7 @@ Hybrid search uses **Relative Score Fusion**:
 
 ### Example 1: Technical Implementation Query
 
-**Query:** `doc-svr-ctl query "implement OAuth2 authentication with JWT tokens" --alpha 0.6 --scores`
+**Query:** `agent-brain query "implement OAuth2 authentication with JWT tokens" --alpha 0.6 --scores`
 
 **Response:**
 ```json
@@ -164,7 +164,7 @@ Hybrid search uses **Relative Score Fusion**:
 
 ### Example 2: Troubleshooting Query
 
-**Query:** `doc-svr-ctl query "fix HTTP 500 errors in production deployment"`
+**Query:** `agent-brain query "fix HTTP 500 errors in production deployment"`
 
 **Response:**
 ```json
@@ -220,19 +220,19 @@ Hybrid search uses **Relative Score Fusion**:
 ### Technical Documentation Focus
 ```bash
 # Favor BM25 for technical docs
-doc-svr-ctl query "implement caching strategy" --alpha 0.3 --threshold 0.8
+agent-brain query "implement caching strategy" --alpha 0.3 --threshold 0.8
 ```
 
 ### Conceptual Documentation Focus
 ```bash
 # Favor vector for conceptual docs
-doc-svr-ctl query "understand microservices architecture" --alpha 0.8 --threshold 0.6
+agent-brain query "understand microservices architecture" --alpha 0.8 --threshold 0.6
 ```
 
 ### Balanced General Queries
 ```bash
 # Default balanced approach
-doc-svr-ctl query "how to optimize database queries" --alpha 0.5 --top-k 10
+agent-brain query "how to optimize database queries" --alpha 0.5 --top-k 10
 ```
 
 ## Common Issues
@@ -248,13 +248,13 @@ doc-svr-ctl query "how to optimize database queries" --alpha 0.5 --top-k 10
 ```bash
 #!/bin/bash
 # Comprehensive search with balanced weighting
-doc-svr-ctl query "$1" --mode hybrid --alpha 0.5 --json | jq '.results[0]'
+agent-brain query "$1" --mode hybrid --alpha 0.5 --json | jq '.results[0]'
 ```
 
 ### With Other Tools
 ```bash
 # Find comprehensive documentation
-doc-svr-ctl query "complete $TOPIC guide" --mode hybrid --alpha 0.6 --json | jq -r '.results[].source'
+agent-brain query "complete $TOPIC guide" --mode hybrid --alpha 0.6 --json | jq -r '.results[].source'
 ```
 
 ### API Integration
@@ -271,14 +271,76 @@ response = requests.post('http://localhost:8000/query/', json={
 results = response.json()['results']
 ```
 
+## Multi-Mode Fusion (Graph + Hybrid)
+
+When GraphRAG is enabled, you can use `multi` mode to combine all four retrieval methods: Vector, BM25, Hybrid, and Graph. Multi-mode uses Reciprocal Rank Fusion (RRF) to merge results from all sources.
+
+### How Multi-Mode Works
+
+1. **Execute All Retrievers**: Run vector, BM25, and graph searches in parallel
+2. **Compute Hybrid Score**: Combine vector + BM25 using alpha weighting
+3. **Apply RRF**: Merge hybrid and graph results using Reciprocal Rank Fusion
+4. **Re-rank Results**: Sort by combined RRF scores
+5. **Deduplicate**: Remove duplicate chunks from overlapping matches
+
+### RRF Formula
+
+```
+RRF_score = sum(1 / (k + rank_i)) for each retriever i
+```
+
+Where `k` is a smoothing constant (default: 60) and `rank_i` is the result's rank in retriever `i`.
+
+### When to Use Multi-Mode
+
+**Choose multi mode when:**
+- Need the most comprehensive results possible
+- Want both content relevance AND relationship context
+- Investigating complex code paths
+- Uncertain which single mode would work best
+- Building knowledge exploration workflows
+
+### Multi-Mode Usage
+
+```bash
+# CLI: Multi-mode with relationship details
+agent-brain query "complete authentication implementation" --mode multi --include-relationships
+
+# CLI: Multi-mode with custom settings
+agent-brain query "payment processing flow" --mode multi --top-k 10 --traversal-depth 3
+```
+
+```python
+# API: Multi-mode request
+response = requests.post('http://localhost:8000/query/', json={
+    'query': 'authentication flow with all dependencies',
+    'mode': 'multi',
+    'alpha': 0.6,
+    'traversal_depth': 2,
+    'include_relationships': True,
+    'top_k': 10
+})
+```
+
+### Multi-Mode Performance
+
+- **Response Time**: 1500-2500ms (all retrievers + fusion)
+- **Memory Usage**: Highest (loads all indexes)
+- **Best Results**: Combines strengths of all retrieval methods
+
+See [Graph Search Guide](graph-search-guide.md) for detailed GraphRAG documentation.
+
+---
+
 ## Comparison Matrix
 
-| Aspect | BM25 | Vector | Hybrid |
-|--------|------|--------|--------|
-| **Accuracy** | High (exact) | High (semantic) | Highest (both) |
-| **Speed** | ⚡ Fastest | 🐌 Slow | 🐌 Slow-Medium |
-| **API Required** | ❌ No | ✅ Yes | ✅ Yes |
-| **Best For** | Technical terms | Concepts | General use |
-| **Tuning** | Threshold only | Threshold only | Alpha + threshold |
-| **Transparency** | Single score | Single score | Dual scores |
-| **Cost** | Free | API credits | API credits |
+| Aspect | BM25 | Vector | Hybrid | Graph | Multi |
+|--------|------|--------|--------|-------|-------|
+| **Accuracy** | High (exact) | High (semantic) | Highest (both) | High (relationships) | Comprehensive |
+| **Speed** | Fastest | Slow | Slow-Medium | Medium | Slowest |
+| **API Required** | No | Yes | Yes | Yes | Yes |
+| **Best For** | Technical terms | Concepts | General use | Dependencies | Everything |
+| **Tuning** | Threshold only | Threshold only | Alpha + threshold | Depth + threshold | All options |
+| **Transparency** | Single score | Single score | Dual scores | Graph score | All scores |
+| **Cost** | Free | API credits | API credits | API credits | API credits |
+| **Relationships** | No | No | No | Yes | Yes |

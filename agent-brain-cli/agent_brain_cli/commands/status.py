@@ -94,6 +94,19 @@ def status_command(url: str, json_output: bool) -> None:
             if indexing.last_indexed_at:
                 table.add_row("Last Indexed", indexing.last_indexed_at)
 
+            # Show graph index status if available (Feature 113)
+            graph_status = getattr(indexing, "graph_index", None)
+            if graph_status:
+                if graph_status.get("enabled"):
+                    entities = graph_status.get("entity_count", 0)
+                    rels = graph_status.get("relationship_count", 0)
+                    table.add_row(
+                        "Graph Index",
+                        f"[green]Enabled[/] - {entities} entities, {rels} rels",
+                    )
+                else:
+                    table.add_row("Graph Index", "[dim]Disabled[/]")
+
             console.print(table)
 
     except ConnectionError as e:

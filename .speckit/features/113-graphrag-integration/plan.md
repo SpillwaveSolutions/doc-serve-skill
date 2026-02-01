@@ -5,7 +5,7 @@
 
 ## Summary
 
-Add optional GraphRAG capabilities to doc-serve using LlamaIndex's PropertyGraphIndex with SimplePropertyGraphStore (default) and Kuzu (optional) backends. This extends the existing hybrid retrieval system with two new query modes: GRAPH (graph-only traversal) and MULTI (vector + BM25 + graph fusion using RRF). The feature is disabled by default and can be enabled via `ENABLE_GRAPH_INDEX=true`.
+Add optional GraphRAG capabilities to Agent Brain using LlamaIndex's PropertyGraphIndex with SimplePropertyGraphStore (default) and Kuzu (optional) backends. This extends the existing hybrid retrieval system with two new query modes: GRAPH (graph-only traversal) and MULTI (vector + BM25 + graph fusion using RRF). The feature is disabled by default and can be enabled via `ENABLE_GRAPH_INDEX=true`.
 
 ## Technical Context
 
@@ -14,7 +14,7 @@ Add optional GraphRAG capabilities to doc-serve using LlamaIndex's PropertyGraph
 **Storage**: ChromaDB (vector), disk-based BM25 index (existing), SimplePropertyGraphStore/Kuzu (new graph storage)
 **Testing**: pytest with async support (existing pattern)
 **Target Platform**: Linux/macOS server, local development
-**Project Type**: Monorepo (doc-serve-server, doc-svr-ctl, doc-serve-skill)
+**Project Type**: Monorepo (agent-brain-server, agent-brain-cli, agent-brain-skill)
 **Performance Goals**: Graph queries < 2s for 10k documents; no latency impact when disabled
 **Constraints**: GraphRAG disabled by default; optional dependencies only installed when needed
 **Scale/Scope**: Up to 10,000 documents with graph index; configurable triplet limits
@@ -25,7 +25,7 @@ Add optional GraphRAG capabilities to doc-serve using LlamaIndex's PropertyGraph
 
 | Principle | Status | Notes |
 |-----------|--------|-------|
-| I. Monorepo Modularity | ✅ PASS | Changes confined to doc-serve-server; CLI updates extend existing patterns |
+| I. Monorepo Modularity | ✅ PASS | Changes confined to agent-brain-server; CLI updates extend existing patterns |
 | II. OpenAPI-First | ✅ PASS | New query modes added to existing QueryMode enum; contracts defined in contracts/ |
 | III. Test-Alongside | ✅ PASS | Unit, integration, and contract tests required for each component |
 | IV. Observability | ✅ PASS | Graph status in /health/status; structured logging for graph operations |
@@ -49,8 +49,8 @@ Add optional GraphRAG capabilities to doc-serve using LlamaIndex's PropertyGraph
 ### Source Code (repository root)
 
 ```text
-doc-serve-server/
-├── doc_serve_server/
+agent-brain-server/
+├── agent_brain_server/
 │   ├── config/
 │   │   └── settings.py           # MODIFY: Add graph settings
 │   ├── storage/
@@ -78,8 +78,8 @@ doc-serve-server/
     └── contract/
         └── test_query_modes.py       # NEW
 
-doc-svr-ctl/
-├── doc_svr_ctl/
+agent-brain-cli/
+├── agent_brain_cli/
 │   └── commands/
 │       └── query.py              # MODIFY: Add --mode graph, --mode multi
 └── tests/

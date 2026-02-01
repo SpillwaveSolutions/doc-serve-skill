@@ -55,6 +55,7 @@ class TestResolveStoragePaths:
             "chroma_db",
             "bm25_index",
             "llamaindex",
+            "graph_index",
             "logs",
         }
         assert set(paths.keys()) == expected_keys

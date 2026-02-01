@@ -3,14 +3,14 @@
 # Date: 2026-01-30
 #
 # This file defines the API contract changes for the GraphRAG feature.
-# These additions extend the existing doc-serve OpenAPI specification.
+# These additions extend the existing Agent Brain OpenAPI specification.
 
 openapi: 3.0.3
 info:
-  title: Doc-Serve GraphRAG Extensions
+  title: Agent Brain GraphRAG Extensions
   version: 1.1.0
   description: |
-    GraphRAG extension to doc-serve API adding graph-based retrieval modes.
+    GraphRAG extension to Agent Brain API adding graph-based retrieval modes.
 
 components:
   schemas:

@@ -3,13 +3,13 @@
 **Feature Branch**: `113-graphrag-integration`
 **Created**: 2026-01-30
 **Status**: Draft
-**Input**: User description: "Add optional GraphRAG capabilities to doc-serve using LlamaIndex PropertyGraphIndex"
+**Input**: User description: "Add optional GraphRAG capabilities to Agent Brain using LlamaIndex PropertyGraphIndex"
 
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Enable Graph-Based Document Retrieval (Priority: P1)
 
-As a developer using doc-serve, I want to enable optional GraphRAG capabilities so that I can discover relationships between concepts, entities, and code elements that keyword and vector search alone would miss.
+As a developer using Agent Brain, I want to enable optional GraphRAG capabilities so that I can discover relationships between concepts, entities, and code elements that keyword and vector search alone would miss.
 
 **Why this priority**: This is the core value proposition - enabling knowledge graph-based retrieval that surfaces hidden relationships between documents and code. Without this, the feature provides no value.
 

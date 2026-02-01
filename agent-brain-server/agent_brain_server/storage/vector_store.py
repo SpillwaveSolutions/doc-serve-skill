@@ -260,6 +260,41 @@ class VectorStoreManager:
                 return 0
             return self._collection.count()
 
+    async def get_by_id(self, chunk_id: str) -> Optional[dict[str, Any]]:
+        """
+        Get a document by its chunk ID.
+
+        Args:
+            chunk_id: The unique identifier of the chunk.
+
+        Returns:
+            Dictionary with 'text' and 'metadata' keys, or None if not found.
+        """
+        if not self.is_initialized:
+            return None
+
+        async with self._lock:
+            assert self._collection is not None
+            try:
+                results = self._collection.get(
+                    ids=[chunk_id],
+                    include=["documents", "metadatas"],  # type: ignore[list-item]
+                )
+
+                if results["ids"] and results["ids"]:
+                    documents = results.get("documents", [[]])
+                    metadatas = results.get("metadatas", [[]])
+                    text = documents[0] if documents else ""
+                    metadata = metadatas[0] if metadatas else {}
+                    return {
+                        "text": text,
+                        "metadata": metadata if metadata else {},
+                    }
+            except Exception as e:
+                logger.warning(f"Failed to get document by ID {chunk_id}: {e}")
+
+            return None
+
     async def delete_collection(self) -> None:
         """
         Delete the entire collection.

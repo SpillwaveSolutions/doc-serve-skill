@@ -51,6 +51,17 @@ class Settings(BaseSettings):
     DOC_SERVE_STATE_DIR: Optional[str] = None  # Override state directory
     DOC_SERVE_MODE: str = "project"  # "project" or "shared"
 
+    # GraphRAG Configuration (Feature 113)
+    ENABLE_GRAPH_INDEX: bool = False  # Master switch for graph indexing
+    GRAPH_STORE_TYPE: str = "simple"  # "simple" (in-memory) or "kuzu" (persistent)
+    GRAPH_INDEX_PATH: str = "./graph_index"  # Path for graph persistence
+    GRAPH_EXTRACTION_MODEL: str = "claude-haiku-4-5"  # Model for entity extraction
+    GRAPH_MAX_TRIPLETS_PER_CHUNK: int = 10  # Max triplets per document chunk
+    GRAPH_USE_CODE_METADATA: bool = True  # Use AST metadata for code entities
+    GRAPH_USE_LLM_EXTRACTION: bool = True  # Use LLM for additional extraction
+    GRAPH_TRAVERSAL_DEPTH: int = 2  # Depth for graph traversal in queries
+    GRAPH_RRF_K: int = 60  # Reciprocal Rank Fusion constant for multi-retrieval
+
     model_config = SettingsConfigDict(
         env_file=[
             ".env",  # Current directory
