@@ -5,9 +5,9 @@ description = "Agent Brain RAG - Intelligent document indexing and semantic sear
 authors = ["Spillwave Solutions"]
 readme = "README.md"
 license = "MIT"
-homepage = "https://github.com/SpillwaveSolutions/doc-serve"
-repository = "https://github.com/SpillwaveSolutions/doc-serve"
-documentation = "https://github.com/SpillwaveSolutions/doc-serve#readme"
+homepage = "https://github.com/SpillwaveSolutions/agent-brain"
+repository = "https://github.com/SpillwaveSolutions/agent-brain"
+documentation = "https://github.com/SpillwaveSolutions/agent-brain/wiki"
 keywords = ["agent-brain", "rag", "semantic-search", "ai-memory", "llm-memory", "documentation", "indexing", "llama-index", "chromadb", "ai-agent", "claude-code", "agent-memory"]
 classifiers = [
     "Development Status :: 4 - Beta",

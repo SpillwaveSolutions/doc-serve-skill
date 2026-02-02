@@ -1,6 +1,12 @@
 # Agent Brain RAG Server
 
-Intelligent document indexing and semantic search REST API service that gives AI agents long-term memory.
+> **Agent Brain** (formerly doc-serve) is an intelligent document indexing and semantic search system designed to give AI agents long-term memory.
+
+AI agents need persistent memory to be truly useful. Agent Brain provides the retrieval infrastructure that enables context-aware, knowledge-grounded AI interactions.
+
+[![PyPI version](https://badge.fury.io/py/agent-brain-rag.svg)](https://pypi.org/project/agent-brain-rag/)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 ## Installation
 
@@ -25,25 +31,34 @@ The server will start at `http://127.0.0.1:8000`.
 
 > **Note**: The legacy command `doc-serve` is still available but deprecated. Please use `agent-brain-serve` for new installations.
 
+## Search Capabilities
+
+Agent Brain provides multiple search strategies to match your retrieval needs:
+
+| Search Type | Description | Best For |
+|-------------|-------------|----------|
+| **Semantic Search** | Natural language queries using OpenAI embeddings (`text-embedding-3-large`) | Conceptual questions, finding related content |
+| **Keyword Search (BM25)** | Traditional keyword matching with TF-IDF ranking | Exact matches, technical terms, code identifiers |
+| **Hybrid Search** | Combines vector + BM25 for best of both approaches | General-purpose queries, balanced recall/precision |
+| **GraphRAG** | Knowledge graph-based retrieval for relationship-aware queries | Understanding connections, multi-hop reasoning |
+
 ## Features
 
 - **Document Indexing**: Load and index documents from folders (PDF, Markdown, TXT, DOCX, HTML)
 - **AST-Aware Code Ingestion**: Smart parsing for Python, TypeScript, JavaScript, Java, Go, Rust, C, C++
-- **Hybrid Search**: Combines BM25 keyword matching with semantic similarity
-- **Semantic Search**: Query indexed documents using natural language
+- **Multi-Strategy Retrieval**: Semantic, keyword, hybrid, and graph-based search
 - **OpenAI Embeddings**: Uses `text-embedding-3-large` for high-quality embeddings
+- **Claude Summarization**: AI-powered code summaries for better context
 - **Chroma Vector Store**: Persistent, thread-safe vector database
 - **FastAPI**: Modern, high-performance REST API with OpenAPI documentation
 
-## Quick Start
-
-### Prerequisites
+## Prerequisites
 
 - Python 3.10+
-- Poetry
-- OpenAI API key
+- OpenAI API key (for embeddings)
+- Anthropic API key (for summarization)
 
-### Installation
+## Development Installation
 
 ```bash
 cd agent-brain-server
@@ -61,6 +76,7 @@ cp ../.env.example .env
 
 Required environment variables:
 - `OPENAI_API_KEY`: Your OpenAI API key for embeddings
+- `ANTHROPIC_API_KEY`: Your Anthropic API key for summarization
 
 ### Running the Server
 
@@ -71,8 +87,6 @@ poetry run uvicorn agent_brain_server.api.main:app --reload
 # Or use the entry point
 poetry run agent-brain-serve
 ```
-
-The server will start at `http://127.0.0.1:8000`.
 
 ### API Documentation
 
@@ -158,6 +172,22 @@ poetry run ruff check agent_brain_server/
 ```bash
 poetry run mypy agent_brain_server/
 ```
+
+## Documentation
+
+- [User Guide](https://github.com/SpillwaveSolutions/agent-brain/wiki/User-Guide) - Getting started and usage
+- [Developer Guide](https://github.com/SpillwaveSolutions/agent-brain/wiki/Developer-Guide) - Contributing and development
+- [API Reference](https://github.com/SpillwaveSolutions/agent-brain/wiki/API-Reference) - Full API documentation
+
+## Release Information
+
+- **Current Version**: See [pyproject.toml](./pyproject.toml)
+- **Release Notes**: [GitHub Releases](https://github.com/SpillwaveSolutions/agent-brain/releases)
+- **Changelog**: [Latest Release](https://github.com/SpillwaveSolutions/agent-brain/releases/latest)
+
+## Related Packages
+
+- [agent-brain-cli](https://pypi.org/project/agent-brain-cli/) - Command-line interface for Agent Brain
 
 ## License
 
