@@ -1,0 +1,127 @@
+# Publish to PyPI on Release
+# Triggered when a new release is published on GitHub
+#
+# Security: Uses PyPI Trusted Publisher (OIDC) authentication - no API tokens needed
+# Both packages (agent-brain-rag, agent-brain-cli) are published in parallel after quality gate
+
+name: Publish to PyPI
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  id-token: write  # Required for OIDC authentication with PyPI
+
+jobs:
+  quality-gate:
+    name: Quality Gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Task
+        uses: arduino/setup-task@v2
+        with:
+          version: 3.43.3
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.7.1
+          virtualenvs-create: true
+          virtualenvs-in-project: true
+
+      - name: Cache Poetry dependencies (server)
+        uses: actions/cache@v4
+        with:
+          path: agent-brain-server/.venv
+          key: server-venv-${{ runner.os }}-${{ hashFiles('agent-brain-server/poetry.lock') }}
+          restore-keys: |
+            server-venv-${{ runner.os }}-
+
+      - name: Cache Poetry dependencies (cli)
+        uses: actions/cache@v4
+        with:
+          path: agent-brain-cli/.venv
+          key: cli-venv-${{ runner.os }}-${{ hashFiles('agent-brain-cli/poetry.lock') }}
+          restore-keys: |
+            cli-venv-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: task install
+
+      - name: Run linting
+        run: task lint
+
+      - name: Run type checking
+        run: task typecheck
+
+      - name: Run tests
+        run: task test
+
+  publish-server:
+    name: Publish agent-brain-rag
+    needs: quality-gate
+    runs-on: ubuntu-latest
+    environment: pypi
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.7.1
+
+      - name: Build package
+        run: poetry build
+        working-directory: agent-brain-server
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: agent-brain-server/dist/
+
+  publish-cli:
+    name: Publish agent-brain-cli
+    needs: quality-gate
+    runs-on: ubuntu-latest
+    environment: pypi
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry
+        uses: snok/install-poetry@v1
+        with:
+          version: 1.7.1
+
+      - name: Build package
+        run: poetry build
+        working-directory: agent-brain-cli
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: agent-brain-cli/dist/

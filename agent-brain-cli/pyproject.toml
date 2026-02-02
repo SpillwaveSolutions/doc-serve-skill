@@ -5,8 +5,9 @@ description = "Agent Brain CLI - Command-line interface for managing AI agent me
 authors = ["Spillwave Solutions"]
 readme = "README.md"
 license = "MIT"
-homepage = "https://github.com/SpillwaveSolutions/doc-serve"
-repository = "https://github.com/SpillwaveSolutions/doc-serve"
+homepage = "https://github.com/SpillwaveSolutions/agent-brain"
+repository = "https://github.com/SpillwaveSolutions/agent-brain"
+documentation = "https://github.com/SpillwaveSolutions/agent-brain/wiki"
 keywords = ["agent-brain", "rag", "cli", "ai-memory", "llm-memory", "semantic-search", "ai-agent", "claude-code", "agent-memory"]
 classifiers = [
     "Development Status :: 4 - Beta",
