@@ -132,11 +132,11 @@ If no provider is specified, use AskUserQuestion:
 Which summarization provider would you like to use?
 
 Options:
-1. Anthropic (claude-haiku-4-5-20251001) - High quality, code-aware (Recommended)
-2. OpenAI (gpt-5-mini) - Fast, cost-effective
-3. Gemini (gemini-3-flash) - Large context support
-4. Grok (grok-4) - xAI's model
-5. Ollama (llama4:scout) - Local, no API key required
+1. Ollama (llama3.2) - FREE, local, no API key required
+2. Anthropic (claude-haiku-4-5-20251001) - High quality, code-aware
+3. OpenAI (gpt-5-mini) - Fast, cost-effective
+4. Gemini (gemini-3-flash) - Large context support
+5. Grok (grok-4) - xAI's model
 ```
 
 ### Direct Configuration

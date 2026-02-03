@@ -100,9 +100,9 @@ If no provider is specified, use AskUserQuestion:
 Which embedding provider would you like to use?
 
 Options:
-1. OpenAI (text-embedding-3-large) - High quality, cloud-based (Recommended)
-2. Cohere (embed-english-v3.0) - Multi-language support
-3. Ollama (nomic-embed-text) - Local, no API key required
+1. Ollama (nomic-embed-text) - FREE, local, no API key required
+2. OpenAI (text-embedding-3-large) - High quality, cloud-based
+3. Cohere (embed-english-v3.0) - Multi-language support
 ```
 
 ### Direct Configuration

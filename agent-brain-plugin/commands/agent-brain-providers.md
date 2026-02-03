@@ -80,9 +80,9 @@ Options:
 Which embedding provider would you like to use?
 
 Options:
-1. OpenAI (text-embedding-3-large) - High quality, cloud-based
-2. Cohere (embed-english-v3.0) - Multi-language support
-3. Ollama (nomic-embed-text) - Local, no API key required
+1. Ollama (nomic-embed-text) - FREE, local, no API key required
+2. OpenAI (text-embedding-3-large) - High quality, cloud-based
+3. Cohere (embed-english-v3.0) - Multi-language support
 ```
 
 **Step 3: For summarization, choose provider**
@@ -90,11 +90,11 @@ Options:
 Which summarization provider would you like to use?
 
 Options:
-1. Anthropic (claude-haiku-4-5-20251001) - High quality
-2. OpenAI (gpt-5-mini) - Fast, cost-effective
-3. Gemini (gemini-3-flash) - Google's model
-4. Grok (grok-4) - xAI's model
-5. Ollama (llama4:scout) - Local, no API key required
+1. Ollama (llama3.2) - FREE, local, no API key required
+2. Anthropic (claude-haiku-4-5-20251001) - High quality
+3. OpenAI (gpt-5-mini) - Fast, cost-effective
+4. Gemini (gemini-3-flash) - Google's model
+5. Grok (grok-4) - xAI's model
 ```
 
 **Step 4: Generate configuration**
