@@ -41,6 +41,12 @@ rm -rf ~/.claude/plugins/cache/agent-brain-marketplace ~/.claude/plugins/agent-b
 # rm -rf ~/.claude/agent-brain ./.claude/agent-brain
 ```
 
+### Local vs PyPI dependency toggle
+
+- `./install.sh --use-path-deps` switches `agent-brain-cli` to depend on the local server via path (develop=true) and relocks. Use for rapid local dev.
+- `./install.sh --restore-pypi` switches the dependency back to PyPI (`^<server_version>`) and relocks. Run before release or pushing changes.
+- Default (no flags) leaves dependencies as-is and just rebuilds/installs wheels.
+
 ### Step 1: Verify Python 3.11 Available
 
 ```bash

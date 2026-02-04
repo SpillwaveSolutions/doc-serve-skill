@@ -14,6 +14,36 @@
 
 set -e
 
+USE_PATH_DEPS=0
+RESTORE_PYPI=0
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --use-path-deps)
+      USE_PATH_DEPS=1
+      ;;
+    --restore-pypi)
+      RESTORE_PYPI=1
+      ;;
+    -h|--help)
+      echo "Usage: ./install.sh [--use-path-deps] [--restore-pypi]"
+      echo "  --use-path-deps   Switch CLI dependency to local path (for fast local dev builds)"
+      echo "  --restore-pypi    Switch CLI dependency back to PyPI (matches server version) before release"
+      exit 0
+      ;;
+    *)
+      echo "Unknown option: $1"
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+if [[ $USE_PATH_DEPS -eq 1 && $RESTORE_PYPI -eq 1 ]]; then
+  echo "ERROR: Choose either --use-path-deps or --restore-pypi, not both."
+  exit 1
+fi
+
 REPO_ROOT="/Users/richardhightower/clients/spillwave/src/doc-serve"
 PLUGIN_CACHE="$HOME/.claude/plugins/agent-brain"
 UV_TOOL_CLI="$HOME/.local/share/uv/tools/agent-brain-cli"
@@ -77,6 +107,29 @@ echo "=== Step 4: Clean and Build Fresh Packages ==="
 
 rm -rf "$REPO_ROOT/agent-brain-server/dist"
 rm -rf "$REPO_ROOT/agent-brain-cli/dist"
+
+# Toggle dependency for local vs PyPI
+CLI_PYPROJECT="$REPO_ROOT/agent-brain-cli/pyproject.toml"
+if [[ $USE_PATH_DEPS -eq 1 ]]; then
+  if grep -q 'agent-brain-rag = {path = "../agent-brain-server"' "$CLI_PYPROJECT"; then
+    echo "CLI already using path dependency."
+  else
+    echo "Switching CLI dependency to local path (develop=true)..."
+    perl -0pi -e 's|agent-brain-rag = [^\n]+|agent-brain-rag = {path = "../agent-brain-server", develop = true}|g' "$CLI_PYPROJECT"
+    (cd "$REPO_ROOT/agent-brain-cli" && poetry lock --no-update)
+  fi
+fi
+
+if [[ $RESTORE_PYPI -eq 1 ]]; then
+  VERSION=$(grep '^version = ' "$REPO_ROOT/agent-brain-server/pyproject.toml" | cut -d'"' -f2)
+  if grep -q 'agent-brain-rag = {path = "../agent-brain-server"' "$CLI_PYPROJECT"; then
+    echo "Restoring CLI dependency to PyPI (^$VERSION)..."
+    perl -0pi -e "s|agent-brain-rag = [^\\n]+|agent-brain-rag = \"^$VERSION\"|g" "$CLI_PYPROJECT"
+    (cd "$REPO_ROOT/agent-brain-cli" && poetry lock --no-update)
+  else
+    echo "CLI dependency already pointing to PyPI."
+  fi
+fi
 
 cd "$REPO_ROOT/agent-brain-server"
 echo "Building server..."

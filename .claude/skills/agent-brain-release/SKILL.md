@@ -87,8 +87,9 @@ agent-brain stop
 
 ## Trigger Patterns
 
-- `/agent-brain-release <bump>` - Create a release with specified version bump
-- `/agent-brain-release <bump> --dry-run` - Preview release without making changes
+- `/ag-brain-release <bump>` - Create a release with specified version bump (command name)
+- `/ag-brain-release <bump> --dry-run` - Preview release without making changes
+- Skill name remains `agent-brain-release` for clarity; command entry is `ag-brain-release`.
 
 Where `<bump>` is one of:
 
@@ -104,6 +105,7 @@ The release skill performs these steps:
    - Working directory is clean (no uncommitted changes)
    - On `main` branch
    - Local branch is synced with remote
+   - Ensure CLI dependency is set to PyPI (not a local path). If `agent-brain-cli/pyproject.toml` contains `{path = "../agent-brain-server"}`, replace with `^<server_version>` from `agent-brain-server/pyproject.toml` and run `poetry lock --no-update`.
 
 2. **Calculate New Version**
    - Parse current version from `agent-brain-server/pyproject.toml`
@@ -138,7 +140,7 @@ The release skill performs these steps:
 Use `--dry-run` to preview all changes without executing:
 
 ```text
-/agent-brain-release minor --dry-run
+/ag-brain-release minor --dry-run
 
 [DRY RUN] Would perform the following actions:
   Current version: X.Y.Z
@@ -157,7 +159,7 @@ Use `--dry-run` to preview all changes without executing:
 
 ## Implementation Steps
 
-When `/agent-brain-release` is invoked, Claude should:
+When `/ag-brain-release` is invoked, Claude should:
 
 ### Step 1: Parse Arguments
 

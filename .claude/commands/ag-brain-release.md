@@ -1,11 +1,11 @@
-# Agent Brain Release Command
+# Agent Brain Release Command (CLI entry: /ag-brain-release)
 
 Release automation for Agent Brain packages.
 
 ## Usage
 
 ```
-/agent-brain-release <bump> [--dry-run]
+/ag-brain-release <bump> [--dry-run]
 ```
 
 ## Arguments
@@ -21,36 +21,37 @@ Release automation for Agent Brain packages.
 
 ```bash
 # Create a patch release (bug fixes)
-/agent-brain-release patch
+/ag-brain-release patch
 
 # Create a minor release (new features)
-/agent-brain-release minor
+/ag-brain-release minor
 
 # Create a major release (breaking changes)
-/agent-brain-release major
+/ag-brain-release major
 
 # Preview a release without making changes
-/agent-brain-release minor --dry-run
+/ag-brain-release minor --dry-run
 ```
 
 ## What It Does
 
 1. Validates pre-conditions (clean repo, on main, synced)
-2. Calculates new version based on bump type
-3. Updates version in 4 files:
+2. Ensures CLI dependency points to PyPI (not local path); if path-based, flip to PyPI (`^<server_version>`) and relock before proceeding.
+3. Calculates new version based on bump type
+4. Updates version in 4 files:
    - `agent-brain-server/pyproject.toml`
    - `agent-brain-server/agent_brain_server/__init__.py`
    - `agent-brain-cli/pyproject.toml`
    - `agent-brain-cli/agent_brain_cli/__init__.py`
-4. Generates release notes from commits
-5. Creates git commit and tag
-6. Pushes to remote
-7. Creates GitHub release (triggers PyPI publish)
+5. Generates release notes from commits
+6. Creates git commit and tag
+7. Pushes to remote
+8. Creates GitHub release (triggers PyPI publish)
 
 ## Output
 
 ```
-/agent-brain-release minor
+/ag-brain-release minor
 
 [1/8] Validating pre-conditions...
       Working directory: clean ✓
