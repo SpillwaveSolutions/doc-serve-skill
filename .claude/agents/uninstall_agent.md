@@ -3,37 +3,33 @@ name: uninstall_agent
 description: Agent with permissions to remove Agent Brain local installations
 
 allowed_tools:
-  # Kill agent-brain processes only
-  - "Bash(pkill -9 -f agent_brain_server*)"
-  - "Bash(pkill -9 -f uvicorn*)"
-  - "Bash(kill -9*)"
-  - "Bash(lsof -i :80*)"
+  # Kill processes
+  - "Bash(pkill*)"
+  - "Bash(kill*)"
+  - "Bash(lsof*)"
 
-  # Uninstall agent-brain tools only
-  - "Bash(uv tool uninstall agent-brain*)"
-  - "Bash(pipx uninstall agent-brain*)"
+  # Uninstall tools
+  - "Bash(uv tool uninstall*)"
+  - "Bash(pipx uninstall*)"
 
-  # Remove specific cache/tool paths only
-  - "Bash(rm -rf ~/.cache/uv)"
-  - "Bash(rm -rf ~/.local/share/uv/tools/agent-brain-cli*)"
-  - "Bash(rm -rf ~/.local/share/uv/tools/agent-brain-server*)"
-  - "Bash(rm -rf ~/.claude/plugins/cache/agent-brain*)"
-  - "Bash(rm -rf ~/.claude/plugins/agent-brain*)"
-  - "Bash(rm -rf ~/.claude/agent-brain)"
-  - "Bash(rm -rf ./.claude/agent-brain)"
+  # Remove caches and directories
+  - "Bash(rm -rf*)"
 
   # Cache cleanup
-  - "Bash(pip cache remove agent-brain*)"
+  - "Bash(pip cache*)"
 
-  # Dependency restore (scoped to CLI pyproject)
-  - "Bash(poetry lock --no-update*)"
-  - "Bash(perl*agent-brain-cli/pyproject.toml*)"
+  # Dependency restore
+  - "Bash(poetry lock*)"
+  - "Bash(perl*)"
+  - "Bash(cd*)"
+  - "Bash(grep*)"
 
   # Verification commands
   - "Bash(pgrep*)"
-  - "Bash(which agent-brain*)"
+  - "Bash(which*)"
   - "Bash(seq*)"
   - "Bash(sleep*)"
+  - "Bash(ls*)"
 
   # The removal script itself
   - "Bash(.claude/skills/installing-local/remove.sh*)"

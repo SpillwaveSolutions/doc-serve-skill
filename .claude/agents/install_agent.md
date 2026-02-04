@@ -4,42 +4,38 @@ description: Agent with permissions to build and install Agent Brain locally
 
 allowed_tools:
   # Kill agent-brain processes only
-  - "Bash(pkill -9 -f agent_brain_server*)"
-  - "Bash(pkill -9 -f uvicorn*)"
-  - "Bash(kill -9*)"
-  - "Bash(lsof -i :80*)"
+  - "Bash(pkill*)"
+  - "Bash(kill*)"
+  - "Bash(lsof*)"
   - "Bash(pgrep*)"
   - "Bash(sleep*)"
   - "Bash(seq*)"
 
-  # Uninstall/install agent-brain tools only
-  - "Bash(uv tool uninstall agent-brain*)"
-  - "Bash(uv tool install*agent-brain*)"
-  - "Bash(pipx uninstall agent-brain*)"
+  # Uninstall/install tools
+  - "Bash(uv tool uninstall*)"
+  - "Bash(uv tool install*)"
+  - "Bash(pipx uninstall*)"
 
-  # Remove specific paths only
-  - "Bash(rm -rf ~/.cache/uv)"
-  - "Bash(rm -rf ~/.local/share/uv/tools/agent-brain*)"
-  - "Bash(rm -rf ~/.claude/plugins/cache/agent-brain*)"
-  - "Bash(rm -rf ~/.claude/plugins/agent-brain)"
-  - "Bash(rm -rf *agent-brain-server/dist*)"
-  - "Bash(rm -rf *agent-brain-cli/dist*)"
+  # Remove caches and build dirs
+  - "Bash(rm -rf*)"
 
-  # Build packages (scoped to project)
-  - "Bash(poetry build)"
-  - "Bash(poetry lock --no-update*)"
+  # Build packages
+  - "Bash(poetry build*)"
+  - "Bash(poetry lock*)"
+  - "Bash(cd*)"
 
-  # Dependency flip (scoped to CLI pyproject)
-  - "Bash(perl*agent-brain-cli/pyproject.toml*)"
-  - "Bash(grep*agent-brain*)"
+  # Dependency flip
+  - "Bash(perl*)"
+  - "Bash(grep*)"
 
-  # Plugin deployment (specific target)
-  - "Bash(cp -r*agent-brain-plugin*~/.claude/plugins/agent-brain*)"
+  # Plugin deployment
+  - "Bash(cp -r*)"
 
   # Verification
-  - "Bash(which agent-brain*)"
+  - "Bash(which*)"
   - "Bash(python3.11*)"
-  - "Bash(agent-brain --version*)"
+  - "Bash(python3*)"
+  - "Bash(agent-brain*)"
   - "Bash(ls*)"
   - "Bash(cat*)"
   - "Bash(head*)"
