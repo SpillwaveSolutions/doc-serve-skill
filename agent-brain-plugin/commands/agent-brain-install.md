@@ -1,6 +1,6 @@
 ---
 name: agent-brain-install
-description: Install Agent Brain packages (agent-brain-rag and agent-brain-cli)
+description: Install Agent Brain packages using pipx, uv, pip, or conda
 parameters: []
 skills:
   - configuring-agent-brain
@@ -8,135 +8,172 @@ skills:
 
 # Install Agent Brain Packages
 
-## Purpose
+## STOP - READ THIS FIRST
 
-Installs the Agent Brain Python packages required for document indexing and semantic search. This command installs both `agent-brain-rag` (the server component) and `agent-brain-cli` (the command-line interface).
+**DO NOT RUN ANY INSTALLATION COMMANDS YET.**
 
-## Usage
+You MUST ask the user which installation method they prefer using the AskUserQuestion tool BEFORE doing anything else.
 
+## Step 1: Ask User for Installation Method
+
+**THIS IS MANDATORY. DO NOT SKIP THIS STEP.**
+
+Use the AskUserQuestion tool with this exact structure:
+
+```json
+{
+  "questions": [{
+    "question": "Which installation method do you prefer for Agent Brain?",
+    "header": "Install via",
+    "options": [
+      {
+        "label": "pipx (Recommended)",
+        "description": "Install globally in an isolated environment. No activation needed."
+      },
+      {
+        "label": "uv",
+        "description": "Fast, modern Python tool installer. Good for power users."
+      },
+      {
+        "label": "pip (venv)",
+        "description": "Install into a local virtual environment. Requires activation."
+      },
+      {
+        "label": "conda",
+        "description": "For conda users. Creates a conda environment with pip inside."
+      }
+    ],
+    "multiSelect": false
+  }]
+}
 ```
-/agent-brain-install
-```
 
-## Execution
+**STOP HERE AND WAIT FOR THE USER'S RESPONSE.**
 
-### Step 1: Check Python Version
+Do not proceed until you have called AskUserQuestion and received the user's selection.
+
+---
+
+## Step 2: Check Python Version
+
+Only after receiving the user's installation method choice:
 
 ```bash
 python --version
 ```
 
-Python 3.10 or higher is required. If the version is lower, guide the user to upgrade Python first.
+Requires Python 3.10+. If lower, tell user to upgrade first.
 
-### Step 2: Install Packages
+---
 
-```bash
-pip install agent-brain-rag agent-brain-cli
+## Step 3: Execute Based on User's Selection
+
+### If user selected "pipx (Recommended)"
+
+1. Check/install pipx:
+   ```bash
+   pipx --version 2>/dev/null || python -m pip install --user pipx && python -m pipx ensurepath
+   ```
+
+2. Install Agent Brain:
+   ```bash
+   pipx install agent-brain-cli
+   ```
+
+3. Verify (user may need to restart terminal):
+   ```bash
+   agent-brain --version
+   ```
+
+### If user selected "uv"
+
+1. Check/install uv:
+   ```bash
+   uv --version 2>/dev/null || curl -LsSf https://astral.sh/uv/install.sh | sh
+   ```
+
+2. Install Agent Brain:
+   ```bash
+   uv tool install agent-brain-cli
+   ```
+
+3. Verify:
+   ```bash
+   agent-brain --version
+   ```
+
+### If user selected "pip (venv)"
+
+1. Create virtual environment:
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate  # macOS/Linux
+   ```
+
+2. Install packages:
+   ```bash
+   pip install agent-brain-rag agent-brain-cli
+   ```
+
+3. Verify:
+   ```bash
+   agent-brain --version
+   ```
+
+4. **Tell user:** Must run `source .venv/bin/activate` before using agent-brain.
+
+### If user selected "conda"
+
+1. Create conda environment:
+   ```bash
+   conda create -n agent-brain python=3.12 -y
+   conda activate agent-brain
+   ```
+
+2. Install packages:
+   ```bash
+   pip install agent-brain-rag agent-brain-cli
+   ```
+
+3. Verify:
+   ```bash
+   agent-brain --version
+   ```
+
+4. **Tell user:** Must run `conda activate agent-brain` before using agent-brain.
+
+---
+
+## Success Output
+
+After successful installation, show:
+
 ```
+Agent Brain Installation Complete
+=================================
 
-**Virtual Environment Recommended:**
-
-For isolated installations, recommend using a virtual environment:
-
-```bash
-# Create virtual environment
-python -m venv .venv
-
-# Activate (macOS/Linux)
-source .venv/bin/activate
-
-# Activate (Windows)
-.venv\Scripts\activate
-
-# Install packages
-pip install agent-brain-rag agent-brain-cli
-```
-
-### Step 3: Verify Installation
-
-```bash
-agent-brain --version
-```
-
-Expected output shows the installed version number.
-
-## Output
-
-Format the results as follows:
-
-```
-Agent Brain Installation
-========================
-
-Python Version: 3.11.4 [OK]
-Installing packages...
-
-Installed:
-  - agent-brain-rag: 1.2.0
-  - agent-brain-cli: 1.2.0
-
-Verification: agent-brain --version
-  Version: 1.2.0 [OK]
-
-Installation complete!
+Install Method: [method user selected]
+Version: [version from agent-brain --version]
 
 Next steps:
-  1. Configure API keys: /agent-brain-config
-  2. Initialize project: /agent-brain-init
+  1. Configure: /agent-brain-config
+  2. Initialize: /agent-brain-init
   3. Start server: /agent-brain-start
 ```
 
-## Error Handling
+---
 
-### Python Version Too Low
+## Why Ask First?
 
-```
-Python version 3.8 detected. Agent Brain requires Python 3.10+.
+Different methods have different trade-offs:
 
-Solutions:
-1. Install Python 3.10+ from https://python.org/downloads/
-2. Use pyenv: pyenv install 3.11 && pyenv local 3.11
-3. Use conda: conda create -n agent-brain python=3.11
-```
+| Method | Global? | Isolated? | Needs Activation? |
+|--------|---------|-----------|-------------------|
+| pipx | Yes | Yes | No |
+| uv | Yes | Yes | No |
+| pip (venv) | No | Yes | Yes |
+| conda | No | Yes | Yes |
 
-### Permission Denied
-
-```
-Permission denied during installation.
-
-Solutions:
-1. Use --user flag: pip install --user agent-brain-rag agent-brain-cli
-2. Use virtual environment (recommended)
-3. On Linux/macOS, avoid using sudo with pip
-```
-
-### pip Not Found
-
-```
-pip command not found.
-
-Solutions:
-1. Ensure pip: python -m ensurepip
-2. Install pip: python -m pip install --upgrade pip
-3. Use python -m pip instead of pip
-```
-
-### Module Not Found After Install
-
-```
-Cannot find agent-brain command after installation.
-
-Solutions:
-1. Restart your terminal
-2. Check PATH includes pip bin directory
-3. Use: python -m agent_brain_cli instead
-4. Reinstall: pip install --force-reinstall agent-brain-cli
-```
-
-### Upgrade Existing Installation
-
-If already installed, upgrade with:
-
-```bash
-pip install --upgrade agent-brain-rag agent-brain-cli
-```
+- **pipx/uv**: Best for CLI tools - globally available, no activation
+- **pip (venv)**: Best for project-specific installs
+- **conda**: Best for data science users already using conda

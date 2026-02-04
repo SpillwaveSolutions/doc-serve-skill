@@ -89,9 +89,22 @@ class BM25IndexManager:
         if not self._retriever:
             raise RuntimeError("BM25 index not initialized")
 
-        # BM25Retriever similarity_top_k is usually set during initialization.
-        self._retriever.similarity_top_k = top_k
+        # Cap top_k to corpus size to avoid bm25s "k larger than available scores" error
+        corpus_size = len(self._retriever.corpus) if self._retriever.corpus else 0
+        if corpus_size > 0:
+            effective_top_k = min(top_k, corpus_size)
+        else:
+            effective_top_k = top_k
+
+        self._retriever.similarity_top_k = effective_top_k
         return self._retriever
+
+    @property
+    def corpus_size(self) -> int:
+        """Get the number of documents in the BM25 index."""
+        if not self._retriever or not self._retriever.corpus:
+            return 0
+        return len(self._retriever.corpus)
 
     async def search_with_filters(
         self,

@@ -1,11 +1,14 @@
 """Status command for checking server health."""
 
+from typing import Optional
+
 import click
 from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
 from ..client import ConnectionError, DocServeClient, ServerError
+from ..config import get_server_url
 
 console = Console()
 
@@ -13,15 +16,16 @@ console = Console()
 @click.command("status")
 @click.option(
     "--url",
-    envvar="DOC_SERVE_URL",
-    default="http://127.0.0.1:8000",
-    help="Doc-Serve server URL",
+    envvar="AGENT_BRAIN_URL",
+    default=None,
+    help="Agent Brain server URL (default: from config or http://127.0.0.1:8000)",
 )
 @click.option("--json", "json_output", is_flag=True, help="Output as JSON")
-def status_command(url: str, json_output: bool) -> None:
-    """Check Doc-Serve server status and health."""
+def status_command(url: Optional[str], json_output: bool) -> None:
+    """Check Agent Brain server status and health."""
+    resolved_url = url or get_server_url()
     try:
-        with DocServeClient(base_url=url) as client:
+        with DocServeClient(base_url=resolved_url) as client:
             health = client.health()
             indexing = client.status()
 

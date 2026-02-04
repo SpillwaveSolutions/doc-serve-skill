@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "agent-brain-cli"
-version = "2.0.0"
+version = "3.0.0"
 description = "Agent Brain CLI - Command-line interface for managing AI agent memory and knowledge retrieval"
 authors = ["Spillwave Solutions"]
 readme = "README.md"
@@ -25,6 +25,9 @@ python = "^3.10"
 click = "^8.1.0"
 httpx = "^0.28.0"
 rich = "^13.9.0"
+pyyaml = "^6.0.0"
+pydantic = "^2.10.0"
+agent-brain-rag = {path = "../agent-brain-server", develop = true}
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.0"
@@ -33,10 +36,10 @@ pytest-cov = "^6.0.0"
 black = "^24.10.0"
 ruff = "^0.8.0"
 mypy = "^1.13.0"
+types-PyYAML = "^6.0.0"
 
 [tool.poetry.scripts]
 agent-brain = "agent_brain_cli.cli:cli"
-doc-svr-ctl = "agent_brain_cli.cli:cli_deprecated"
 
 [build-system]
 requires = ["poetry-core"]

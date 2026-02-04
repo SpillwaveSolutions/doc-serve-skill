@@ -32,9 +32,13 @@ If not installed, run `/agent-brain-install` first.
 
 ### Step 2: Configure Provider
 
-Check provider configuration:
+Check provider configuration (via config file or environment):
 
 ```bash
+# Check for config file
+ls ~/.agent-brain/config.yaml .claude/agent-brain/config.yaml 2>/dev/null
+
+# Check environment variables
 echo "Provider: ${EMBEDDING_PROVIDER:-openai}"
 echo "OpenAI: ${OPENAI_API_KEY:+SET}"
 echo "Anthropic: ${ANTHROPIC_API_KEY:+SET}"
@@ -42,8 +46,10 @@ echo "Anthropic: ${ANTHROPIC_API_KEY:+SET}"
 
 If no provider is configured, run `/agent-brain-config` to choose:
 - **Ollama** (FREE, local, no API keys)
-- **OpenAI** (cloud, requires OPENAI_API_KEY)
+- **OpenAI** (cloud, requires API key)
 - **Other cloud providers**
+
+Configuration can be stored in `~/.agent-brain/config.yaml` (recommended) or via environment variables.
 
 ### Step 3: Initialize Project
 
@@ -56,7 +62,7 @@ Creates `.claude/agent-brain/` directory with configuration files.
 ### Step 4: Start Server
 
 ```bash
-agent-brain start --daemon
+agent-brain start
 ```
 
 Starts the server in background mode.
@@ -81,9 +87,10 @@ Agent Brain Setup
       agent-brain-cli: 1.2.0 [OK]
       agent-brain-rag: 1.2.0 [OK]
 
-[2/5] Checking API keys...
-      OPENAI_API_KEY: SET [OK]
-      ANTHROPIC_API_KEY: SET [OK]
+[2/5] Checking provider configuration...
+      Config file: ~/.agent-brain/config.yaml [FOUND]
+      Embedding: openai/text-embedding-3-large [OK]
+      Summarization: anthropic/claude-haiku-4-5-20251001 [OK]
 
 [3/5] Initializing project...
       Created: .claude/agent-brain/config.json [OK]
@@ -130,9 +137,10 @@ Running installation...
 No embedding provider configured.
 
 Options:
-1. Ollama (FREE, local) - No API keys needed
-2. OpenAI (cloud) - Requires OPENAI_API_KEY
-3. Other cloud providers
+1. Create config file: ~/.agent-brain/config.yaml (recommended)
+2. Ollama (FREE, local) - No API keys needed
+3. OpenAI (cloud) - Requires API key in config or OPENAI_API_KEY
+4. Other cloud providers
 
 Running configuration...
 [Invoke /agent-brain-config]
@@ -162,7 +170,7 @@ Solutions:
 1. Check for running instance: agent-brain list
 2. Stop existing server: agent-brain stop
 3. Clean state: rm -f .claude/agent-brain/runtime.json
-4. Retry: agent-brain start --daemon
+4. Retry: agent-brain start
 ```
 
 ### Verification Failed
@@ -175,7 +183,7 @@ Server started but health check failed.
 Diagnostics:
 1. Check logs: Check server output
 2. Verify API key: Test OpenAI connection
-3. Restart: agent-brain stop && agent-brain start --daemon
+3. Restart: agent-brain stop && agent-brain start
 ```
 
 ## Resume Capability

@@ -1,4 +1,4 @@
-"""Init command for initializing a doc-serve project."""
+"""Init command for initializing an Agent Brain project."""
 
 import json
 from pathlib import Path
@@ -10,18 +10,29 @@ from rich.panel import Panel
 
 console = Console()
 
-# Default configuration values
+# Default configuration values for config.json (project settings only)
+# Provider settings (embedding/summarization) go in config.yaml
 DEFAULT_CONFIG = {
     "bind_host": "127.0.0.1",
     "port_range_start": 8000,
     "port_range_end": 8100,
     "auto_port": True,
-    "embedding_model": "text-embedding-3-large",
     "chunk_size": 512,
     "chunk_overlap": 50,
+    # Directories to exclude from indexing (glob patterns)
+    "exclude_patterns": [
+        "**/node_modules/**",
+        "**/__pycache__/**",
+        "**/.venv/**",
+        "**/venv/**",
+        "**/.git/**",
+        "**/dist/**",
+        "**/build/**",
+        "**/target/**",
+    ],
 }
 
-STATE_DIR_NAME = ".claude/doc-serve"
+STATE_DIR_NAME = ".claude/agent-brain"
 
 
 def resolve_project_root(start_path: Optional[Path] = None) -> Path:
@@ -94,24 +105,32 @@ def resolve_project_root(start_path: Optional[Path] = None) -> Path:
     help="Overwrite existing configuration",
 )
 @click.option("--json", "json_output", is_flag=True, help="Output as JSON")
+@click.option(
+    "--state-dir",
+    "-s",
+    type=click.Path(file_okay=False, resolve_path=True),
+    help="Custom state directory for index data (default: .claude/agent-brain)",
+)
 def init_command(
     path: Optional[str],
     host: str,
     port: Optional[int],
     force: bool,
     json_output: bool,
+    state_dir: Optional[str],
 ) -> None:
-    """Initialize a new doc-serve project.
+    """Initialize a new Agent Brain project.
 
-    Creates the .claude/doc-serve/ directory structure and writes
+    Creates the .claude/agent-brain/ directory structure and writes
     a default config.json file.
 
     \b
     Examples:
-      doc-svr-ctl init                    # Initialize in current project
-      doc-svr-ctl init --path /my/project # Initialize specific project
-      doc-svr-ctl init --port 8080        # Set preferred port
-      doc-svr-ctl init --force            # Overwrite existing config
+      agent-brain init                              # Initialize in current project
+      agent-brain init --path /my/project           # Initialize specific project
+      agent-brain init --port 8080                  # Set preferred port
+      agent-brain init --state-dir /custom/path     # Custom storage location
+      agent-brain init --force                      # Overwrite existing config
     """
     try:
         # Resolve project root
@@ -120,8 +139,12 @@ def init_command(
         else:
             project_root = resolve_project_root()
 
-        state_dir = project_root / STATE_DIR_NAME
-        config_path = state_dir / "config.json"
+        # Use custom state_dir if provided, otherwise default
+        if state_dir:
+            resolved_state_dir = Path(state_dir).resolve()
+        else:
+            resolved_state_dir = project_root / STATE_DIR_NAME
+        config_path = resolved_state_dir / "config.json"
 
         # Check for existing configuration
         if config_path.exists() and not force:
@@ -143,12 +166,12 @@ def init_command(
             raise SystemExit(1)
 
         # Create state directory structure
-        state_dir.mkdir(parents=True, exist_ok=True)
-        (state_dir / "data").mkdir(exist_ok=True)
-        (state_dir / "data" / "chroma_db").mkdir(exist_ok=True)
-        (state_dir / "data" / "bm25_index").mkdir(exist_ok=True)
-        (state_dir / "data" / "llamaindex").mkdir(exist_ok=True)
-        (state_dir / "logs").mkdir(exist_ok=True)
+        resolved_state_dir.mkdir(parents=True, exist_ok=True)
+        (resolved_state_dir / "data").mkdir(exist_ok=True)
+        (resolved_state_dir / "data" / "chroma_db").mkdir(exist_ok=True)
+        (resolved_state_dir / "data" / "bm25_index").mkdir(exist_ok=True)
+        (resolved_state_dir / "data" / "llamaindex").mkdir(exist_ok=True)
+        (resolved_state_dir / "logs").mkdir(exist_ok=True)
 
         # Build configuration
         config = {
@@ -169,7 +192,7 @@ def init_command(
                     {
                         "status": "initialized",
                         "project_root": str(project_root),
-                        "state_dir": str(state_dir),
+                        "state_dir": str(resolved_state_dir),
                         "config_path": str(config_path),
                         "config": config,
                     },
@@ -181,16 +204,16 @@ def init_command(
                 Panel(
                     f"[green]Project initialized successfully![/]\n\n"
                     f"[bold]Project Root:[/] {project_root}\n"
-                    f"[bold]State Directory:[/] {state_dir}\n"
+                    f"[bold]State Directory:[/] {resolved_state_dir}\n"
                     f"[bold]Configuration:[/] {config_path}",
-                    title="Doc-Serve Initialized",
+                    title="Agent Brain Initialized",
                     border_style="green",
                 )
             )
             console.print("\n[dim]Next steps:[/]")
-            console.print("  1. Run [bold]doc-svr-ctl start[/] to start the server")
+            console.print("  1. Run [bold]agent-brain start[/] to start the server")
             console.print(
-                "  2. Run [bold]doc-svr-ctl index ./docs[/] to index documents"
+                "  2. Run [bold]agent-brain index ./docs[/] to index documents"
             )
 
     except PermissionError as e:

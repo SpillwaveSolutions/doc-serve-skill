@@ -1,12 +1,8 @@
 """Main CLI entry point for agent-brain CLI.
 
 This module provides the command-line interface for managing and querying
-the Agent Brain RAG server. The primary entry point is `agent-brain`,
-with `doc-svr-ctl` provided for backward compatibility.
+the Agent Brain RAG server.
 """
-
-import sys
-import warnings
 
 import click
 
@@ -14,6 +10,7 @@ from . import __version__
 from .commands import (
     index_command,
     init_command,
+    jobs_command,
     list_command,
     query_command,
     reset_command,
@@ -43,6 +40,7 @@ def cli() -> None:
       status   Check server status
       query    Search documents
       index    Index documents from a folder
+      jobs     View and manage job queue
       reset    Clear all indexed documents
 
     \b
@@ -56,33 +54,9 @@ def cli() -> None:
 
     \b
     Environment Variables:
-      DOC_SERVE_URL  Server URL (default: http://127.0.0.1:8000)
+      AGENT_BRAIN_URL  Server URL (default: http://127.0.0.1:8000)
     """
     pass
-
-
-def cli_deprecated() -> None:
-    """Deprecated entry point for doc-svr-ctl command.
-
-    Shows a deprecation warning and then runs the main CLI.
-    """
-    warnings.warn(
-        "\n"
-        "WARNING: 'doc-svr-ctl' is deprecated and will be removed in v2.0.\n"
-        "Please use 'agent-brain' instead.\n"
-        "\n"
-        "Migration guide: docs/MIGRATION.md\n"
-        "Online: https://github.com/SpillwaveSolutions/agent-brain/blob/main/docs/MIGRATION.md\n",
-        DeprecationWarning,
-        stacklevel=1,
-    )
-    # Print to stderr for visibility since warnings may be filtered
-    print(
-        "\033[93mWARNING: 'doc-svr-ctl' is deprecated. "
-        "Use 'agent-brain' instead. See docs/MIGRATION.md\033[0m",
-        file=sys.stderr,
-    )
-    cli()
 
 
 # Register project management commands
@@ -95,6 +69,7 @@ cli.add_command(list_command, name="list")
 cli.add_command(status_command, name="status")
 cli.add_command(query_command, name="query")
 cli.add_command(index_command, name="index")
+cli.add_command(jobs_command, name="jobs")
 cli.add_command(reset_command, name="reset")
 
 

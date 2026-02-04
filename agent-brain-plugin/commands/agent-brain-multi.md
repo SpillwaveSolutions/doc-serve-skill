@@ -13,10 +13,6 @@ parameters:
     description: Minimum relevance score (0.0-1.0)
     required: false
     default: 0.3
-  - name: include-relationships
-    description: Include entity relationships from graph
-    required: false
-    default: true
 skills:
   - using-agent-brain
 ---
@@ -37,7 +33,7 @@ Multi-mode search is ideal for:
 ## Usage
 
 ```
-/agent-brain-multi <query> [--top-k <n>] [--threshold <t>] [--include-relationships]
+/agent-brain-multi <query> [--top-k <n>] [--threshold <t>]
 ```
 
 ### Parameters
@@ -47,7 +43,6 @@ Multi-mode search is ideal for:
 | query | Yes | - | The comprehensive search query |
 | --top-k | No | 5 | Number of results (1-20) |
 | --threshold | No | 0.3 | Minimum relevance score (0.0-1.0) |
-| --include-relationships | No | true | Include graph relationships |
 
 ### How Multi-Mode Works
 
@@ -79,7 +74,7 @@ Multi-mode works best with all indices available:
 ### Search Command
 
 ```bash
-agent-brain query "<query>" --mode multi --top-k <k> --threshold <t> --include-relationships
+agent-brain query "<query>" --mode multi --top-k <k> --threshold <t>
 ```
 
 ### Examples
@@ -88,99 +83,73 @@ agent-brain query "<query>" --mode multi --top-k <k> --threshold <t> --include-r
 # Comprehensive implementation search
 agent-brain query "complete authentication implementation" --mode multi
 
-# Include all relationships
-agent-brain query "payment processing flow" --mode multi --include-relationships
-
 # More results for exploration
 agent-brain query "error handling patterns" --mode multi --top-k 10
 
 # Lower threshold for broader search
 agent-brain query "caching strategy" --mode multi --threshold 0.2
+
+# Payment processing with more context
+agent-brain query "payment processing flow" --mode multi --top-k 8
 ```
 
 ## Output
 
 ### Result Format
 
-For each result, present:
+The CLI displays results in panels showing:
+- Source file path
+- Relevance score (RRF-fused percentage)
+- Text content excerpt
 
-1. **Source**: File path or document name
-2. **Score**: RRF-fused relevance score
-3. **Matched By**: Which modes found this result
-4. **Content**: Relevant excerpt
-5. **Relationships**: (if enabled) Connected entities
+Multi-mode combines results from BM25, Vector, and Graph (if enabled) using Reciprocal Rank Fusion.
 
 ### Example Output
 
 ```
-## Multi-Mode Search Results for "complete authentication implementation"
+Query: complete authentication implementation
+Found 3 results in 2341ms
 
-### 1. src/auth/oauth_client.py (RRF Score: 0.94)
-**Matched by:** BM25, Vector, Graph
+╭─ [1] src/auth/oauth_client.py  Score: 94% ────────────────────╮
+│ class OAuthClient:                                             │
+│     """                                                        │
+│     Complete OAuth 2.0 client implementation.                  │
+│                                                                │
+│     Handles authorization code flow, token refresh,            │
+│     and automatic retry with exponential backoff.              │
+│     """                                                        │
+│                                                                │
+│     def authenticate(self, code: str) -> Token:                │
+│         ...                                                    │
+╰────────────────────────────────────────────────────────────────╯
 
-class OAuthClient:
-    """
-    Complete OAuth 2.0 client implementation.
+╭─ [2] docs/auth/oauth-guide.md  Score: 87% ────────────────────╮
+│ ## OAuth 2.0 Implementation Guide                              │
+│                                                                │
+│ This guide covers the complete OAuth 2.0 implementation:       │
+│ - Authorization Code Flow                                      │
+│ - Token Management                                             │
+│ - Security Best Practices                                      │
+╰────────────────────────────────────────────────────────────────╯
 
-    Handles authorization code flow, token refresh,
-    and automatic retry with exponential backoff.
-    """
-
-    def authenticate(self, code: str) -> Token:
-        ...
-
-**Relationships:**
-- CALLS → validate_token() in src/auth/validator.py
-- CALLS → refresh_token() in src/auth/token_manager.py
-- IMPORTS ← AuthService in src/services/auth_service.py
-
----
-
-### 2. docs/auth/oauth-guide.md (RRF Score: 0.87)
-**Matched by:** Vector, BM25
-
-## OAuth 2.0 Implementation Guide
-
-This guide covers the complete OAuth 2.0 implementation including:
-- Authorization Code Flow
-- Token Management
-- Security Best Practices
-
-### Getting Started
-...
-
----
-
-### 3. src/auth/token_manager.py (RRF Score: 0.72)
-**Matched by:** Graph, Vector
-
-class TokenManager:
-    """Manages token lifecycle including refresh and revocation."""
-
-    def refresh_token(self, token: Token) -> Token:
-        ...
-
-**Relationships:**
-- CALLED_BY ← OAuthClient.authenticate()
-- CALLS → cache.set() in src/cache/redis_client.py
-- INHERITS → BaseTokenManager
-
----
-
-Found 3 results above threshold 0.3
-Search modes used: BM25 + Vector + Graph
-Response time: 2341ms
+╭─ [3] src/auth/token_manager.py  Score: 72% ───────────────────╮
+│ class TokenManager:                                            │
+│     """Manages token lifecycle including refresh."""           │
+│                                                                │
+│     def refresh_token(self, token: Token) -> Token:            │
+│         ...                                                    │
+╰────────────────────────────────────────────────────────────────╯
 ```
 
-### Mode Contribution Legend
+### Detailed Scores (with --scores flag)
 
-| Badge | Meaning |
-|-------|---------|
-| BM25 | Found via keyword matching |
-| Vector | Found via semantic similarity |
-| Graph | Found via relationship traversal |
+Use `--scores` to see individual BM25 and vector scores:
 
-Results matched by multiple modes are typically more relevant.
+```bash
+agent-brain query "authentication" --mode multi --scores
+```
+
+Shows `[V: 0.92 B: 0.88]` after each score for debugging.
 
 ## Error Handling
 
@@ -192,7 +161,7 @@ Error: Could not connect to Agent Brain server
 
 **Resolution:**
 ```bash
-agent-brain start --daemon
+agent-brain start
 ```
 
 ### Graph Index Not Available
@@ -204,7 +173,7 @@ Warning: Graph index not enabled. Multi-mode will use BM25 + Vector only.
 **Resolution (optional):**
 ```bash
 export ENABLE_GRAPH_INDEX=true
-agent-brain stop && agent-brain start --daemon
+agent-brain stop && agent-brain start
 agent-brain reset --yes
 agent-brain index /path/to/code
 ```

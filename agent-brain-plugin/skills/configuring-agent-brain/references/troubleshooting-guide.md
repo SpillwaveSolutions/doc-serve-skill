@@ -52,7 +52,7 @@ lsof -i :8000
 kill -9 <PID>
 
 # Or use auto-port (recommended)
-agent-brain start --daemon
+agent-brain start
 ```
 
 **Permission Errors:**
@@ -74,7 +74,7 @@ chmod 755 .claude/agent-brain/
 
 **Start the Server:**
 ```bash
-agent-brain start --daemon
+agent-brain start
 agent-brain status
 ```
 
@@ -104,7 +104,7 @@ rm .claude/agent-brain/lock.json
 rm .claude/agent-brain/pid
 
 # Start fresh
-agent-brain start --daemon
+agent-brain start
 ```
 
 ---
@@ -287,7 +287,7 @@ curl -H "Authorization: Bearer $OPENAI_API_KEY" \
 ```bash
 agent-brain stop
 agent-brain reset --yes
-agent-brain start --daemon
+agent-brain start
 agent-brain index /path/to/docs
 ```
 

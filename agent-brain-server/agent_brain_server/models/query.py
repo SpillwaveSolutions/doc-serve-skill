@@ -34,7 +34,7 @@ class QueryRequest(BaseModel):
         description="Number of results to return",
     )
     similarity_threshold: float = Field(
-        default=0.7,
+        default=0.3,
         ge=0.0,
         le=1.0,
         description="Minimum similarity score (0-1)",
@@ -92,7 +92,7 @@ class QueryRequest(BaseModel):
                 {
                     "query": "How do I configure authentication?",
                     "top_k": 5,
-                    "similarity_threshold": 0.7,
+                    "similarity_threshold": 0.3,
                     "mode": "hybrid",
                     "alpha": 0.5,
                 },

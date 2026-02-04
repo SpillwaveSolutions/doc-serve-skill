@@ -28,7 +28,57 @@ Summarization generates concise descriptions of code and documents during indexi
 
 ## Configuration Methods
 
-### Method 1: Environment Variables
+### Method 1: YAML Configuration File (Recommended)
+
+Create a `config.yaml` file with API keys and settings. Agent Brain searches these locations in order:
+
+1. `AGENT_BRAIN_CONFIG` environment variable (explicit path)
+2. Current directory: `./agent-brain.yaml` or `./config.yaml`
+3. Project directory: `./.claude/agent-brain/config.yaml`
+4. User home: `~/.agent-brain/config.yaml`
+5. XDG config: `~/.config/agent-brain/config.yaml`
+
+**Complete example** (`~/.agent-brain/config.yaml`):
+
+```yaml
+# Server settings (for CLI connection)
+server:
+  url: "http://127.0.0.1:8000"
+  port: 8000
+  host: "127.0.0.1"
+  auto_port: true
+
+# Project settings
+project:
+  state_dir: null  # null = default (.claude/agent-brain)
+  # state_dir: "/custom/path/agent-brain"  # Custom location
+
+# Embedding configuration
+embedding:
+  provider: "openai"  # openai, ollama, cohere, gemini
+  model: "text-embedding-3-large"
+  api_key: "sk-proj-..."  # Direct API key
+  # api_key_env: "OPENAI_API_KEY"  # OR read from env var
+  base_url: null  # Custom endpoint (for Ollama: http://localhost:11434/v1)
+
+# Summarization configuration
+summarization:
+  provider: "anthropic"  # anthropic, openai, ollama, gemini, grok
+  model: "claude-haiku-4-5-20251001"
+  api_key: "sk-ant-..."  # Direct API key
+  # api_key_env: "ANTHROPIC_API_KEY"  # OR read from env var
+  base_url: null
+```
+
+**API key resolution order**: `api_key` field → environment variable from `api_key_env` → default env var
+
+**Security warning**: If storing API keys in config files:
+```bash
+chmod 600 ~/.agent-brain/config.yaml  # Restrict permissions
+echo "config.yaml" >> .gitignore       # Exclude from version control
+```
+
+### Method 2: Environment Variables
 
 Set variables in your shell or `.env` file:
 
@@ -44,9 +94,13 @@ export SUMMARIZATION_MODEL=claude-haiku-4-5-20251001
 # API keys (as needed)
 export OPENAI_API_KEY=sk-proj-...
 export ANTHROPIC_API_KEY=sk-ant-...
+
+# State directory (optional)
+export AGENT_BRAIN_STATE_DIR=/custom/path/.claude/agent-brain
+export AGENT_BRAIN_URL=http://127.0.0.1:8000
 ```
 
-### Method 2: .env File
+### Method 3: .env File
 
 Create `.claude/agent-brain/.env` in your project:
 
@@ -62,17 +116,14 @@ OPENAI_API_KEY=sk-proj-...
 ANTHROPIC_API_KEY=sk-ant-...
 ```
 
-### Method 3: CLI Configuration
+### Configuration Precedence
 
-```bash
-# Configure embedding provider
-agent-brain config set embedding_provider openai
-agent-brain config set embedding_model text-embedding-3-large
+Resolution order (highest to lowest priority):
 
-# Configure summarization provider
-agent-brain config set summarization_provider anthropic
-agent-brain config set summarization_model claude-haiku-4-5-20251001
-```
+1. **CLI options** (`--url`, `--port`)
+2. **Environment variables** (`AGENT_BRAIN_URL`, `OPENAI_API_KEY`)
+3. **Config file values** (`config.yaml`)
+4. **Default values**
 
 ## Configuration Profiles
 

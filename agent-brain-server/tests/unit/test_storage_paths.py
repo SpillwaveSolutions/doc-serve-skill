@@ -29,7 +29,7 @@ class TestResolveStateDir:
 
     def test_state_dir_name_constant(self):
         """Test STATE_DIR_NAME is correct."""
-        assert STATE_DIR_NAME == ".claude/doc-serve"
+        assert STATE_DIR_NAME == ".claude/agent-brain"
 
 
 class TestResolveStoragePaths:
@@ -37,7 +37,7 @@ class TestResolveStoragePaths:
 
     def test_creates_all_directories(self, tmp_path):
         """Test all storage directories are created."""
-        state_dir = tmp_path / ".claude" / "doc-serve"
+        state_dir = tmp_path / ".claude" / "agent-brain"
         paths = resolve_storage_paths(state_dir)
 
         for name, path in paths.items():
@@ -46,7 +46,7 @@ class TestResolveStoragePaths:
 
     def test_returns_expected_keys(self, tmp_path):
         """Test returned dict has expected keys."""
-        state_dir = tmp_path / ".claude" / "doc-serve"
+        state_dir = tmp_path / ".claude" / "agent-brain"
         paths = resolve_storage_paths(state_dir)
 
         expected_keys = {
@@ -62,7 +62,7 @@ class TestResolveStoragePaths:
 
     def test_paths_are_under_state_dir(self, tmp_path):
         """Test all paths are under the state directory."""
-        state_dir = tmp_path / ".claude" / "doc-serve"
+        state_dir = tmp_path / ".claude" / "agent-brain"
         paths = resolve_storage_paths(state_dir)
 
         for name, path in paths.items():
@@ -70,7 +70,7 @@ class TestResolveStoragePaths:
 
     def test_idempotent(self, tmp_path):
         """Test calling twice returns same paths."""
-        state_dir = tmp_path / ".claude" / "doc-serve"
+        state_dir = tmp_path / ".claude" / "agent-brain"
         paths1 = resolve_storage_paths(state_dir)
         paths2 = resolve_storage_paths(state_dir)
         assert paths1 == paths2

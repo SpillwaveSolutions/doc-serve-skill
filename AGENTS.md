@@ -16,11 +16,26 @@ Agent Brain is a RAG-based document indexing and semantic search system. It's a 
 
 - **Python**: 3.10+
 - **Build System**: Poetry
+- **Package Installer**: uv (preferred over pip)
 - **Server**: FastAPI + Uvicorn
 - **CLI**: Click + Rich
 - **Vector Store**: ChromaDB
 - **Embeddings**: OpenAI text-embedding-3-large
 - **Indexing**: LlamaIndex
+
+## Package Installation
+
+**IMPORTANT**: Always use `uv` instead of `pip` for installing packages. It's faster and handles dependencies better.
+
+```bash
+# Build packages
+cd agent-brain-server && poetry build
+cd agent-brain-cli && poetry build
+
+# Install with uv (NOT pip)
+uv pip install dist/agent_brain_rag-*.whl --force-reinstall
+uv pip install dist/agent_brain_cli-*.whl --force-reinstall
+```
 
 ## Build and Test Commands
 
@@ -111,12 +126,33 @@ doc-serve/
 
 ## CLI Commands
 
+### Instance Commands
+
+| Command | Description |
+|---------|-------------|
+| `agent-brain init` | Initialize project for Agent Brain |
+| `agent-brain start` | Start Agent Brain server |
+| `agent-brain stop` | Stop the running server |
+| `agent-brain list` | List all running instances |
+
+### Data Commands
+
 | Command | Description |
 |---------|-------------|
 | `agent-brain status` | Check server status |
 | `agent-brain query "text"` | Search documents |
-| `agent-brain index /path` | Index documents |
+| `agent-brain index /path` | Index documents (queued) |
+| `agent-brain index /path --force` | Index, bypass deduplication |
 | `agent-brain reset --yes` | Clear index |
+
+### Job Queue Commands
+
+| Command | Description |
+|---------|-------------|
+| `agent-brain jobs` | List all jobs in queue |
+| `agent-brain jobs --watch` | Watch queue with live updates |
+| `agent-brain jobs JOB_ID` | Show job details |
+| `agent-brain jobs JOB_ID --cancel` | Cancel a job |
 
 ## Environment Variables
 

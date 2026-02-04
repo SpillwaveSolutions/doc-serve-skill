@@ -90,12 +90,12 @@ agent-brain query "<terms>" --mode bm25 --top-k 10
 
 **For Relationship Questions (if graph available):**
 ```bash
-agent-brain query "<question>" --mode graph --traversal-depth 2 --include-relationships
+agent-brain query "<question>" --mode graph --top-k 8 --threshold 0.2
 ```
 
 **For Comprehensive Questions:**
 ```bash
-agent-brain query "<question>" --mode multi --top-k 10 --threshold 0.2 --include-relationships
+agent-brain query "<question>" --mode multi --top-k 10 --threshold 0.2
 ```
 
 **For General/Unclear Questions:**
@@ -174,7 +174,7 @@ Summarization: anthropic (claude-haiku-4-5-20251001)
 
 | If Missing | Action |
 |------------|--------|
-| Server not running | Offer to start: `agent-brain start --daemon` |
+| Server not running | Offer to start: `agent-brain start` |
 | No documents | Suggest indexing: `agent-brain index /path/to/docs` |
 | No graph index | Use hybrid/vector instead (don't mention graph) |
 | No vector index | Use BM25 only (don't mention semantic) |
@@ -246,7 +246,7 @@ Your system uses OAuth 2.0 with JWT tokens for API authentication. The authentic
 Let me find what calls the payment processor.
 
 ```bash
-agent-brain query "what calls payment processor" --mode graph --traversal-depth 2
+agent-brain query "what calls payment processor" --mode graph --top-k 8
 ```
 
 ## Research Summary: Payment Processor Callers
@@ -295,7 +295,7 @@ stripe_webhook() ───────┘
 Let me do a comprehensive search for error handling patterns.
 
 ```bash
-agent-brain query "error handling patterns" --mode multi --top-k 10 --include-relationships
+agent-brain query "error handling patterns" --mode multi --top-k 10 --threshold 0.2
 ```
 
 ## Research Summary: Error Handling
@@ -324,7 +324,7 @@ The codebase uses a layered error handling approach with custom exception classe
 
 > Agent Brain server is not running. Would you like me to start it?
 >
-> Run: `agent-brain start --daemon`
+> Run: `agent-brain start`
 
 ### No Documents Indexed
 

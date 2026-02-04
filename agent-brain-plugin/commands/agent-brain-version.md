@@ -197,7 +197,7 @@ export SUMMARIZATION_MODEL=claude-haiku-4-5-20251001
 
 # 4. Re-index
 agent-brain reset --yes
-agent-brain start --daemon
+agent-brain start
 agent-brain index /path/to/docs
 ```
 

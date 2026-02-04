@@ -1,5 +1,6 @@
 """Document loading from various file formats using LlamaIndex."""
 
+import asyncio
 import logging
 import re
 from dataclasses import dataclass, field
@@ -272,9 +273,30 @@ class DocumentLoader:
 
     SUPPORTED_EXTENSIONS: set[str] = DOCUMENT_EXTENSIONS | CODE_EXTENSIONS
 
+    # Default directories to exclude from indexing
+    DEFAULT_EXCLUDE_PATTERNS: list[str] = [
+        "**/node_modules/**",
+        "**/__pycache__/**",
+        "**/.venv/**",
+        "**/venv/**",
+        "**/.git/**",
+        "**/dist/**",
+        "**/build/**",
+        "**/target/**",
+        "**/.next/**",
+        "**/.nuxt/**",
+        "**/coverage/**",
+        "**/.pytest_cache/**",
+        "**/.mypy_cache/**",
+        "**/.tox/**",
+        "**/egg-info/**",
+        "**/*.egg-info/**",
+    ]
+
     def __init__(
         self,
         supported_extensions: Optional[set[str]] = None,
+        exclude_patterns: Optional[list[str]] = None,
     ):
         """
         Initialize the document loader.
@@ -282,8 +304,15 @@ class DocumentLoader:
         Args:
             supported_extensions: Set of file extensions to load.
                                   Defaults to SUPPORTED_EXTENSIONS.
+            exclude_patterns: List of glob patterns to exclude.
+                              Defaults to DEFAULT_EXCLUDE_PATTERNS.
         """
         self.extensions = supported_extensions or self.SUPPORTED_EXTENSIONS
+        self.exclude_patterns = (
+            exclude_patterns
+            if exclude_patterns is not None
+            else self.DEFAULT_EXCLUDE_PATTERNS
+        )
 
     async def load_from_folder(
         self,
@@ -313,16 +342,24 @@ class DocumentLoader:
             raise ValueError(f"Path is not a directory: {folder_path}")
 
         logger.info(f"Loading documents from: {folder_path} (recursive={recursive})")
+        if self.exclude_patterns:
+            logger.info(
+                f"Excluding patterns: {self.exclude_patterns[:3]}... "
+                f"({len(self.exclude_patterns)} total)"
+            )
 
         # Use LlamaIndex's SimpleDirectoryReader
+        # Run in thread pool to avoid blocking the event loop
         try:
             reader = SimpleDirectoryReader(
                 input_dir=str(path),
                 recursive=recursive,
                 required_exts=list(self.extensions),
+                exclude=self.exclude_patterns,
                 filename_as_id=True,
             )
-            llama_documents: list[Document] = reader.load_data()
+            # reader.load_data() is blocking I/O - run in thread pool
+            llama_documents: list[Document] = await asyncio.to_thread(reader.load_data)
         except Exception as e:
             logger.error(f"Failed to load documents: {e}")
             raise
@@ -398,7 +435,8 @@ class DocumentLoader:
             input_files=[str(path)],
             filename_as_id=True,
         )
-        docs = reader.load_data()
+        # Run in thread pool to avoid blocking the event loop
+        docs = await asyncio.to_thread(reader.load_data)
 
         if not docs:
             raise ValueError(f"No content loaded from file: {file_path}")
@@ -456,8 +494,11 @@ class DocumentLoader:
             # Use only document extensions
             effective_extensions = self.DOCUMENT_EXTENSIONS
 
-        # Create a temporary loader with the effective extensions
-        temp_loader = DocumentLoader(supported_extensions=effective_extensions)
+        # Create a temporary loader with the effective extensions and exclude patterns
+        temp_loader = DocumentLoader(
+            supported_extensions=effective_extensions,
+            exclude_patterns=self.exclude_patterns,
+        )
 
         # Load files using the configured extensions
         loaded_docs = await temp_loader.load_from_folder(folder_path, recursive)

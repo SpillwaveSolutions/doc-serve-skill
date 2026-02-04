@@ -57,7 +57,7 @@ If the server is not running:
 
 > Agent Brain server is not running. Would you like me to start it?
 >
-> Run: `agent-brain start --daemon`
+> Run: `agent-brain start`
 
 ### 3. Help Formulate Effective Queries
 

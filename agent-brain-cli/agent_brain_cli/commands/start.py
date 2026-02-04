@@ -1,4 +1,4 @@
-"""Start command for launching a doc-serve server instance."""
+"""Start command for launching an Agent Brain server instance."""
 
 import json
 import os
@@ -17,9 +17,9 @@ from rich.panel import Panel
 
 console = Console()
 
-STATE_DIR_NAME = ".claude/doc-serve"
-LOCK_FILE = "doc-serve.lock"
-PID_FILE = "doc-serve.pid"
+STATE_DIR_NAME = ".claude/agent-brain"
+LOCK_FILE = "agent-brain.lock"
+PID_FILE = "agent-brain.pid"
 RUNTIME_FILE = "runtime.json"
 
 
@@ -145,7 +145,7 @@ def find_available_port(host: str, start_port: int, end_port: int) -> Optional[i
 
 def update_registry(project_root: Path, state_dir: Path) -> None:
     """Add project to global registry."""
-    registry_dir = Path.home() / ".doc-serve"
+    registry_dir = Path.home() / ".agent-brain"
     registry_dir.mkdir(parents=True, exist_ok=True)
     registry_path = registry_dir / "registry.json"
 
@@ -203,17 +203,17 @@ def start_command(
     timeout: int,
     json_output: bool,
 ) -> None:
-    """Start a doc-serve server for this project.
+    """Start an Agent Brain server for this project.
 
     Spawns a new server instance bound to the project. If a server is
     already running for this project, reports its URL instead.
 
     \b
     Examples:
-      doc-svr-ctl start                    # Start server for current project
-      doc-svr-ctl start --port 8080        # Start on specific port
-      doc-svr-ctl start --foreground       # Run in foreground
-      doc-svr-ctl start --path /my/project # Start for specific project
+      agent-brain start                    # Start server for current project
+      agent-brain start --port 8080        # Start on specific port
+      agent-brain start --foreground       # Run in foreground
+      agent-brain start --path /my/project # Start for specific project
     """
     try:
         # Resolve project root
@@ -231,7 +231,7 @@ def start_command(
                     json.dumps(
                         {
                             "error": "Project not initialized",
-                            "hint": "Run 'doc-svr-ctl init' first",
+                            "hint": "Run 'agent-brain init' first",
                         }
                     )
                 )
@@ -240,7 +240,7 @@ def start_command(
                     f"[red]Error:[/] Project not initialized at {project_root}"
                 )
                 console.print(
-                    "[dim]Run 'doc-svr-ctl init' to initialize the project.[/]"
+                    "[dim]Run 'agent-brain init' to initialize the project.[/]"
                 )
             raise SystemExit(1)
 
@@ -326,7 +326,7 @@ def start_command(
             sys.executable,
             "-m",
             "uvicorn",
-            "doc_serve_server.api.main:app",
+            "agent_brain_server.api.main:app",
             "--host",
             bind_host,
             "--port",
@@ -335,11 +335,31 @@ def start_command(
 
         # Set environment variables for server
         env = os.environ.copy()
-        env["DOC_SERVE_PROJECT_ROOT"] = str(project_root)
-        env["DOC_SERVE_STATE_DIR"] = str(state_dir)
+        env["AGENT_BRAIN_PROJECT_ROOT"] = str(project_root)
+        env["AGENT_BRAIN_STATE_DIR"] = str(state_dir)
 
         if foreground:
-            # Run in foreground - don't write runtime, just exec
+            # Write runtime state even in foreground mode so CLI can discover the URL
+            from datetime import datetime, timezone
+            from uuid import uuid4
+
+            runtime_state = {
+                "schema_version": "1.0",
+                "mode": "project",
+                "project_root": str(project_root),
+                "instance_id": uuid4().hex[:12],
+                "base_url": base_url,
+                "bind_host": bind_host,
+                "port": bind_port,
+                "pid": os.getpid(),  # Current PID (will be replaced by exec)
+                "started_at": datetime.now(timezone.utc).isoformat(),
+                "foreground": True,  # Mark as foreground for cleanup detection
+            }
+            write_runtime(state_dir, runtime_state)
+
+            # Update global registry
+            update_registry(project_root, state_dir)
+
             if not json_output:
                 console.print(
                     Panel(
@@ -347,7 +367,7 @@ def start_command(
                         f"[bold]URL:[/] {base_url}\n"
                         f"[bold]Project:[/] {project_root}\n\n"
                         f"[dim]Press Ctrl+C to stop[/]",
-                        title="Doc-Serve Server",
+                        title="Agent Brain Server",
                         border_style="green",
                     )
                 )
@@ -425,16 +445,16 @@ def start_command(
                             f"[bold]PID:[/] {process.pid}\n"
                             f"[bold]Project:[/] {project_root}\n"
                             f"[bold]Log:[/] {stdout_log}",
-                            title="Doc-Serve Server Running",
+                            title="Agent Brain Server Running",
                             border_style="green",
                         )
                     )
                     console.print("\n[dim]Next steps:[/]")
                     console.print(
-                        f"  - Query: [bold]doc-svr-ctl query 'search term' "
+                        f"  - Query: [bold]agent-brain query 'search term' "
                         f"--url {base_url}[/]"
                     )
-                    console.print("  - Stop: [bold]doc-svr-ctl stop[/]")
+                    console.print("  - Stop: [bold]agent-brain stop[/]")
             else:
                 # Cleanup on failure
                 if process.poll() is None:

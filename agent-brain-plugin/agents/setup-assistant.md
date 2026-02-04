@@ -92,7 +92,7 @@ agent-brain status 2>/dev/null
 
 **If not running:**
 - Offer to start the server
-- Guide with `agent-brain start --daemon`
+- Guide with `agent-brain start`
 
 ### 5. Verify Full Setup
 
@@ -180,11 +180,11 @@ Let me check the server status...
 The Agent Brain server is not running.
 
 To start it:
-  agent-brain start --daemon
+  agent-brain start
 
 If that fails, try:
 1. Check for stale state: rm -f .claude/agent-brain/runtime.json
-2. Start again: agent-brain start --daemon
+2. Start again: agent-brain start
 3. Verify: agent-brain status
 
 Common issues:

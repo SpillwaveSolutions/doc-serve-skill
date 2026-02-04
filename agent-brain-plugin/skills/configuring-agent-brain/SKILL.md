@@ -57,7 +57,7 @@ export SUMMARIZATION_MODEL=llama3.2
 
 # 4. Initialize and start
 agent-brain init
-agent-brain start --daemon
+agent-brain start
 agent-brain status
 ```
 
@@ -73,7 +73,7 @@ export ANTHROPIC_API_KEY="sk-ant-..."     # For summarization (optional)
 
 # 3. Initialize and start
 agent-brain init
-agent-brain start --daemon
+agent-brain start
 agent-brain status
 ```
 
@@ -152,23 +152,49 @@ pip install --user agent-brain-rag  # Correct - user installation
 
 ## Provider Configuration
 
-Agent Brain 2.0 supports pluggable providers. Choose based on requirements:
+Agent Brain 2.0 supports pluggable providers with two configuration methods.
 
-### Fully Local (No API Keys)
+### Method 1: Configuration File (Recommended)
 
-Best for privacy, air-gapped environments:
+Create a `config.yaml` file in one of these locations:
 
-```bash
-export EMBEDDING_PROVIDER=ollama
-export EMBEDDING_MODEL=nomic-embed-text
-export SUMMARIZATION_PROVIDER=ollama
-export SUMMARIZATION_MODEL=llama4:scout
-export OLLAMA_BASE_URL=http://localhost:11434
+1. **Project-level**: `.claude/agent-brain/config.yaml`
+2. **User-level**: `~/.agent-brain/config.yaml`
+3. **XDG config**: `~/.config/agent-brain/config.yaml`
+4. **Current directory**: `./config.yaml` or `./agent-brain.yaml`
+
+```yaml
+# ~/.agent-brain/config.yaml
+server:
+  url: "http://127.0.0.1:8000"
+  port: 8000
+
+project:
+  state_dir: null  # null = use default (.claude/agent-brain)
+
+embedding:
+  provider: "openai"
+  model: "text-embedding-3-large"
+  api_key: "sk-proj-..."  # Direct key, OR use api_key_env
+  # api_key_env: "OPENAI_API_KEY"  # Read from env var
+
+summarization:
+  provider: "anthropic"
+  model: "claude-haiku-4-5-20251001"
+  api_key: "sk-ant-..."  # Direct key, OR use api_key_env
+  # api_key_env: "ANTHROPIC_API_KEY"
 ```
 
-**Prerequisite**: Ollama must be installed and running with models pulled.
+**Config file search order**: AGENT_BRAIN_CONFIG env → current dir → project dir → user home
 
-### Cloud (Best Quality)
+**Security**: If storing API keys in config file:
+- Set file permissions: `chmod 600 ~/.agent-brain/config.yaml`
+- Add to `.gitignore`: `config.yaml`
+- Never commit API keys to version control
+
+### Method 2: Environment Variables
+
+Set variables in shell or `.env` file:
 
 ```bash
 export EMBEDDING_PROVIDER=openai
@@ -179,47 +205,94 @@ export OPENAI_API_KEY="sk-proj-..."
 export ANTHROPIC_API_KEY="sk-ant-..."
 ```
 
-### Mixed (Balance Quality and Privacy)
+**Precedence order**: CLI options → environment variables → config file → defaults
 
+---
+
+### Provider Profiles
+
+#### Fully Local with Ollama (No API Keys)
+
+Best for privacy, air-gapped environments:
+
+**Config file** (`~/.agent-brain/config.yaml`):
+```yaml
+embedding:
+  provider: "ollama"
+  model: "nomic-embed-text"
+  base_url: "http://localhost:11434/v1"
+
+summarization:
+  provider: "ollama"
+  model: "llama3.2"
+  base_url: "http://localhost:11434/v1"
+```
+
+**Or environment variables**:
 ```bash
-export EMBEDDING_PROVIDER=openai
-export EMBEDDING_MODEL=text-embedding-3-large
+export EMBEDDING_PROVIDER=ollama
+export EMBEDDING_MODEL=nomic-embed-text
 export SUMMARIZATION_PROVIDER=ollama
-export SUMMARIZATION_MODEL=llama4:scout
+export SUMMARIZATION_MODEL=llama3.2
+```
+
+**Prerequisite**: Ollama must be installed and running with models pulled.
+
+#### Cloud (Best Quality)
+
+**Config file**:
+```yaml
+embedding:
+  provider: "openai"
+  model: "text-embedding-3-large"
+  api_key: "sk-proj-..."
+
+summarization:
+  provider: "anthropic"
+  model: "claude-haiku-4-5-20251001"
+  api_key: "sk-ant-..."
+```
+
+**Or environment variables**:
+```bash
 export OPENAI_API_KEY="sk-proj-..."
+export ANTHROPIC_API_KEY="sk-ant-..."
+```
+
+#### Mixed (Balance Quality and Privacy)
+
+```yaml
+embedding:
+  provider: "openai"
+  model: "text-embedding-3-large"
+  api_key: "sk-proj-..."
+
+summarization:
+  provider: "ollama"
+  model: "llama3.2"
 ```
 
 ### Verify Configuration
 
 ```bash
-echo "Embedding: ${EMBEDDING_PROVIDER:-openai}"
-echo "Summarization: ${SUMMARIZATION_PROVIDER:-anthropic}"
-echo "OpenAI Key: ${OPENAI_API_KEY:+SET}"
+agent-brain verify
 ```
 
 **Counter-example - Common mistake**:
 ```bash
-# DO NOT put keys in code or commit to git
+# DO NOT put keys in shell command history
 OPENAI_API_KEY="sk-proj-abc123" agent-brain start  # Wrong - key in history
 ```
 
-**Correct approach**:
+**Correct approaches**:
 ```bash
-export OPENAI_API_KEY="sk-proj-..."  # Set in environment
-agent-brain start --daemon            # Use from environment
+# Use config file (keys are in file, not command line)
+agent-brain start
+
+# Or use environment from shell profile
+export OPENAI_API_KEY="sk-proj-..."  # In ~/.bashrc
+agent-brain start
 ```
-
-### Persistent Configuration
-
-Add to shell profile (`~/.bashrc` or `~/.zshrc`):
-
-```bash
-# Agent Brain Configuration
-export EMBEDDING_PROVIDER=openai
-export OPENAI_API_KEY="sk-proj-..."
-```
-
-Then reload: `source ~/.bashrc`
 
 ---
 
@@ -243,7 +316,7 @@ Expected: File exists
 ### Start Server
 
 ```bash
-agent-brain start --daemon
+agent-brain start
 ```
 
 **Verify server started**:
@@ -342,7 +415,7 @@ Expected: JSON response (not error)
 # Check for stale state
 rm -f .claude/agent-brain/runtime.json
 rm -f .claude/agent-brain/lock.json
-agent-brain start --daemon
+agent-brain start
 ```
 
 ### Issue: Ollama Connection Failed
@@ -371,14 +444,20 @@ agent-brain index ./docs
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
+| `AGENT_BRAIN_CONFIG` | No | - | Path to config.yaml file |
+| `AGENT_BRAIN_URL` | No | `http://127.0.0.1:8000` | Server URL for CLI |
+| `AGENT_BRAIN_STATE_DIR` | No | `.claude/agent-brain` | State directory path |
 | `EMBEDDING_PROVIDER` | No | `openai` | Provider: openai, cohere, ollama |
 | `EMBEDDING_MODEL` | No | `text-embedding-3-large` | Model name |
 | `SUMMARIZATION_PROVIDER` | No | `anthropic` | Provider: anthropic, openai, gemini, grok, ollama |
 | `SUMMARIZATION_MODEL` | No | `claude-haiku-4-5-20251001` | Model name |
 | `OPENAI_API_KEY` | Conditional | - | Required if using OpenAI |
 | `ANTHROPIC_API_KEY` | Conditional | - | Required if using Anthropic |
-| `OLLAMA_BASE_URL` | Conditional | `http://localhost:11434` | Ollama server URL |
-| `DOC_SERVE_STATE_DIR` | No | `.claude/agent-brain` | State directory |
+| `GOOGLE_API_KEY` | Conditional | - | Required if using Gemini |
+| `XAI_API_KEY` | Conditional | - | Required if using Grok |
+| `COHERE_API_KEY` | Conditional | - | Required if using Cohere |
+
+**Note**: Environment variables override config file values. Config file values override defaults.
 
 ---
 
@@ -386,6 +465,7 @@ agent-brain index ./docs
 
 | Guide | Description |
 |-------|-------------|
+| [Configuration Guide](references/configuration-guide.md) | Config file format and locations |
 | [Installation Guide](references/installation-guide.md) | Detailed installation options |
 | [Provider Configuration](references/provider-configuration.md) | All provider settings |
 | [Troubleshooting Guide](references/troubleshooting-guide.md) | Extended issue resolution |

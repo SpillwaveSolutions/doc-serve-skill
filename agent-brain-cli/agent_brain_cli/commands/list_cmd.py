@@ -1,4 +1,4 @@
-"""List command for showing all running doc-serve instances."""
+"""List command for showing all running Agent Brain instances."""
 
 import json
 import os
@@ -49,8 +49,8 @@ def check_health(base_url: str, timeout: float = 2.0) -> bool:
 
 
 def get_registry() -> dict[str, Any]:
-    """Load the global registry of doc-serve projects."""
-    registry_path = Path.home() / ".doc-serve" / "registry.json"
+    """Load the global registry of Agent Brain projects."""
+    registry_path = Path.home() / ".agent-brain" / "registry.json"
     if not registry_path.exists():
         return {}
     try:
@@ -62,7 +62,7 @@ def get_registry() -> dict[str, Any]:
 
 def save_registry(registry: dict[str, Any]) -> None:
     """Save the global registry."""
-    registry_dir = Path.home() / ".doc-serve"
+    registry_dir = Path.home() / ".agent-brain"
     registry_dir.mkdir(parents=True, exist_ok=True)
     registry_path = registry_dir / "registry.json"
     registry_path.write_text(json.dumps(registry, indent=2))
@@ -141,17 +141,17 @@ def scan_instances() -> list[dict[str, Any]]:
 )
 @click.option("--json", "json_output", is_flag=True, help="Output as JSON")
 def list_command(show_all: bool, json_output: bool) -> None:
-    """List all running doc-serve instances.
+    """List all running Agent Brain instances.
 
-    Scans the global registry for doc-serve instances and validates
+    Scans the global registry for Agent Brain instances and validates
     each one by checking if the process is alive and the health
     endpoint responds.
 
     \b
     Examples:
-      doc-svr-ctl list            # List running instances
-      doc-svr-ctl list --all      # Include stale instances
-      doc-svr-ctl list --json     # Output as JSON
+      agent-brain list            # List running instances
+      agent-brain list --all      # Include stale instances
+      agent-brain list --json     # Output as JSON
     """
     try:
         instances = scan_instances()
@@ -173,13 +173,13 @@ def list_command(show_all: bool, json_output: bool) -> None:
             return
 
         if not instances:
-            console.print("[dim]No running doc-serve instances found.[/]")
-            console.print("\n[dim]Start a server with: doc-svr-ctl start[/]")
+            console.print("[dim]No running Agent Brain instances found.[/]")
+            console.print("\n[dim]Start a server with: agent-brain start[/]")
             return
 
         # Create table
         table = Table(
-            title="Doc-Serve Instances",
+            title="Agent Brain Instances",
             show_header=True,
             header_style="bold cyan",
         )

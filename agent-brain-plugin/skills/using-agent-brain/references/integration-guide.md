@@ -83,7 +83,7 @@ set -e
 
 # Initialize and start server
 agent-brain init
-agent-brain start --daemon
+agent-brain start
 
 # Wait for server readiness
 for i in {1..10}; do
@@ -117,8 +117,8 @@ echo "Documentation validation complete"
 
 ```bash
 # Work with multiple projects simultaneously
-cd /project-a && agent-brain start --daemon  # Auto-port (e.g., 54321)
-cd /project-b && agent-brain start --daemon  # Different port (e.g., 54322)
+cd /project-a && agent-brain start  # Auto-port (e.g., 54321)
+cd /project-b && agent-brain start  # Different port (e.g., 54322)
 
 # List all running instances
 agent-brain list

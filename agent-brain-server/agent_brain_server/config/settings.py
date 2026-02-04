@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     # Chroma Configuration
     CHROMA_PERSIST_DIR: str = "./chroma_db"
     BM25_INDEX_PATH: str = "./bm25_index"
-    COLLECTION_NAME: str = "doc_serve_collection"
+    COLLECTION_NAME: str = "agent_brain_collection"
 
     # Chunking Configuration
     DEFAULT_CHUNK_SIZE: int = 512
@@ -48,8 +48,8 @@ class Settings(BaseSettings):
     EMBEDDING_BATCH_SIZE: int = 100
 
     # Multi-instance Configuration
-    DOC_SERVE_STATE_DIR: Optional[str] = None  # Override state directory
-    DOC_SERVE_MODE: str = "project"  # "project" or "shared"
+    AGENT_BRAIN_STATE_DIR: Optional[str] = None  # Override state directory
+    AGENT_BRAIN_MODE: str = "project"  # "project" or "shared"
 
     # GraphRAG Configuration (Feature 113)
     ENABLE_GRAPH_INDEX: bool = False  # Master switch for graph indexing
@@ -62,11 +62,17 @@ class Settings(BaseSettings):
     GRAPH_TRAVERSAL_DEPTH: int = 2  # Depth for graph traversal in queries
     GRAPH_RRF_K: int = 60  # Reciprocal Rank Fusion constant for multi-retrieval
 
+    # Job Queue Configuration (Feature 115)
+    AGENT_BRAIN_MAX_QUEUE: int = 100  # Max pending jobs in queue
+    AGENT_BRAIN_JOB_TIMEOUT: int = 7200  # Job timeout in seconds (2 hours)
+    AGENT_BRAIN_MAX_RETRIES: int = 3  # Max retries for failed jobs
+    AGENT_BRAIN_CHECKPOINT_INTERVAL: int = 50  # Progress checkpoint every N files
+
     model_config = SettingsConfigDict(
         env_file=[
             ".env",  # Current directory
             Path(__file__).parent.parent.parent / ".env",  # Project root
-            Path(__file__).parent.parent / ".env",  # doc-serve-server directory
+            Path(__file__).parent.parent / ".env",  # agent-brain-server directory
         ],
         env_file_encoding="utf-8",
         case_sensitive=True,

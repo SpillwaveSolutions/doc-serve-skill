@@ -1,0 +1,142 @@
+# Agent Brain Configuration File
+# ================================
+# This file allows you to configure Agent Brain without environment variables.
+# Copy this file to one of these locations:
+#   - ./config.yaml (current directory)
+#   - ./agent-brain.yaml (current directory)
+#   - ./.claude/agent-brain/config.yaml (project directory)
+#   - ~/.agent-brain/config.yaml (user home)
+#   - ~/.config/agent-brain/config.yaml (XDG config)
+#
+# Or set AGENT_BRAIN_CONFIG=/path/to/your/config.yaml
+#
+# SECURITY WARNING: If you store API keys directly in this file, ensure:
+#   - The file has appropriate permissions (chmod 600 config.yaml)
+#   - The file is excluded from version control (.gitignore)
+#   - Do NOT commit API keys to repositories
+
+# ============================================================================
+# Server Configuration
+# ============================================================================
+server:
+  # URL for CLI to connect to the server
+  # Override with: AGENT_BRAIN_URL environment variable
+  url: "http://127.0.0.1:8000"
+
+  # Server bind host
+  host: "127.0.0.1"
+
+  # Server port (0 = auto-assign available port)
+  port: 8000
+
+  # Automatically select available port if preferred port is in use
+  auto_port: true
+
+# ============================================================================
+# Project Configuration
+# ============================================================================
+project:
+  # Custom state directory for index data
+  # Override with: AGENT_BRAIN_STATE_DIR environment variable
+  # Default: .claude/agent-brain (relative to project root)
+  #
+  # Use this to store indexes in a different location, e.g.:
+  #   - /data/agent-brain/my-project (shared storage)
+  #   - ~/agent-brain-data/project-a (user-specific)
+  state_dir: null  # null = use default (.claude/agent-brain)
+
+  # Project root directory (auto-detected from git root or .claude directory)
+  project_root: null  # null = auto-detect
+
+# ============================================================================
+# Embedding Configuration
+# ============================================================================
+# Embeddings convert text to vectors for semantic search
+embedding:
+  # Provider: openai, ollama, cohere, gemini
+  provider: "openai"
+
+  # Model name (depends on provider)
+  # OpenAI: text-embedding-3-large, text-embedding-3-small, text-embedding-ada-002
+  # Ollama: nomic-embed-text, mxbai-embed-large, all-minilm
+  # Cohere: embed-english-v3.0, embed-multilingual-v3.0
+  # Gemini: embedding-001
+  model: "text-embedding-3-large"
+
+  # API key - choose ONE of these approaches:
+  #
+  # Option 1: Direct API key (NOT recommended for shared configs)
+  # api_key: "sk-your-openai-key-here"
+  #
+  # Option 2: Environment variable name (RECOMMENDED)
+  # The server will read the actual key from this environment variable
+  api_key_env: "OPENAI_API_KEY"
+
+  # Custom base URL (for Ollama or API-compatible services)
+  # Ollama default: http://localhost:11434/v1
+  # base_url: "http://localhost:11434/v1"
+  base_url: null
+
+# ============================================================================
+# Summarization Configuration
+# ============================================================================
+# Summarization creates concise descriptions of code and documents
+summarization:
+  # Provider: anthropic, openai, ollama, gemini, grok
+  provider: "anthropic"
+
+  # Model name (depends on provider)
+  # Anthropic: claude-haiku-4-5-20251001, claude-sonnet-4-20250514
+  # OpenAI: gpt-4o-mini, gpt-4o
+  # Ollama: llama3.2, mistral, codellama
+  # Gemini: gemini-2.0-flash, gemini-1.5-pro
+  # Grok: grok-beta
+  model: "claude-haiku-4-5-20251001"
+
+  # API key - same options as embedding
+  # api_key: "sk-ant-your-anthropic-key-here"
+  api_key_env: "ANTHROPIC_API_KEY"
+
+  # Custom base URL
+  # Grok: https://api.x.ai/v1
+  # Ollama: http://localhost:11434/v1
+  base_url: null
+
+# ============================================================================
+# Example Configurations
+# ============================================================================
+# Below are complete example configurations for common setups.
+# Uncomment and modify as needed.
+
+# --- Fully Local with Ollama (no API keys needed) ---
+# embedding:
+#   provider: "ollama"
+#   model: "nomic-embed-text"
+#   base_url: "http://localhost:11434/v1"
+#
+# summarization:
+#   provider: "ollama"
+#   model: "llama3.2"
+#   base_url: "http://localhost:11434/v1"
+
+# --- OpenAI for Everything ---
+# embedding:
+#   provider: "openai"
+#   model: "text-embedding-3-large"
+#   api_key_env: "OPENAI_API_KEY"
+#
+# summarization:
+#   provider: "openai"
+#   model: "gpt-4o-mini"
+#   api_key_env: "OPENAI_API_KEY"
+
+# --- Custom State Directory Example ---
+# project:
+#   state_dir: "/data/shared/agent-brain/my-project"
+#   project_root: "/home/user/projects/my-project"
+
+# --- Multiple Projects with Same Config ---
+# Use this approach when you have the same API keys but different state dirs:
+# 1. Create ~/.agent-brain/config.yaml with API keys
+# 2. Set AGENT_BRAIN_STATE_DIR for each project, or
+# 3. Let each project use its default .claude/agent-brain directory

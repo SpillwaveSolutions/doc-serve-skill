@@ -233,7 +233,7 @@ top -p $(pgrep -f "agent-brain")
 
 **Start the server (multi-instance mode):**
 ```bash
-agent-brain start --daemon   # Uses auto-port allocation
+agent-brain start   # Uses auto-port allocation
 agent-brain status           # Shows the actual port
 ```
 
@@ -274,7 +274,7 @@ agent-brain status
 **Let the CLI handle it:**
 ```bash
 # CLI automatically detects stale state and starts fresh
-agent-brain start --daemon
+agent-brain start
 ```
 
 **Manual cleanup:**
@@ -285,7 +285,7 @@ rm .claude/doc-serve/lock.json
 rm .claude/doc-serve/pid
 
 # Start fresh
-agent-brain start --daemon
+agent-brain start
 ```
 
 ### 8b. Multiple Agents Racing to Start
@@ -303,7 +303,7 @@ The lock file protocol prevents double-start automatically:
 agent-brain status
 
 # If lock is stale (process died), cleanup happens automatically
-agent-brain start --daemon
+agent-brain start
 ```
 
 **If locks persist incorrectly:**
@@ -311,7 +311,7 @@ agent-brain start --daemon
 # Manual lock cleanup (only if process is truly dead)
 ps aux | grep agent-brain  # Verify no process running
 rm .claude/doc-serve/lock.json
-agent-brain start --daemon
+agent-brain start
 ```
 
 ### 9. Invalid API Key Errors

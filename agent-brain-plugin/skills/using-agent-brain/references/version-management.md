@@ -124,7 +124,7 @@ agent-brain reset --yes
 pip install agent-brain-rag==1.4.0 agent-brain-cli==1.4.0
 
 # 5. Re-index
-agent-brain start --daemon
+agent-brain start
 agent-brain index /path/to/docs
 ```
 
@@ -232,7 +232,7 @@ pip install --upgrade agent-brain-rag agent-brain-cli
 
 # 4. Re-index documents
 agent-brain reset --yes
-agent-brain start --daemon
+agent-brain start
 agent-brain index /path/to/docs
 ```
 
