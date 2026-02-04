@@ -21,6 +21,24 @@ Builds and installs Agent Brain CLI/Server locally for rapid development and tes
 
 Use this when you need a truly clean environment (no cached wheels, no stale plugins, no lingering state).
 
+**Use the dedicated removal script:**
+
+```bash
+# Standard removal (kills servers, uninstalls tools, clears caches, removes plugin)
+.claude/skills/installing-local/remove.sh
+
+# With PyPI dependency restoration
+.claude/skills/installing-local/remove.sh --restore-pypi
+
+# Zero-state cleanup (also removes ~/.claude/agent-brain and ./.claude/agent-brain)
+.claude/skills/installing-local/remove.sh --restore-pypi --zero-state
+```
+
+Or use the `/ag-remove-local-install` command which runs this script.
+
+<details>
+<summary>Manual steps (if script unavailable)</summary>
+
 ```bash
 # Stop any running servers
 pkill -9 -f "agent_brain_server" 2>/dev/null || true
@@ -40,6 +58,7 @@ rm -rf ~/.claude/plugins/cache/agent-brain-marketplace ~/.claude/plugins/agent-b
 # Optional: wipe runtime/state for a zero-carryover test (back up first if needed)
 # rm -rf ~/.claude/agent-brain ./.claude/agent-brain
 ```
+</details>
 
 ### Local vs PyPI dependency toggle
 

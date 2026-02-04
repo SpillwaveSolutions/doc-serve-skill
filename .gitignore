@@ -131,3 +131,4 @@ e2e/tmp/
 
 # Doc-serve per-project state directories
 .claude/doc-serve/
+.claude/settings.local.json

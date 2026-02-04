@@ -1,24 +1,36 @@
+---
+context: fork
+agent: uninstall_agent
+---
+
 # ag-remove-local-install
 
-Remove all local Agent Brain installations, caches, and plugin artifacts to prepare for a fresh install.
+Remove all local Agent Brain installations, caches, and plugin artifacts.
 
-## Usage
+## Arguments
 
+- `--zero-state` - Also remove `~/.claude/agent-brain` and `./.claude/agent-brain` state directories (back up first!)
+
+## Task
+
+Run the removal script with the appropriate flags:
+
+**If `--zero-state` was passed:**
+```bash
+.claude/skills/installing-local/remove.sh --restore-pypi --zero-state
 ```
-/ag-remove-local-install
+
+**Otherwise (default):**
+```bash
+.claude/skills/installing-local/remove.sh --restore-pypi
 ```
 
-## What it does
-- Executes the “Step 0: Full Reset” portion of the `installing-local` skill:
-  - Kills running agent-brain/uvicorn processes (ports 8000–8010).
-  - Uninstalls CLI/server from `uv` and `pipx`, removes tool dirs, clears `uv`/`pip` caches.
-  - Deletes plugin cache and deployed plugin (`~/.claude/plugins/cache/agent-brain-marketplace`, `~/.claude/plugins/agent-brain`).
-- Leaves build/reinstall steps to be run separately (e.g., via `/ag-install-local`).
-- Ensures the CLI dependency is restored to PyPI (`^<server_version>`) if it was previously flipped to a local path.
+## Expected Result
 
-## Steps (expected)
-- Run `.claude/skills/installing-local/install.sh --restore-pypi` from repo root to revert dependency, relock, and clean prior installs/caches.
-- Optionally follow with `/ag-install-local` if you need a fresh local install immediately after.
-
-## Optional zero-state cleanup
-- If you need absolutely no carryover, the skill includes optional removal of `~/.claude/agent-brain` and project `.claude/agent-brain` (back up first).
+Report what was cleaned up:
+- Servers killed
+- Tools uninstalled
+- Caches cleared
+- Plugins removed
+- State directories removed (if --zero-state)
+- Verification status

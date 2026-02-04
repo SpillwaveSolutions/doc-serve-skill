@@ -1,16 +1,15 @@
-# Agent Brain Release Command (CLI entry: /ag-brain-release)
+---
+context: fork
+agent: release_agent
+---
+
+# ag-brain-release
 
 Release automation for Agent Brain packages.
 
-## Usage
-
-```
-/ag-brain-release <bump> [--dry-run]
-```
-
 ## Arguments
 
-- `bump` (required): Version bump type
+- `<bump>` (required): Version bump type
   - `major` - Breaking changes (1.2.0 → 2.0.0)
   - `minor` - New features (1.2.0 → 1.3.0)
   - `patch` - Bug fixes (1.2.0 → 1.2.1)
@@ -20,84 +19,47 @@ Release automation for Agent Brain packages.
 ## Examples
 
 ```bash
-# Create a patch release (bug fixes)
 /ag-brain-release patch
-
-# Create a minor release (new features)
 /ag-brain-release minor
-
-# Create a major release (breaking changes)
 /ag-brain-release major
-
-# Preview a release without making changes
 /ag-brain-release minor --dry-run
 ```
 
-## What It Does
+## Task
 
-1. Validates pre-conditions (clean repo, on main, synced)
-2. Ensures CLI dependency points to PyPI (not local path); if path-based, flip to PyPI (`^<server_version>`) and relock before proceeding.
-3. Calculates new version based on bump type
-4. Updates version in 4 files:
+Execute a versioned release with these steps:
+
+### Pre-Release Checks (MUST PASS)
+
+1. Working directory is clean (`git status --porcelain` empty)
+2. On `main` branch
+3. Synced with remote origin/main
+4. CLI dependency points to PyPI (not path) - flip if needed
+
+### Release Steps
+
+1. Calculate new version from current + bump type
+2. Flip CLI dependency to PyPI if path-based
+3. Update version in 4 files:
    - `agent-brain-server/pyproject.toml`
    - `agent-brain-server/agent_brain_server/__init__.py`
    - `agent-brain-cli/pyproject.toml`
    - `agent-brain-cli/agent_brain_cli/__init__.py`
-5. Generates release notes from commits
-6. Creates git commit and tag
-7. Pushes to remote
-8. Creates GitHub release (triggers PyPI publish)
+4. Commit: `chore(release): bump version to X.Y.Z`
+5. Tag: `vX.Y.Z`
+6. Push branch and tag
+7. Create GitHub release (triggers PyPI publish)
 
-## Output
+### Dry-Run Mode
 
-```
-/ag-brain-release minor
+If `--dry-run`, report what WOULD happen without executing.
 
-[1/8] Validating pre-conditions...
-      Working directory: clean ✓
-      Branch: main ✓
-      Remote sync: up to date ✓
+## Expected Result
 
-[2/8] Calculating version...
-      Current: 1.2.0 → New: 1.3.0
-
-[3/8] Updating version files...
-      4 files updated ✓
-
-[4/8] Generating release notes...
-      Found 12 commits since v1.2.0
-
-[5/8] Committing version bump...
-      chore(release): bump version to 1.3.0
-
-[6/8] Creating git tag...
-      Tag: v1.3.0
-
-[7/8] Pushing to remote...
-      Branch and tag pushed ✓
-
-[8/8] Creating GitHub release...
-      https://github.com/SpillwaveSolutions/agent-brain/releases/tag/v1.3.0
-
-✓ Release complete! PyPI publish triggered automatically.
-
-PyPI packages (available in ~5 minutes):
-  https://pypi.org/project/agent-brain-rag/1.3.0/
-  https://pypi.org/project/agent-brain-cli/1.3.0/
-
-Install:
-  pip install agent-brain-rag==1.3.0
-  pip install agent-brain-cli==1.3.0
-```
-
-## Pre-requisites
-
-- Clean working directory (no uncommitted changes)
-- On `main` branch
-- Local branch synced with remote
-- `gh` CLI authenticated (`gh auth login`)
-
-## Related
-
-- [GitHub Action: publish-to-pypi.yml](/.github/workflows/publish-to-pypi.yml)
-- [Skill Reference](/.claude/skills/agent-brain-release/SKILL.md)
+Report:
+- Pre-check status (clean/branch/sync/dep)
+- Version calculation (current → new)
+- Files updated
+- Git operations performed
+- GitHub release URL
+- PyPI package URLs (available in ~5 minutes)
