@@ -1,15 +1,16 @@
 """FastAPI application entry point.
 
 This module provides the Agent Brain RAG server, a FastAPI application
-for document indexing and semantic search. The primary entry point is
-`agent-brain-serve`, with `doc-serve` provided for backward compatibility.
+for document indexing and semantic search.
+
+Note: This server assumes a single uvicorn worker process. If running
+multiple workers, ensure only one worker handles indexing jobs by using
+the single-worker model or a separate job processor service.
 """
 
 import logging
 import os
 import socket
-import sys
-import warnings
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
@@ -23,6 +24,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from agent_brain_server import __version__
 from agent_brain_server.config import settings
 from agent_brain_server.config.provider_config import (
+    clear_settings_cache,
     load_provider_settings,
     validate_provider_config,
 )
@@ -34,12 +36,13 @@ from agent_brain_server.locking import (
     release_lock,
 )
 from agent_brain_server.project_root import resolve_project_root
+from agent_brain_server.queue import JobQueueService, JobQueueStore, JobWorker
 from agent_brain_server.runtime import RuntimeState, delete_runtime, write_runtime
 from agent_brain_server.services import IndexingService, QueryService
 from agent_brain_server.storage import VectorStoreManager
 from agent_brain_server.storage_paths import resolve_state_dir, resolve_storage_paths
 
-from .routers import health_router, index_router, query_router
+from .routers import health_router, index_router, jobs_router, query_router
 
 # Configure logging
 logging.basicConfig(
@@ -51,6 +54,9 @@ logger = logging.getLogger(__name__)
 # Module-level state for multi-instance mode
 _runtime_state: Optional[RuntimeState] = None
 _state_dir: Optional[Path] = None
+
+# Module-level reference to job worker for cleanup
+_job_worker: Optional[JobWorker] = None
 
 
 @asynccontextmanager
@@ -64,13 +70,16 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     - Resolves project root and state directory
     - Acquires lock (with stale detection)
     - Writes runtime.json with server info
+    - Initializes job queue system
     - Cleans up on shutdown
     """
-    global _runtime_state, _state_dir
+    global _runtime_state, _state_dir, _job_worker
 
     logger.info("Starting Agent Brain RAG server...")
 
     # Load and validate provider configuration
+    # Clear cache first to ensure we pick up env vars set by CLI
+    clear_settings_cache()
     try:
         provider_settings = load_provider_settings()
         validation_errors = validate_provider_config(provider_settings)
@@ -98,8 +107,14 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         os.environ["OPENAI_API_KEY"] = settings.OPENAI_API_KEY
 
     # Determine mode and resolve paths
-    mode = settings.DOC_SERVE_MODE
-    state_dir = _state_dir  # May be set by CLI
+    mode = settings.AGENT_BRAIN_MODE
+    state_dir = _state_dir  # May be set by run() function
+
+    # If not set via run(), check environment variable (set by CLI subprocess)
+    if state_dir is None and settings.AGENT_BRAIN_STATE_DIR:
+        state_dir = Path(settings.AGENT_BRAIN_STATE_DIR).resolve()
+        logger.info(f"Using state directory from environment: {state_dir}")
+
     storage_paths: Optional[dict[str, Path]] = None
 
     if state_dir is not None:
@@ -114,12 +129,18 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         # Acquire exclusive lock
         if not acquire_lock(state_dir):
             raise RuntimeError(
-                f"Another doc-serve instance is already running for {state_dir}"
+                f"Another Agent Brain instance is already running for {state_dir}"
             )
 
         # Resolve storage paths (creates directories)
         storage_paths = resolve_storage_paths(state_dir)
         logger.info(f"State directory: {state_dir}")
+
+    # Determine project root for path validation
+    project_root: Optional[Path] = None
+    if state_dir is not None:
+        # Project root is 3 levels up from .claude/agent-brain
+        project_root = state_dir.parent.parent.parent
 
     try:
         # Determine persistence directories
@@ -149,10 +170,28 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.bm25_manager = bm25_manager
         logger.info("BM25 index manager initialized")
 
+        # Load project config for exclude patterns
+        exclude_patterns = None
+        if state_dir:
+            from agent_brain_server.config.settings import load_project_config
+
+            project_config = load_project_config(state_dir)
+            exclude_patterns = project_config.get("exclude_patterns")
+            if exclude_patterns:
+                logger.info(
+                    f"Using exclude patterns from config: {exclude_patterns[:3]}..."
+                )
+
+        # Create document loader with exclude patterns
+        from agent_brain_server.indexing import DocumentLoader
+
+        document_loader = DocumentLoader(exclude_patterns=exclude_patterns)
+
         # Create indexing service with injected deps
         indexing_service = IndexingService(
             vector_store=vector_store,
             bm25_manager=bm25_manager,
+            document_loader=document_loader,
         )
         app.state.indexing_service = indexing_service
 
@@ -162,6 +201,57 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             bm25_manager=bm25_manager,
         )
         app.state.query_service = query_service
+
+        # Initialize job queue system (Feature 115)
+        if state_dir is not None:
+            # Initialize job queue store
+            job_store = JobQueueStore(state_dir)
+            await job_store.initialize()
+            logger.info("Job queue store initialized")
+
+            # Initialize job queue service
+            job_service = JobQueueService(
+                store=job_store,
+                project_root=project_root,
+            )
+            app.state.job_service = job_service
+            logger.info("Job queue service initialized")
+
+            # Initialize and start job worker
+            _job_worker = JobWorker(
+                job_store=job_store,
+                indexing_service=indexing_service,
+                max_runtime_seconds=settings.AGENT_BRAIN_JOB_TIMEOUT,
+                progress_checkpoint_interval=settings.AGENT_BRAIN_CHECKPOINT_INTERVAL,
+            )
+            await _job_worker.start()
+            logger.info("Job worker started")
+        else:
+            # No state directory - create minimal job service for backward compat
+            # Jobs will not be persisted in this mode
+            logger.warning(
+                "No state directory configured - job queue persistence disabled"
+            )
+            # Create in-memory store with temp directory
+            import tempfile
+
+            temp_dir = Path(tempfile.mkdtemp(prefix="agent-brain-"))
+            job_store = JobQueueStore(temp_dir)
+            await job_store.initialize()
+
+            job_service = JobQueueService(
+                store=job_store,
+                project_root=project_root,
+            )
+            app.state.job_service = job_service
+
+            _job_worker = JobWorker(
+                job_store=job_store,
+                indexing_service=indexing_service,
+                max_runtime_seconds=settings.AGENT_BRAIN_JOB_TIMEOUT,
+                progress_checkpoint_interval=settings.AGENT_BRAIN_CHECKPOINT_INTERVAL,
+            )
+            await _job_worker.start()
 
         # Set multi-instance metadata on app.state for health endpoint
         app.state.mode = mode
@@ -179,6 +269,12 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     yield
 
     logger.info("Shutting down Agent Brain RAG server...")
+
+    # Stop job worker gracefully
+    if _job_worker is not None:
+        await _job_worker.stop()
+        logger.info("Job worker stopped")
+        _job_worker = None
 
     # Cleanup for per-project mode
     if state_dir is not None:
@@ -213,6 +309,7 @@ app.add_middleware(
 # Include routers
 app.include_router(health_router, prefix="/health", tags=["Health"])
 app.include_router(index_router, prefix="/index", tags=["Indexing"])
+app.include_router(jobs_router, prefix="/index/jobs", tags=["Jobs"])
 app.include_router(query_router, prefix="/query", tags=["Querying"])
 
 
@@ -271,7 +368,7 @@ def run(
         # Create runtime state
         _runtime_state = RuntimeState(
             mode="project",
-            project_root=str(_state_dir.parent.parent.parent),  # .claude/doc-serve
+            project_root=str(_state_dir.parent.parent.parent),  # .claude/agent-brain
             bind_host=resolved_host,
             port=resolved_port,
             pid=os.getpid(),
@@ -323,7 +420,7 @@ def run(
     "--project-dir",
     "-d",
     default=None,
-    help="Project directory (auto-resolves state-dir to .claude/doc-serve)",
+    help="Project directory (auto-resolves state-dir to .claude/agent-brain)",
 )
 def cli(
     host: Optional[str],
@@ -344,15 +441,15 @@ def cli(
       agent-brain-serve --host 0.0.0.0            # Bind to all interfaces
       agent-brain-serve --reload                  # Enable auto-reload
       agent-brain-serve --project-dir /my/project # Per-project mode
-      agent-brain-serve --state-dir /path/.claude/doc-serve  # Explicit state dir
+      agent-brain-serve --state-dir /path/.claude/agent-brain  # Explicit state dir
 
     \b
     Environment Variables:
-      API_HOST              Server host (default: 127.0.0.1)
-      API_PORT              Server port (default: 8000)
-      DEBUG                 Enable debug mode (default: false)
-      DOC_SERVE_STATE_DIR   Override state directory
-      DOC_SERVE_MODE        Instance mode: 'project' or 'shared'
+      API_HOST                Server host (default: 127.0.0.1)
+      API_PORT                Server port (default: 8000)
+      DEBUG                   Enable debug mode (default: false)
+      AGENT_BRAIN_STATE_DIR   Override state directory
+      AGENT_BRAIN_MODE        Instance mode: 'project' or 'shared'
     """
     # Resolve state directory from options
     resolved_state_dir = state_dir
@@ -361,35 +458,11 @@ def cli(
         # Auto-resolve state-dir from project directory
         project_root = resolve_project_root(Path(project_dir))
         resolved_state_dir = str(resolve_state_dir(project_root))
-    elif settings.DOC_SERVE_STATE_DIR and not state_dir:
+    elif settings.AGENT_BRAIN_STATE_DIR and not state_dir:
         # Use environment variable if set
-        resolved_state_dir = settings.DOC_SERVE_STATE_DIR
+        resolved_state_dir = settings.AGENT_BRAIN_STATE_DIR
 
     run(host=host, port=port, reload=reload, state_dir=resolved_state_dir)
-
-
-def cli_deprecated() -> None:
-    """Deprecated entry point for doc-serve command.
-
-    Shows a deprecation warning and then runs the main CLI.
-    """
-    warnings.warn(
-        "\n"
-        "WARNING: 'doc-serve' is deprecated and will be removed in v2.0.\n"
-        "Please use 'agent-brain-serve' instead.\n"
-        "\n"
-        "Migration guide: docs/MIGRATION.md\n"
-        "Online: https://github.com/SpillwaveSolutions/agent-brain/blob/main/docs/MIGRATION.md\n",
-        DeprecationWarning,
-        stacklevel=1,
-    )
-    # Print to stderr for visibility since warnings may be filtered
-    print(
-        "\033[93mWARNING: 'doc-serve' is deprecated. "
-        "Use 'agent-brain-serve' instead. See docs/MIGRATION.md\033[0m",
-        file=sys.stderr,
-    )
-    cli()
 
 
 if __name__ == "__main__":

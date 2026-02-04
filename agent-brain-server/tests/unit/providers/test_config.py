@@ -53,6 +53,17 @@ class TestEmbeddingConfig:
             config = EmbeddingConfig(api_key_env="TEST_API_KEY")
             assert config.get_api_key() == "test-key-value"
 
+    def test_get_api_key_from_config_takes_precedence(self) -> None:
+        """Test API key from config takes precedence over env var."""
+        with patch.dict(os.environ, {"TEST_API_KEY": "env-key"}):
+            config = EmbeddingConfig(api_key="config-key", api_key_env="TEST_API_KEY")
+            assert config.get_api_key() == "config-key"
+
+    def test_get_api_key_from_config_direct(self) -> None:
+        """Test API key can be set directly in config."""
+        config = EmbeddingConfig(api_key="direct-api-key")
+        assert config.get_api_key() == "direct-api-key"
+
     def test_get_api_key_ollama_returns_none(self) -> None:
         """Test Ollama provider returns None for API key."""
         config = EmbeddingConfig(provider="ollama")
@@ -99,6 +110,19 @@ class TestSummarizationConfig:
         with patch.dict(os.environ, {"TEST_API_KEY": "test-key-value"}):
             config = SummarizationConfig(api_key_env="TEST_API_KEY")
             assert config.get_api_key() == "test-key-value"
+
+    def test_get_api_key_from_config_takes_precedence(self) -> None:
+        """Test API key from config takes precedence over env var."""
+        with patch.dict(os.environ, {"TEST_API_KEY": "env-key"}):
+            config = SummarizationConfig(
+                api_key="config-key", api_key_env="TEST_API_KEY"
+            )
+            assert config.get_api_key() == "config-key"
+
+    def test_get_api_key_from_config_direct(self) -> None:
+        """Test API key can be set directly in config."""
+        config = SummarizationConfig(api_key="direct-api-key")
+        assert config.get_api_key() == "direct-api-key"
 
     def test_get_api_key_ollama_returns_none(self) -> None:
         """Test Ollama provider returns None for API key."""

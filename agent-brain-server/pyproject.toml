@@ -67,7 +67,6 @@ types-PyYAML = "^6.0.0"
 
 [tool.poetry.scripts]
 agent-brain-serve = "agent_brain_server.api.main:cli"
-doc-serve = "agent_brain_server.api.main:cli_deprecated"
 
 [build-system]
 requires = ["poetry-core"]

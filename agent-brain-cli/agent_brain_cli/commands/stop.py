@@ -1,4 +1,4 @@
-"""Stop command for stopping a doc-serve server instance."""
+"""Stop command for stopping an Agent Brain server instance."""
 
 import json
 import os
@@ -14,9 +14,9 @@ from rich.console import Console
 
 console = Console()
 
-STATE_DIR_NAME = ".claude/doc-serve"
-LOCK_FILE = "doc-serve.lock"
-PID_FILE = "doc-serve.pid"
+STATE_DIR_NAME = ".claude/agent-brain"
+LOCK_FILE = "agent-brain.lock"
+PID_FILE = "agent-brain.pid"
 RUNTIME_FILE = "runtime.json"
 
 
@@ -121,7 +121,7 @@ def wait_for_process_exit(pid: int, timeout: float = 10.0) -> bool:
 
 def remove_from_registry(project_root: Path) -> None:
     """Remove project from global registry."""
-    registry_path = Path.home() / ".doc-serve" / "registry.json"
+    registry_path = Path.home() / ".agent-brain" / "registry.json"
     if not registry_path.exists():
         return
 
@@ -160,7 +160,7 @@ def stop_command(
     timeout: int,
     json_output: bool,
 ) -> None:
-    """Stop the doc-serve server for this project.
+    """Stop the Agent Brain server for this project.
 
     Sends SIGTERM to the server process and waits for graceful shutdown.
     If --force is specified and the process doesn't exit within the timeout,
@@ -168,9 +168,9 @@ def stop_command(
 
     \b
     Examples:
-      doc-svr-ctl stop                    # Stop server for current project
-      doc-svr-ctl stop --force            # Force stop if graceful fails
-      doc-svr-ctl stop --path /my/project # Stop specific project's server
+      agent-brain stop                    # Stop server for current project
+      agent-brain stop --force            # Force stop if graceful fails
+      agent-brain stop --path /my/project # Stop specific project's server
     """
     try:
         # Resolve project root
@@ -187,14 +187,14 @@ def stop_command(
                 click.echo(
                     json.dumps(
                         {
-                            "error": "No doc-serve state found",
+                            "error": "No Agent Brain state found",
                             "project_root": str(project_root),
                         }
                     )
                 )
             else:
                 console.print(
-                    f"[yellow]No doc-serve state found for:[/] {project_root}"
+                    f"[yellow]No Agent Brain state found for:[/] {project_root}"
                 )
             raise SystemExit(1)
 

@@ -1,4 +1,4 @@
-"""Health check endpoints."""
+"""Health check endpoints with non-blocking queue status."""
 
 from datetime import datetime, timezone
 from typing import Literal
@@ -20,6 +20,8 @@ router = APIRouter()
 async def health_check(request: Request) -> HealthStatus:
     """Check server health status.
 
+    This endpoint never blocks and always returns quickly.
+
     Returns:
         HealthStatus with current status:
         - healthy: Server is running and ready for queries
@@ -27,20 +29,35 @@ async def health_check(request: Request) -> HealthStatus:
         - degraded: Server is up but some services are unavailable
         - unhealthy: Server is not operational
     """
-    indexing_service = request.app.state.indexing_service
     vector_store = request.app.state.vector_store
+    job_service = getattr(request.app.state, "job_service", None)
 
-    # Determine status
+    # Determine status using queue service (non-blocking)
     status: Literal["healthy", "indexing", "degraded", "unhealthy"]
-    if indexing_service.is_indexing:
+    message: str
+
+    # Check queue status (non-blocking)
+    is_indexing = False
+    current_folder = None
+    if job_service:
+        try:
+            queue_stats = await job_service.get_queue_stats()
+            is_indexing = queue_stats.running > 0
+            if is_indexing and queue_stats.current_job_id:
+                # Get current job details for message
+                current_job = await job_service.get_job(queue_stats.current_job_id)
+                if current_job:
+                    current_folder = current_job.folder_path
+        except Exception:
+            # Non-blocking: don't fail health check if queue service errors
+            pass
+
+    if is_indexing:
         status = "indexing"
-        message = f"Indexing in progress: {indexing_service.state.folder_path}"
+        message = f"Indexing in progress: {current_folder or 'unknown'}"
     elif not vector_store.is_initialized:
         status = "degraded"
         message = "Vector store not initialized"
-    elif indexing_service.state.error:
-        status = "degraded"
-        message = f"Last indexing failed: {indexing_service.state.error}"
     else:
         status = "healthy"
         message = "Server is running and ready for queries"
@@ -67,36 +84,82 @@ async def health_check(request: Request) -> HealthStatus:
     "/status",
     response_model=IndexingStatus,
     summary="Indexing Status",
-    description="Returns detailed indexing status information.",
+    description="Returns detailed indexing status information. Never blocks.",
 )
 async def indexing_status(request: Request) -> IndexingStatus:
     """Get detailed indexing status.
+
+    This endpoint never blocks and always returns quickly, even during indexing.
 
     Returns:
         IndexingStatus with:
         - total_documents: Number of documents indexed
         - total_chunks: Number of chunks in vector store
         - indexing_in_progress: Boolean indicating active indexing
+        - queue_pending: Number of pending jobs
+        - queue_running: Number of running jobs (0 or 1)
+        - current_job_running_time_ms: How long current job has been running
         - last_indexed_at: Timestamp of last indexing operation
         - indexed_folders: List of folders that have been indexed
     """
     indexing_service = request.app.state.indexing_service
-    status = await indexing_service.get_status()
+    vector_store = request.app.state.vector_store
+    job_service = getattr(request.app.state, "job_service", None)
+
+    # Get vector store count (non-blocking read)
+    try:
+        total_chunks = (
+            await vector_store.get_count() if vector_store.is_initialized else 0
+        )
+    except Exception:
+        total_chunks = 0
+
+    # Get queue status (non-blocking)
+    queue_pending = 0
+    queue_running = 0
+    current_job_id = None
+    current_job_running_time_ms = None
+    progress_percent = 0.0
+
+    if job_service:
+        try:
+            queue_stats = await job_service.get_queue_stats()
+            queue_pending = queue_stats.pending
+            queue_running = queue_stats.running
+            current_job_id = queue_stats.current_job_id
+            current_job_running_time_ms = queue_stats.current_job_running_time_ms
+
+            # Get progress from current job
+            if current_job_id:
+                current_job = await job_service.get_job(current_job_id)
+                if current_job and current_job.progress:
+                    progress_percent = current_job.progress.percent_complete
+        except Exception:
+            # Non-blocking: don't fail status if queue service errors
+            pass
+
+    # Get indexing service status for historical data
+    # This is read-only and non-blocking
+    service_status = await indexing_service.get_status()
 
     return IndexingStatus(
-        total_documents=status["total_documents"],
-        total_chunks=status["total_chunks"],
-        total_doc_chunks=status.get("total_doc_chunks", 0),
-        total_code_chunks=status.get("total_code_chunks", 0),
-        indexing_in_progress=status["is_indexing"],
-        current_job_id=status["current_job_id"],
-        progress_percent=status["progress_percent"],
+        total_documents=service_status.get("total_documents", 0),
+        total_chunks=total_chunks,
+        total_doc_chunks=service_status.get("total_doc_chunks", 0),
+        total_code_chunks=service_status.get("total_code_chunks", 0),
+        indexing_in_progress=queue_running > 0,
+        current_job_id=current_job_id,
+        progress_percent=progress_percent,
         last_indexed_at=(
-            datetime.fromisoformat(status["completed_at"])
-            if status["completed_at"]
+            datetime.fromisoformat(service_status["completed_at"])
+            if service_status.get("completed_at")
             else None
         ),
-        indexed_folders=status["indexed_folders"],
-        supported_languages=status.get("supported_languages", []),
-        graph_index=status.get("graph_index"),
+        indexed_folders=service_status.get("indexed_folders", []),
+        supported_languages=service_status.get("supported_languages", []),
+        graph_index=service_status.get("graph_index"),
+        # Queue status (Feature 115)
+        queue_pending=queue_pending,
+        queue_running=queue_running,
+        current_job_running_time_ms=current_job_running_time_ms,
     )

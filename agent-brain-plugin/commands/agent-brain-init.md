@@ -60,7 +60,7 @@ Configuration file: .claude/agent-brain/config.json
 }
 
 Next steps:
-  1. Start server: agent-brain start --daemon
+  1. Start server: agent-brain start
   2. Index documents: agent-brain index ./docs
   3. Search: agent-brain query "your query"
 ```
@@ -94,6 +94,26 @@ Contains project-specific settings:
   }
 }
 ```
+
+### config.yaml (Optional)
+
+Create a `config.yaml` in the project's `.claude/agent-brain/` directory for project-specific provider settings:
+
+```yaml
+# .claude/agent-brain/config.yaml
+project:
+  state_dir: null  # Use default
+
+embedding:
+  provider: "openai"
+  api_key: "sk-proj-..."  # Or use api_key_env: "OPENAI_API_KEY"
+
+summarization:
+  provider: "anthropic"
+  api_key: "sk-ant-..."
+```
+
+**Note**: Agent Brain searches for config.yaml in multiple locations. Project-level config takes precedence over user-level (`~/.agent-brain/config.yaml`).
 
 ### runtime.json
 

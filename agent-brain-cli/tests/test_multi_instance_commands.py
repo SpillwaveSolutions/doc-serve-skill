@@ -40,7 +40,7 @@ class TestInitCommand:
         assert result.exit_code == 0
         assert "initialized successfully" in result.output.lower()
 
-        state_dir = temp_project / ".claude" / "doc-serve"
+        state_dir = temp_project / ".claude" / "agent-brain"
         assert state_dir.exists()
         assert (state_dir / "config.json").exists()
         assert (state_dir / "data").exists()
@@ -56,7 +56,7 @@ class TestInitCommand:
 
         assert result.exit_code == 0
 
-        config_path = temp_project / ".claude" / "doc-serve" / "config.json"
+        config_path = temp_project / ".claude" / "agent-brain" / "config.json"
         config = json.loads(config_path.read_text())
 
         assert config["port"] == 9000
@@ -87,7 +87,7 @@ class TestInitCommand:
         )
         assert result.exit_code == 0
 
-        config_path = temp_project / ".claude" / "doc-serve" / "config.json"
+        config_path = temp_project / ".claude" / "agent-brain" / "config.json"
         config = json.loads(config_path.read_text())
         assert config["port"] == 9000
 
@@ -136,7 +136,7 @@ class TestStopCommand:
         result = runner.invoke(stop_command, ["--path", str(temp_project)])
 
         assert result.exit_code == 1
-        assert "no doc-serve state found" in result.output.lower()
+        assert "no agent brain state found" in result.output.lower()
 
     def test_stop_no_server_running(
         self, runner: CliRunner, temp_project: Path
@@ -171,7 +171,7 @@ class TestListCommand:
             result = runner.invoke(list_command)
 
         assert result.exit_code == 0
-        assert "no running doc-serve instances found" in result.output.lower()
+        assert "no running agent brain instances found" in result.output.lower()
 
     def test_list_json_output(self, runner: CliRunner) -> None:
         """Test that list --json outputs JSON."""
@@ -187,7 +187,7 @@ class TestListCommand:
     ) -> None:
         """Test that list handles stale instances."""
         # Create a stale registry entry
-        state_dir = temp_project / ".claude" / "doc-serve"
+        state_dir = temp_project / ".claude" / "agent-brain"
         state_dir.mkdir(parents=True)
 
         # Write a runtime.json with a non-existent PID
@@ -241,7 +241,7 @@ class TestCLIIntegration:
         result = runner.invoke(cli, ["init", "--path", str(temp_project)])
 
         assert result.exit_code == 0
-        assert (temp_project / ".claude" / "doc-serve" / "config.json").exists()
+        assert (temp_project / ".claude" / "agent-brain" / "config.json").exists()
 
 
 class TestProjectRootResolution:

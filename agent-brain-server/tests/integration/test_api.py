@@ -81,7 +81,8 @@ class TestIndexEndpoints:
         assert response.status_code == 202
         data = response.json()
         assert "job_id" in data
-        assert data["status"] == "started"
+        # Queue-based indexing returns "pending" status
+        assert data["status"] == "pending"
 
     def test_index_documents_folder_not_found(self, client):
         """Test indexing with non-existent folder."""
@@ -92,26 +93,30 @@ class TestIndexEndpoints:
         assert response.status_code == 400
         assert "not found" in response.json()["detail"].lower()
 
-    def test_index_documents_conflict_when_indexing(self, client, temp_docs_dir):
-        """Test indexing conflict when already in progress."""
-        with patch(
-            "agent_brain_server.services.indexing_service.IndexingService.is_indexing",
-            new_callable=lambda: property(lambda self: True),
-        ):
-            with patch(
-                "agent_brain_server.services.get_indexing_service"
-            ) as mock_get_service:
-                mock_service = MagicMock()
-                mock_service.is_indexing = True
-                mock_get_service.return_value = mock_service
+    def test_index_documents_deduplication(self, client, temp_docs_dir):
+        """Test that duplicate requests return existing job (deduplication).
 
-                response = client.post(
-                    "/index/",
-                    json={"folder_path": str(temp_docs_dir)},
-                )
+        Note: With the queue-based system, concurrent requests are handled via
+        deduplication, not 409 conflicts. The same path returns the same job.
+        """
+        # First request - creates new job
+        response1 = client.post(
+            "/index/",
+            json={"folder_path": str(temp_docs_dir)},
+        )
+        assert response1.status_code == 202
+        job_id_1 = response1.json()["job_id"]
 
-        assert response.status_code == 409
-        assert "already in progress" in response.json()["detail"].lower()
+        # Second request - should return same job via deduplication
+        response2 = client.post(
+            "/index/",
+            json={"folder_path": str(temp_docs_dir)},
+        )
+        assert response2.status_code == 202
+        job_id_2 = response2.json()["job_id"]
+
+        # Both requests should get the same job ID
+        assert job_id_1 == job_id_2
 
     def test_add_documents_endpoint(self, client, temp_docs_dir, mock_vector_store):
         """Test adding documents to existing index."""
@@ -137,7 +142,8 @@ class TestIndexEndpoints:
 
         assert response.status_code == 202
         data = response.json()
-        assert data["status"] == "started"
+        # Queue-based indexing returns "pending" status
+        assert data["status"] == "pending"
 
     def test_reset_index_success(self, client, mock_vector_store):
         """Test resetting the index."""

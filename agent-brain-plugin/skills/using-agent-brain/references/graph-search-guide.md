@@ -65,14 +65,14 @@ When you query, the system:
 # Basic graph search
 agent-brain query "what calls process_payment" --mode graph
 
-# With custom traversal depth
-agent-brain query "classes inheriting from BaseService" --mode graph --traversal-depth 3
+# With more results
+agent-brain query "classes inheriting from BaseService" --mode graph --top-k 10
 
-# Include relationship details in output
-agent-brain query "auth module dependencies" --mode graph --include-relationships
+# Lower threshold for broader results
+agent-brain query "auth module dependencies" --mode graph --threshold 0.2
 
-# Multi-mode: comprehensive search with relationships
-agent-brain query "complete payment flow" --mode multi --include-relationships
+# Multi-mode: comprehensive search
+agent-brain query "complete payment flow" --mode multi --top-k 10
 ```
 
 ### API Usage
@@ -84,8 +84,8 @@ curl -X POST http://localhost:8000/query/ \
   -d '{
     "query": "what functions call authenticate_user",
     "mode": "graph",
-    "traversal_depth": 2,
-    "include_relationships": true
+    "top_k": 10,
+    "similarity_threshold": 0.3
   }'
 
 # Multi-mode search
@@ -95,7 +95,7 @@ curl -X POST http://localhost:8000/query/ \
     "query": "complete authentication implementation",
     "mode": "multi",
     "top_k": 10,
-    "include_relationships": true
+    "similarity_threshold": 0.3
   }'
 ```
 
@@ -105,10 +105,10 @@ curl -X POST http://localhost:8000/query/ \
 |--------|---------|-------------|----------|
 | `--mode graph` | - | Pure graph-based retrieval | Relationship queries |
 | `--mode multi` | - | Combines vector + BM25 + graph | Comprehensive results |
-| `--traversal-depth N` | 2 | How many relationship hops to traverse | Deeper dependency chains |
-| `--include-relationships` | false | Include relationship details in results | Understanding connections |
-| `--threshold F` | 0.7 | Minimum relevance score | Filter weak matches |
+| `--threshold F` | 0.3 | Minimum relevance score | Filter weak matches |
 | `--top-k N` | 5 | Maximum results | More comprehensive results |
+
+**Note:** Graph search returns relationship metadata in the result's `metadata` field when available.
 
 ## Enabling GraphRAG
 
@@ -145,7 +145,7 @@ GRAPH_EXTRACTION_MODEL=gpt-5-mini
 ```bash
 # Set environment and start
 export ENABLE_GRAPH_INDEX=true
-agent-brain start --daemon
+agent-brain start
 
 # Verify graph is enabled
 agent-brain status --json | jq '.graph_index'
@@ -155,7 +155,7 @@ agent-brain status --json | jq '.graph_index'
 
 ### Example 1: Finding Function Callers
 
-**Query:** `agent-brain query "what calls process_payment" --mode graph --include-relationships`
+**Query:** `agent-brain query "what calls process_payment" --mode graph --top-k 10`
 
 **Response:**
 ```json
@@ -197,7 +197,7 @@ agent-brain status --json | jq '.graph_index'
 
 ### Example 2: Exploring Class Hierarchy
 
-**Query:** `agent-brain query "classes that inherit from BaseService" --mode graph --traversal-depth 3`
+**Query:** `agent-brain query "classes that inherit from BaseService" --mode graph --top-k 10`
 
 **Response:**
 ```json
@@ -237,7 +237,7 @@ agent-brain status --json | jq '.graph_index'
 
 ### Example 3: Multi-Mode Comprehensive Search
 
-**Query:** `agent-brain query "authentication flow implementation" --mode multi --include-relationships`
+**Query:** `agent-brain query "authentication flow implementation" --mode multi --top-k 10`
 
 **Response:**
 ```json
@@ -356,7 +356,7 @@ Error: Graph index not enabled
 - Query doesn't match any entities
 - Traversal depth too shallow
 
-**Solution:** Re-index documents and try increasing `--traversal-depth`.
+**Solution:** Re-index documents and try lowering `--threshold` (e.g., `--threshold 0.1`).
 
 ### Slow Graph Queries
 

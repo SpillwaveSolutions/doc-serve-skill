@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
-Query the Doc-Serve server for domain-specific documentation.
+Query the Agent Brain server for domain-specific documentation.
 
 Usage:
-    python query_domain.py "your search query" [--top-k 5] [--threshold 0.7]
+    python query_domain.py "your search query" [--top-k 5] [--threshold 0.3]
 
 Example:
     python query_domain.py "how to configure pod networking" --top-k 10
@@ -23,8 +23,9 @@ except ImportError:
 
 
 def get_base_url() -> str:
-    """Get the Doc-Serve server URL from environment or default."""
-    return os.environ.get("DOC_SERVE_URL", "http://127.0.0.1:8000")
+    """Get the Agent Brain server URL from environment or default."""
+    # Support both new and legacy env var names
+    return os.environ.get("AGENT_BRAIN_URL", os.environ.get("DOC_SERVE_URL", "http://127.0.0.1:8000"))
 
 
 def check_health(base_url: str) -> dict:
@@ -42,7 +43,7 @@ def query_documents(
     base_url: str,
     query: str,
     top_k: int = 5,
-    similarity_threshold: float = 0.7
+    similarity_threshold: float = 0.3
 ) -> dict:
     """Execute a semantic search query."""
     try:
@@ -110,7 +111,7 @@ def format_results(results: dict, query: str) -> str:
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Query Doc-Serve for domain documentation"
+        description="Query Agent Brain for domain documentation"
     )
     parser.add_argument("query", help="Search query text")
     parser.add_argument(
@@ -122,8 +123,8 @@ def main():
     parser.add_argument(
         "--threshold", "-t",
         type=float,
-        default=0.7,
-        help="Similarity threshold 0.0-1.0 (default: 0.7)"
+        default=0.3,
+        help="Similarity threshold 0.0-1.0 (default: 0.3)"
     )
     parser.add_argument(
         "--json", "-j",
@@ -132,7 +133,7 @@ def main():
     )
     parser.add_argument(
         "--url",
-        help="Server URL (default: DOC_SERVE_URL env or http://127.0.0.1:8000)"
+        help="Server URL (default: AGENT_BRAIN_URL env or http://127.0.0.1:8000)"
     )
 
     args = parser.parse_args()

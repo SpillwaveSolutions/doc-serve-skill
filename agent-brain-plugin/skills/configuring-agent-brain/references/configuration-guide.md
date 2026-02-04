@@ -2,317 +2,306 @@
 
 ## Overview
 
-This guide covers all configuration options for Agent Brain, including API keys, environment variables, and project settings.
+Agent Brain 2.0 supports multiple configuration methods with clear precedence rules. This guide covers all configuration options.
+
+## Configuration Methods
+
+### Method 1: YAML Configuration File (Recommended)
+
+The config.yaml file provides a centralized configuration without needing to modify shell profiles.
+
+**Search locations** (in order):
+
+1. `AGENT_BRAIN_CONFIG` environment variable (explicit path)
+2. Current directory: `./agent-brain.yaml` or `./config.yaml`
+3. Project directory: `./.claude/agent-brain/config.yaml`
+4. User home: `~/.agent-brain/config.yaml`
+5. XDG config: `~/.config/agent-brain/config.yaml`
+
+**Complete config.yaml example**:
+
+```yaml
+# ~/.agent-brain/config.yaml
+# Agent Brain Configuration
+
+# Server settings (for CLI connection)
+server:
+  url: "http://127.0.0.1:8000"
+  host: "127.0.0.1"
+  port: 8000
+  auto_port: true
+
+# Project settings
+project:
+  state_dir: null  # null = use default (.claude/agent-brain)
+  # state_dir: "/custom/path/state"  # Custom state directory
+  project_root: null  # null = auto-detect
+
+# Embedding provider configuration
+embedding:
+  provider: "openai"  # openai, ollama, cohere, gemini
+  model: "text-embedding-3-large"
+
+  # API key configuration - choose ONE approach:
+  api_key: "sk-proj-..."              # Direct API key in config
+  # api_key_env: "OPENAI_API_KEY"     # OR read from environment variable
+
+  # Custom endpoint (for Ollama or proxies)
+  base_url: null  # null = use default, or "http://localhost:11434/v1" for Ollama
+
+# Summarization provider configuration
+summarization:
+  provider: "anthropic"  # anthropic, openai, ollama, gemini, grok
+  model: "claude-haiku-4-5-20251001"
+
+  # API key configuration
+  api_key: "sk-ant-..."               # Direct API key
+  # api_key_env: "ANTHROPIC_API_KEY"  # OR read from environment variable
+
+  base_url: null
+```
+
+### Method 2: Environment Variables
+
+Traditional approach using shell environment:
+
+```bash
+# Core settings
+export AGENT_BRAIN_URL="http://127.0.0.1:8000"
+export AGENT_BRAIN_STATE_DIR=".claude/agent-brain"
+export AGENT_BRAIN_CONFIG="/path/to/config.yaml"
+
+# Provider configuration
+export EMBEDDING_PROVIDER=openai
+export EMBEDDING_MODEL=text-embedding-3-large
+export SUMMARIZATION_PROVIDER=anthropic
+export SUMMARIZATION_MODEL=claude-haiku-4-5-20251001
+
+# API keys
+export OPENAI_API_KEY="sk-proj-..."
+export ANTHROPIC_API_KEY="sk-ant-..."
+```
+
+### Method 3: .env File
+
+Create `.claude/agent-brain/.env` or project root `.env`:
+
+```bash
+OPENAI_API_KEY=sk-proj-...
+ANTHROPIC_API_KEY=sk-ant-...
+EMBEDDING_PROVIDER=openai
+EMBEDDING_MODEL=text-embedding-3-large
+```
+
+---
+
+## Configuration Precedence
+
+Settings are resolved in order (first wins):
+
+1. **CLI options** (`--url`, `--port`, `--state-dir`)
+2. **Environment variables** (`AGENT_BRAIN_URL`, `OPENAI_API_KEY`)
+3. **Config file** (`config.yaml` values)
+4. **Built-in defaults**
+
+For API keys specifically:
+1. `api_key` field in config.yaml
+2. Environment variable specified by `api_key_env`
+3. Default environment variable (e.g., `OPENAI_API_KEY`)
+
+---
 
 ## API Keys
 
-### OpenAI API Key (Required)
+### OpenAI API Key
 
-The OpenAI API key is **required** for vector and hybrid search modes. Without it, only BM25 keyword search will work.
+Required for vector and hybrid search with OpenAI embeddings.
 
-**Set as Environment Variable:**
+**Option A: In config.yaml**
+```yaml
+embedding:
+  provider: "openai"
+  api_key: "sk-proj-..."
+```
+
+**Option B: Environment variable**
 ```bash
 export OPENAI_API_KEY="sk-proj-..."
 ```
 
-**Persistent Configuration (Shell Profile):**
-```bash
-# For Bash
-echo 'export OPENAI_API_KEY="sk-proj-..."' >> ~/.bashrc
-source ~/.bashrc
+**Get your key**: https://platform.openai.com/account/api-keys
 
-# For Zsh
-echo 'export OPENAI_API_KEY="sk-proj-..."' >> ~/.zshrc
-source ~/.zshrc
-```
-
-**Get Your API Key:**
-1. Go to https://platform.openai.com/account/api-keys
-2. Click "Create new secret key"
-3. Copy the key (starts with `sk-proj-` or `sk-`)
-4. Store securely - you cannot view it again
-
-**Verify Key is Set:**
+**Verify key is set**:
 ```bash
 echo "OpenAI key: ${OPENAI_API_KEY:+CONFIGURED}"
 ```
 
-**Test Key is Valid:**
-```bash
-curl https://api.openai.com/v1/models \
-  -H "Authorization: Bearer $OPENAI_API_KEY" \
-  -H "Content-Type: application/json"
+### Anthropic API Key
+
+Required for Claude summarization.
+
+**Option A: In config.yaml**
+```yaml
+summarization:
+  provider: "anthropic"
+  api_key: "sk-ant-..."
 ```
 
-### Anthropic API Key (Optional)
-
-The Anthropic API key enables code summarization features but is not required for basic functionality.
-
-**Set as Environment Variable:**
+**Option B: Environment variable**
 ```bash
 export ANTHROPIC_API_KEY="sk-ant-..."
 ```
 
-**Get Your API Key:**
-1. Go to https://console.anthropic.com/
-2. Create a new API key
-3. Copy and store securely
+**Get your key**: https://console.anthropic.com/
 
-**Verify Key is Set:**
-```bash
-echo "Anthropic key: ${ANTHROPIC_API_KEY:+CONFIGURED}"
-```
+### Other Provider Keys
 
-## Environment Variables
+| Provider | Config Field | Environment Variable |
+|----------|-------------|---------------------|
+| Google Gemini | `api_key` | `GOOGLE_API_KEY` |
+| Grok (xAI) | `api_key` | `XAI_API_KEY` |
+| Cohere | `api_key` | `COHERE_API_KEY` |
+| Ollama | (not needed) | (not needed) |
 
-### Complete Reference
+---
+
+## Environment Variables Reference
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
-| `OPENAI_API_KEY` | Yes* | - | OpenAI API key for embeddings |
-| `ANTHROPIC_API_KEY` | No | - | Anthropic key for summarization |
-| `DOC_SERVE_URL` | No | Auto-detect | Override server URL |
-| `DOC_SERVE_STATE_DIR` | No | `.claude/agent-brain` | State directory path |
-| `DOC_SERVE_MODE` | No | `project` | Instance mode: `project` or `shared` |
-| `EMBEDDING_MODEL` | No | `text-embedding-3-large` | OpenAI embedding model |
-| `CLAUDE_MODEL` | `claude-haiku-4-5-20251001` | Claude model for summaries |
-| `API_HOST` | No | `127.0.0.1` | Server bind address |
-| `API_PORT` | No | `8000` | Server port (legacy mode) |
+| `AGENT_BRAIN_CONFIG` | No | - | Path to config.yaml file |
+| `AGENT_BRAIN_URL` | No | Auto-detect | Server URL for CLI |
+| `AGENT_BRAIN_STATE_DIR` | No | `.claude/agent-brain` | State directory path |
+| `AGENT_BRAIN_MODE` | No | `project` | Instance mode: `project` or `shared` |
+| `OPENAI_API_KEY` | Conditional | - | OpenAI API key |
+| `ANTHROPIC_API_KEY` | Conditional | - | Anthropic API key |
+| `GOOGLE_API_KEY` | Conditional | - | Google/Gemini API key |
+| `XAI_API_KEY` | Conditional | - | Grok API key |
+| `COHERE_API_KEY` | Conditional | - | Cohere API key |
+| `EMBEDDING_PROVIDER` | No | `openai` | Embedding provider |
+| `EMBEDDING_MODEL` | No | `text-embedding-3-large` | Embedding model |
+| `SUMMARIZATION_PROVIDER` | No | `anthropic` | Summarization provider |
+| `SUMMARIZATION_MODEL` | No | `claude-haiku-4-5-20251001` | Summarization model |
 | `DEBUG` | No | `false` | Enable debug logging |
 
-*Required for vector/hybrid search; BM25-only works without it.
+---
 
-### Setting Multiple Variables
+## Profile Examples
 
-**Temporary (Current Session):**
-```bash
-export OPENAI_API_KEY="sk-proj-..."
-export ANTHROPIC_API_KEY="sk-ant-..."
-export DEBUG=true
+### Fully Local (Ollama - No API Keys)
+
+```yaml
+# ~/.agent-brain/config.yaml
+embedding:
+  provider: "ollama"
+  model: "nomic-embed-text"
+  base_url: "http://localhost:11434/v1"
+
+summarization:
+  provider: "ollama"
+  model: "llama3.2"
+  base_url: "http://localhost:11434/v1"
 ```
 
-**Persistent (Shell Profile):**
-```bash
-# Add to ~/.bashrc or ~/.zshrc
-cat >> ~/.bashrc << 'EOF'
-export OPENAI_API_KEY="sk-proj-..."
-export ANTHROPIC_API_KEY="sk-ant-..."
-EOF
-source ~/.bashrc
+### Cloud (Best Quality)
+
+```yaml
+# ~/.agent-brain/config.yaml
+embedding:
+  provider: "openai"
+  model: "text-embedding-3-large"
+  api_key: "sk-proj-..."
+
+summarization:
+  provider: "anthropic"
+  model: "claude-haiku-4-5-20251001"
+  api_key: "sk-ant-..."
 ```
 
-### Using a .env File
+### Custom State Directory
 
-Create a `.env` file in your project root (add to `.gitignore`!):
+```yaml
+# ~/.agent-brain/config.yaml
+project:
+  state_dir: "/data/agent-brain/my-project"
 
-```bash
-# .env file
-OPENAI_API_KEY=sk-proj-...
-ANTHROPIC_API_KEY=sk-ant-...
-DEBUG=false
+embedding:
+  provider: "openai"
+  api_key_env: "OPENAI_API_KEY"
 ```
 
-**Load .env file:**
-```bash
-# Manual loading
-export $(cat .env | xargs)
-
-# Or use direnv for automatic loading
-```
-
-## Project Configuration
-
-### Initialize Project
-
-```bash
-cd /path/to/your/project
-agent-brain init
-```
-
-This creates `.claude/agent-brain/` with:
-
-```
-.claude/agent-brain/
-├── config.json      # Project settings
-└── runtime.json     # Server state (created on start)
-```
-
-### config.json
-
-The project configuration file:
-
-```json
-{
-  "mode": "project",
-  "project_id": "my-project",
-  "state_dir": ".claude/agent-brain",
-  "default_search_mode": "hybrid",
-  "default_threshold": 0.7,
-  "default_top_k": 5
-}
-```
-
-### runtime.json
-
-Created when server starts (do not edit manually):
-
-```json
-{
-  "mode": "project",
-  "port": 49321,
-  "base_url": "http://127.0.0.1:49321",
-  "pid": 12345,
-  "instance_id": "abc123",
-  "project_id": "my-project",
-  "started_at": "2026-01-27T10:30:00Z"
-}
-```
-
-## Server Configuration
-
-### Start Server
-
-```bash
-# Default: auto-port allocation
-agent-brain start --daemon
-
-# Specific port (legacy mode)
-agent-brain start --port 8080
-```
-
-### Configuration Precedence
-
-Settings are resolved in order (first wins):
-
-1. Command-line flags
-2. Environment variables
-3. Project config (`.claude/agent-brain/config.json`)
-4. Global config (`~/.agent-brain/config.json`)
-5. Built-in defaults
-
-### Multi-Instance Mode
-
-Each project gets its own isolated server:
-
-```bash
-# Project A
-cd /path/to/project-a && agent-brain start --daemon
-# Started on port 49321
-
-# Project B
-cd /path/to/project-b && agent-brain start --daemon
-# Started on port 49322 (no conflict)
-```
-
-List all running instances:
-```bash
-agent-brain list
-```
-
-## Search Configuration
-
-### Default Search Mode
-
-Set via environment:
-```bash
-export DOC_SERVE_DEFAULT_MODE="hybrid"
-```
-
-Or command line:
-```bash
-agent-brain query "search" --mode hybrid
-```
-
-### Threshold Configuration
-
-Default threshold is 0.7 (70% similarity).
-
-**Lower threshold for more results:**
-```bash
-agent-brain query "search" --threshold 0.3
-```
-
-**Higher threshold for precision:**
-```bash
-agent-brain query "search" --threshold 0.9
-```
-
-### Hybrid Alpha Configuration
-
-Controls vector vs BM25 balance (0.0-1.0):
-
-```bash
-# More semantic (80% vector)
-agent-brain query "search" --alpha 0.8
-
-# More keyword (20% vector)
-agent-brain query "search" --alpha 0.2
-
-# Balanced (default)
-agent-brain query "search" --alpha 0.5
-```
+---
 
 ## Security Best Practices
 
-### Never Commit API Keys
+### Config File Permissions
+
+If storing API keys in config files:
+
+```bash
+# Restrict to owner only
+chmod 600 ~/.agent-brain/config.yaml
+```
+
+### Git Ignore
 
 Add to `.gitignore`:
 ```
+config.yaml
+agent-brain.yaml
 .env
 .env.local
-.env.*.local
-secrets.json
 ```
 
-### Use Environment Variables
-
-Always use environment variables for API keys, not config files.
-
-### Rotate Keys Periodically
+### Key Rotation
 
 Regenerate API keys periodically and update configurations.
 
-### Restrict Key Permissions
+---
 
-Use project-scoped OpenAI keys when possible.
+## Troubleshooting
 
-## Troubleshooting Configuration
-
-### Issue: API Key Not Working
-
-```bash
-# Verify key format
-echo $OPENAI_API_KEY | head -c 10
-# Should start with sk-proj- or sk-
-
-# Test API directly
-curl https://api.openai.com/v1/models \
-  -H "Authorization: Bearer $OPENAI_API_KEY"
-```
-
-### Issue: Wrong Server URL
-
-```bash
-# Check runtime.json for actual port
-cat .claude/agent-brain/runtime.json | jq '.base_url'
-
-# Override if needed
-export DOC_SERVE_URL="http://127.0.0.1:49321"
-```
-
-### Issue: Configuration Not Loading
+### Config File Not Loading
 
 ```bash
 # Check config file exists
-ls -la .claude/agent-brain/config.json
+ls -la ~/.agent-brain/config.yaml
 
-# Verify JSON is valid
-cat .claude/agent-brain/config.json | jq .
+# Verify YAML syntax
+python -c "import yaml; yaml.safe_load(open('config.yaml'))"
+
+# Force specific config
+export AGENT_BRAIN_CONFIG="$HOME/.agent-brain/config.yaml"
 ```
+
+### API Key Not Working
+
+```bash
+# Test OpenAI key
+curl https://api.openai.com/v1/models \
+  -H "Authorization: Bearer $OPENAI_API_KEY"
+
+# Check if key is in config or env
+cat ~/.agent-brain/config.yaml | grep api_key
+echo ${OPENAI_API_KEY:+SET}
+```
+
+### Wrong Server URL
+
+```bash
+# Check runtime.json for actual port
+cat .claude/agent-brain/runtime.json
+
+# Override URL
+export AGENT_BRAIN_URL="http://127.0.0.1:49321"
+```
+
+---
 
 ## Next Steps
 
 After configuration:
-1. Start server: `agent-brain start --daemon`
-2. Index documents: `agent-brain index /path/to/docs`
-3. Search: `agent-brain query "your search"`
+1. Initialize project: `agent-brain init`
+2. Start server: `agent-brain start`
+3. Index documents: `agent-brain index /path/to/docs`
+4. Search: `agent-brain query "your search"`

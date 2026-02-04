@@ -115,12 +115,12 @@ Health:
 Error: Agent Brain server is not running
 
 To start the server:
-  agent-brain start --daemon
+  agent-brain start
 ```
 
 **Resolution**: Start the server:
 ```bash
-agent-brain start --daemon
+agent-brain start
 ```
 
 ### Connection Refused
@@ -132,7 +132,7 @@ Connection refused
 
 **Resolution**:
 1. Check if server is running: `ps aux | grep agent-brain`
-2. Start the server: `agent-brain start --daemon`
+2. Start the server: `agent-brain start`
 3. Check if port is blocked by firewall
 
 ### Runtime File Missing
@@ -145,7 +145,7 @@ Using default URL: http://127.0.0.1:8000
 **Resolution**: Initialize the project:
 ```bash
 agent-brain init
-agent-brain start --daemon
+agent-brain start
 ```
 
 ### Health Check Failed
@@ -161,7 +161,7 @@ Issues detected:
 **Resolution**:
 1. Check ChromaDB is accessible
 2. Re-index documents: `agent-brain index /path/to/docs`
-3. Restart server: `agent-brain stop && agent-brain start --daemon`
+3. Restart server: `agent-brain stop && agent-brain start`
 
 ## Use Cases
 

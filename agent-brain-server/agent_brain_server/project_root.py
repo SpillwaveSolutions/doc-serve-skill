@@ -1,4 +1,4 @@
-"""Project root resolution for per-project doc-serve instances."""
+"""Project root resolution for per-project Agent Brain instances."""
 
 import logging
 import subprocess

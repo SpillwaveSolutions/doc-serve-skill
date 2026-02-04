@@ -137,7 +137,7 @@ Issues Found: 2
    Fix: agent-brain init
 
 2. Server not running
-   Fix: agent-brain start --daemon
+   Fix: agent-brain start
 
 Run /agent-brain-setup to fix all issues automatically.
 ```
@@ -233,7 +233,7 @@ Or run: /agent-brain-init
 The Agent Brain server is not running.
 
 Fix:
-  agent-brain start --daemon
+  agent-brain start
 
 After starting, verify with:
   agent-brain status
@@ -249,7 +249,7 @@ Server is running but health check failed.
 Diagnostics:
   1. Check server logs
   2. Verify API key is valid
-  3. Restart: agent-brain stop && agent-brain start --daemon
+  3. Restart: agent-brain stop && agent-brain start
 ```
 
 ### No Documents Indexed
@@ -279,5 +279,5 @@ Or fix manually:
   1. pip install agent-brain-cli agent-brain-rag
   2. export OPENAI_API_KEY="your-key"
   3. agent-brain init
-  4. agent-brain start --daemon
+  4. agent-brain start
 ```

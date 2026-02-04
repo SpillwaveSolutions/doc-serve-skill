@@ -110,6 +110,21 @@ class IndexingStatus(BaseModel):
         default=None,
         description="Graph index status with entity_count, relationship_count, etc.",
     )
+    # Queue status (Feature 115)
+    queue_pending: int = Field(
+        default=0,
+        ge=0,
+        description="Number of pending jobs in the queue",
+    )
+    queue_running: int = Field(
+        default=0,
+        ge=0,
+        description="Number of running jobs (0 or 1)",
+    )
+    current_job_running_time_ms: Optional[int] = Field(
+        None,
+        description="Running time of current job in milliseconds",
+    )
 
     model_config = {
         "json_schema_extra": {

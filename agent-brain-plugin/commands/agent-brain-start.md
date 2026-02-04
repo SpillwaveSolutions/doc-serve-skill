@@ -22,7 +22,7 @@ Starts the Agent Brain server for the current project. The server provides:
 ## Usage
 
 ```
-/agent-brain-start [--daemon]
+/agent-brain-start 
 ```
 
 ### Parameters
@@ -51,7 +51,7 @@ agent-brain init
 
 ```bash
 # Start in background (recommended)
-agent-brain start --daemon
+agent-brain start
 
 # Start in foreground (for debugging)
 agent-brain start
@@ -113,7 +113,7 @@ Run 'agent-brain init' first to initialize this project.
 **Resolution**:
 ```bash
 agent-brain init
-agent-brain start --daemon
+agent-brain start
 ```
 
 ### Server Already Running
@@ -122,12 +122,12 @@ agent-brain start --daemon
 Error: Agent Brain server already running on port 49321
 PID: 12345
 
-To restart: agent-brain stop && agent-brain start --daemon
+To restart: agent-brain stop && agent-brain start
 ```
 
 **Resolution**:
 - Use existing server, or
-- Stop and restart: `agent-brain stop && agent-brain start --daemon`
+- Stop and restart: `agent-brain stop && agent-brain start`
 
 ### Port Conflict
 
@@ -150,11 +150,24 @@ To enable semantic search:
   export OPENAI_API_KEY="sk-proj-..."
 ```
 
-**Resolution**: Set the API key and restart:
+**Resolution**: Set the API key via config file or environment variable and restart.
+
+**Option 1: Config file** (`~/.agent-brain/config.yaml`):
+```yaml
+embedding:
+  provider: "openai"
+  api_key: "sk-proj-..."
+```
+
+**Option 2: Environment variable**:
 ```bash
 export OPENAI_API_KEY="sk-proj-..."
+```
+
+Then restart:
+```bash
 agent-brain stop
-agent-brain start --daemon
+agent-brain start
 ```
 
 ### Permission Denied
@@ -167,7 +180,7 @@ Error: Permission denied when creating runtime directory
 ```bash
 mkdir -p .claude/agent-brain
 chmod 755 .claude/agent-brain
-agent-brain start --daemon
+agent-brain start
 ```
 
 ## Post-Start Tasks
@@ -206,7 +219,7 @@ agent-brain query "test query" --mode hybrid
 ### Shared Mode
 
 ```bash
-DOC_SERVE_MODE=shared agent-brain start --daemon
+AGENT_BRAIN_MODE=shared agent-brain start
 ```
 
 - Server serves multiple projects

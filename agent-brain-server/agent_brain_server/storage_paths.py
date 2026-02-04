@@ -5,7 +5,7 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-STATE_DIR_NAME = ".claude/doc-serve"
+STATE_DIR_NAME = ".claude/agent-brain"
 
 SUBDIRECTORIES = [
     "data",
@@ -20,7 +20,7 @@ SUBDIRECTORIES = [
 def resolve_state_dir(project_root: Path) -> Path:
     """Resolve the state directory for a project.
 
-    Returns <project_root>/.claude/doc-serve/
+    Returns <project_root>/.claude/agent-brain/
 
     Args:
         project_root: Resolved project root path.
@@ -69,6 +69,6 @@ def resolve_shared_project_dir(project_id: str) -> Path:
     Returns:
         Path to shared project data directory.
     """
-    shared_dir = Path.home() / ".doc-serve" / "projects" / project_id / "data"
+    shared_dir = Path.home() / ".agent-brain" / "projects" / project_id / "data"
     shared_dir.mkdir(parents=True, exist_ok=True)
     return shared_dir

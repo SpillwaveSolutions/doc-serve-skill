@@ -8,17 +8,23 @@ from rich.panel import Panel
 from rich.text import Text
 
 from ..client import ConnectionError, DocServeClient, ServerError
+from ..config import get_server_url
 
 console = Console()
+
+
+def _get_default_url() -> str:
+    """Get default server URL from config."""
+    return get_server_url()
 
 
 @click.command("query")
 @click.argument("query_text")
 @click.option(
     "--url",
-    envvar="DOC_SERVE_URL",
-    default="http://127.0.0.1:8000",
-    help="Doc-Serve server URL",
+    envvar="AGENT_BRAIN_URL",
+    default=None,
+    help="Agent Brain server URL (default: from config or http://127.0.0.1:8000)",
 )
 @click.option(
     "-k",
@@ -30,9 +36,9 @@ console = Console()
 @click.option(
     "-t",
     "--threshold",
-    default=0.7,
+    default=0.3,
     type=float,
-    help="Minimum similarity threshold 0-1 (default: 0.7)",
+    help="Minimum similarity threshold 0-1 (default: 0.3)",
 )
 @click.option(
     "-m",
@@ -67,7 +73,7 @@ console = Console()
 )
 def query_command(
     query_text: str,
-    url: str,
+    url: Optional[str],
     top_k: int,
     threshold: float,
     mode: str,
@@ -80,6 +86,9 @@ def query_command(
     file_paths: Optional[str],
 ) -> None:
     """Search indexed documents with natural language or keyword query."""
+    # Get URL from config if not specified
+    resolved_url = url or _get_default_url()
+
     # Parse comma-separated lists
     source_types_list = (
         [st.strip() for st in source_types.split(",")] if source_types else None
@@ -92,7 +101,7 @@ def query_command(
     )
 
     try:
-        with DocServeClient(base_url=url) as client:
+        with DocServeClient(base_url=resolved_url) as client:
             response = client.query(
                 query_text=query_text,
                 top_k=top_k,
@@ -136,7 +145,7 @@ def query_command(
                 console.print(
                     "\n[dim]Tips:\n"
                     "  - Try different keywords\n"
-                    "  - Lower the threshold with --threshold 0.5\n"
+                    "  - Lower the threshold with --threshold 0.1\n"
                     "  - Check if documents are indexed with 'status' command[/]"
                 )
                 return

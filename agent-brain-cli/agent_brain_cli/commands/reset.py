@@ -1,10 +1,13 @@
 """Reset command for clearing the index."""
 
+from typing import Optional
+
 import click
 from rich.console import Console
 from rich.prompt import Confirm
 
 from ..client import ConnectionError, DocServeClient, ServerError
+from ..config import get_server_url
 
 console = Console()
 
@@ -12,9 +15,9 @@ console = Console()
 @click.command("reset")
 @click.option(
     "--url",
-    envvar="DOC_SERVE_URL",
-    default="http://127.0.0.1:8000",
-    help="Doc-Serve server URL",
+    envvar="AGENT_BRAIN_URL",
+    default=None,
+    help="Agent Brain server URL (default: from config or http://127.0.0.1:8000)",
 )
 @click.option(
     "--yes",
@@ -23,11 +26,14 @@ console = Console()
     help="Skip confirmation prompt",
 )
 @click.option("--json", "json_output", is_flag=True, help="Output as JSON")
-def reset_command(url: str, yes: bool, json_output: bool) -> None:
+def reset_command(url: Optional[str], yes: bool, json_output: bool) -> None:
     """Reset the index by deleting all indexed documents.
 
     WARNING: This permanently removes all indexed content.
     """
+    # Get URL from config if not specified
+    resolved_url = url or get_server_url()
+
     # Confirm unless --yes flag provided
     if not yes and not json_output:
         console.print(
@@ -38,7 +44,7 @@ def reset_command(url: str, yes: bool, json_output: bool) -> None:
             return
 
     try:
-        with DocServeClient(base_url=url) as client:
+        with DocServeClient(base_url=resolved_url) as client:
             response = client.reset()
 
             if json_output:

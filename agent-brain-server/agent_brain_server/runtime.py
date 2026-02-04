@@ -1,4 +1,4 @@
-"""Runtime state management for doc-serve instances."""
+"""Runtime state management for Agent Brain instances."""
 
 import json
 import logging
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class RuntimeState(BaseModel):
-    """Runtime state for a doc-serve instance."""
+    """Runtime state for an Agent Brain instance."""
 
     schema_version: str = "1.0"
     mode: str = "project"  # "project" or "shared"

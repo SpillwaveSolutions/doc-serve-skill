@@ -121,6 +121,7 @@ class DocServeClient:
         method: str,
         path: str,
         json: Optional[dict[str, Any]] = None,
+        params: Optional[dict[str, Any]] = None,
     ) -> dict[str, Any]:
         """
         Make an HTTP request to the server.
@@ -129,6 +130,7 @@ class DocServeClient:
             method: HTTP method (GET, POST, DELETE).
             path: API path.
             json: Optional JSON body.
+            params: Optional query parameters.
 
         Returns:
             Response JSON data.
@@ -140,7 +142,7 @@ class DocServeClient:
         url = f"{self.base_url}{path}"
 
         try:
-            response = self._client.request(method, url, json=json)
+            response = self._client.request(method, url, json=json, params=params)
         except httpx.ConnectError as e:
             raise ConnectionError(
                 f"Unable to connect to server at {self.base_url}. "
@@ -276,9 +278,11 @@ class DocServeClient:
         include_patterns: Optional[list[str]] = None,
         exclude_patterns: Optional[list[str]] = None,
         generate_summaries: bool = False,
+        force: bool = False,
+        allow_external: bool = False,
     ) -> IndexResponse:
         """
-        Start indexing documents and optionally code from a folder.
+        Enqueue an indexing job for documents and optionally code from a folder.
 
         Args:
             folder_path: Path to folder with documents.
@@ -291,9 +295,11 @@ class DocServeClient:
             include_patterns: Additional include patterns.
             exclude_patterns: Additional exclude patterns.
             generate_summaries: Generate LLM summaries for code chunks.
+            force: Bypass deduplication and force a new job.
+            allow_external: Allow paths outside the project directory.
 
         Returns:
-            IndexResponse with job ID.
+            IndexResponse with job ID and queue status.
         """
         data = self._request(
             "POST",
@@ -310,6 +316,7 @@ class DocServeClient:
                 "exclude_patterns": exclude_patterns,
                 "generate_summaries": generate_summaries,
             },
+            params={"force": force, "allow_external": allow_external},
         )
 
         return IndexResponse(
@@ -332,3 +339,41 @@ class DocServeClient:
             status=data["status"],
             message=data.get("message"),
         )
+
+    def list_jobs(self, limit: int = 20) -> list[dict[str, Any]]:
+        """
+        List jobs in the queue.
+
+        Args:
+            limit: Maximum number of jobs to return.
+
+        Returns:
+            List of job dictionaries.
+        """
+        data = self._request("GET", f"/index/jobs/?limit={limit}")
+        jobs: list[dict[str, Any]] = data.get("jobs", [])
+        return jobs
+
+    def get_job(self, job_id: str) -> dict[str, Any]:
+        """
+        Get details for a specific job.
+
+        Args:
+            job_id: The job ID to look up.
+
+        Returns:
+            Job detail dictionary.
+        """
+        return self._request("GET", f"/index/jobs/{job_id}")
+
+    def cancel_job(self, job_id: str) -> dict[str, Any]:
+        """
+        Cancel a specific job.
+
+        Args:
+            job_id: The job ID to cancel.
+
+        Returns:
+            Cancellation result dictionary.
+        """
+        return self._request("DELETE", f"/index/jobs/{job_id}")

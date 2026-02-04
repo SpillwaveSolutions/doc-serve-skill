@@ -5,18 +5,14 @@ parameters:
   - name: query
     description: The search query about relationships or dependencies
     required: true
-  - name: traversal-depth
-    description: How deep to traverse relationships (1-5)
-    required: false
-    default: 2
   - name: top-k
     description: Number of results to return (1-20)
     required: false
     default: 5
-  - name: include-relationships
-    description: Include relationship details in output
+  - name: threshold
+    description: Minimum relevance score (0.0-1.0)
     required: false
-    default: true
+    default: 0.3
 skills:
   - using-agent-brain
 ---
@@ -36,7 +32,7 @@ Graph search is ideal for:
 ## Usage
 
 ```
-/agent-brain-graph <query> [--traversal-depth <n>] [--top-k <n>] [--include-relationships]
+/agent-brain-graph <query> [--top-k <n>] [--threshold <t>]
 ```
 
 ### Parameters
@@ -44,18 +40,8 @@ Graph search is ideal for:
 | Parameter | Required | Default | Description |
 |-----------|----------|---------|-------------|
 | query | Yes | - | The relationship or dependency query |
-| --traversal-depth | No | 2 | How many relationship hops (1-5) |
 | --top-k | No | 5 | Number of results (1-20) |
-| --include-relationships | No | true | Show relationship details |
-
-### Traversal Depth Guide
-
-| Depth | Use Case | Example |
-|-------|----------|---------|
-| 1 | Direct relationships | "what directly calls X" |
-| 2 | Two-hop relationships | "what calls functions that call X" |
-| 3 | Complex chains | "trace the call chain to X" |
-| 4-5 | Deep exploration | "full dependency tree" |
+| --threshold | No | 0.3 | Minimum relevance score (0.0-1.0) |
 
 ## Prerequisites
 
@@ -66,7 +52,7 @@ GraphRAG must be enabled before using graph search:
 export ENABLE_GRAPH_INDEX=true
 
 # Start server
-agent-brain start --daemon
+agent-brain start
 
 # Index with graph extraction
 agent-brain index /path/to/code
@@ -93,7 +79,7 @@ If graph index shows as disabled:
 # Enable and restart
 export ENABLE_GRAPH_INDEX=true
 agent-brain stop
-agent-brain start --daemon
+agent-brain start
 agent-brain reset --yes
 agent-brain index /path/to/code
 ```
@@ -101,7 +87,7 @@ agent-brain index /path/to/code
 ### Search Command
 
 ```bash
-agent-brain query "<query>" --mode graph --traversal-depth <depth> --top-k <k> --include-relationships
+agent-brain query "<query>" --mode graph --top-k <k> --threshold <t>
 ```
 
 ### Example Queries
@@ -111,75 +97,57 @@ agent-brain query "<query>" --mode graph --traversal-depth <depth> --top-k <k> -
 agent-brain query "what functions call process_payment" --mode graph
 
 # Class inheritance
-agent-brain query "classes that inherit from BaseService" --mode graph --traversal-depth 3
+agent-brain query "classes that inherit from BaseService" --mode graph
 
 # Module dependencies
 agent-brain query "modules that import authentication" --mode graph
 
-# Find all callers (deep)
-agent-brain query "complete call chain to validate_token" --mode graph --traversal-depth 4
-
-# Relationship exploration
-agent-brain query "dependencies of UserController" --mode graph --include-relationships
+# More results with lower threshold
+agent-brain query "dependencies of UserController" --mode graph --top-k 10 --threshold 0.2
 ```
 
 ## Output
 
 ### Result Format
 
-For each result, present:
-
-1. **Entity**: The matched entity (function, class, module)
-2. **Type**: Entity type (function, class, module, etc.)
-3. **Relationships**: Connected entities and relationship types
-4. **Source**: File path and location
+The CLI displays results in panels showing:
+- Source file path
+- Relevance score (percentage)
+- Text content excerpt
 
 ### Example Output
 
 ```
-## Graph Search Results for "what functions call process_payment"
+Query: what functions call process_payment
+Found 3 results in 850.2ms
 
-### 1. process_payment (function in src/payments/processor.py)
+╭─ [1] src/api/checkout.py  Score: 89% ─────────────────────────╮
+│ def checkout_handler(request):                                 │
+│     """Handle checkout and process payment."""                 │
+│     order = create_order(request)                              │
+│     result = process_payment(order.payment_info)               │
+│     return {"status": "success", "order_id": order.id}         │
+╰────────────────────────────────────────────────────────────────╯
 
-**Callers (incoming):**
-- checkout_handler() in src/api/checkout.py [CALLS]
-- process_order() in src/orders/service.py [CALLS]
-- handle_webhook() in src/webhooks/stripe.py [CALLS]
+╭─ [2] src/services/payment_processor.py  Score: 85% ───────────╮
+│ class PaymentProcessor:                                        │
+│     def handle_order(self, order):                             │
+│         return process_payment(order.payment_info)             │
+╰────────────────────────────────────────────────────────────────╯
 
-**Dependencies (outgoing):**
-- validate_payment_method() in src/payments/validator.py [CALLS]
-- charge_card() in src/payments/gateway.py [CALLS]
-- log_transaction() in src/payments/logger.py [CALLS]
-
-**File:** src/payments/processor.py:45-78
-
----
-
-### 2. PaymentProcessor.process (method in src/payments/processor.py)
-
-**Callers (incoming):**
-- PaymentService.execute() in src/services/payment.py [CALLS]
-
-**Inherits from:**
-- BaseProcessor in src/payments/base.py [INHERITS]
-
-**File:** src/payments/processor.py:120-145
-
----
-Found 2 entities with relationships to "process_payment"
-Graph traversal depth: 2
+╭─ [3] src/webhooks/stripe.py  Score: 78% ──────────────────────╮
+│ def handle_webhook(event):                                     │
+│     if event.type == "payment_intent.succeeded":               │
+│         process_payment(event.data.object)                     │
+╰────────────────────────────────────────────────────────────────╯
 ```
 
-### Relationship Types
+### Relationship Metadata
 
-| Type | Description | Example |
-|------|-------------|---------|
-| CALLS | Function/method invocation | `A() CALLS B()` |
-| IMPORTS | Module import | `module A IMPORTS module B` |
-| INHERITS | Class inheritance | `ClassA INHERITS ClassB` |
-| IMPLEMENTS | Interface implementation | `Class IMPLEMENTS Interface` |
-| CONTAINS | Containment relationship | `Module CONTAINS Class` |
-| USES | Variable/type usage | `Function USES Type` |
+Graph results may include relationship metadata in the `--json` output:
+- `graph_score`: Score from graph-based retrieval
+- `related_entities`: Connected entities found
+- `relationship_path`: Relationship chain to query term
 
 ## Error Handling
 
@@ -192,7 +160,7 @@ Error: Graph index is not enabled
 **Resolution:**
 ```bash
 export ENABLE_GRAPH_INDEX=true
-agent-brain stop && agent-brain start --daemon
+agent-brain stop && agent-brain start
 agent-brain reset --yes
 agent-brain index /path/to/code
 ```
@@ -227,7 +195,7 @@ Error: Could not connect to Agent Brain server
 
 **Resolution:**
 ```bash
-agent-brain start --daemon
+agent-brain start
 ```
 
 ## Performance Notes

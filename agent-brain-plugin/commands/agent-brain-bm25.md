@@ -62,7 +62,7 @@ agent-brain status
 
 If not running:
 ```bash
-agent-brain start --daemon
+agent-brain start
 ```
 
 ### Search Command
@@ -150,7 +150,7 @@ Error: Could not connect to Agent Brain server
 
 **Resolution:**
 ```bash
-agent-brain start --daemon
+agent-brain start
 ```
 
 ### No Results Found

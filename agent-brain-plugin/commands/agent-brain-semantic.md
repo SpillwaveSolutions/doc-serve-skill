@@ -141,7 +141,7 @@ When referencing results in responses, always cite the source:
 Error: Could not connect to Agent Brain server
 ```
 
-**Resolution**: Start the server with `agent-brain start --daemon`
+**Resolution**: Start the server with `agent-brain start`
 
 ### No Results Found
 

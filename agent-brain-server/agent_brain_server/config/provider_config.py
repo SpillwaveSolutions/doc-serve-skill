@@ -32,6 +32,10 @@ class EmbeddingConfig(BaseModel):
         default="text-embedding-3-large",
         description="Model name for embeddings",
     )
+    api_key: Optional[str] = Field(
+        default=None,
+        description="API key (alternative to api_key_env for local config files)",
+    )
     api_key_env: Optional[str] = Field(
         default="OPENAI_API_KEY",
         description="Environment variable name containing API key",
@@ -58,13 +62,21 @@ class EmbeddingConfig(BaseModel):
         return EmbeddingProviderType(v)
 
     def get_api_key(self) -> Optional[str]:
-        """Resolve API key from environment variable.
+        """Resolve API key from config or environment variable.
+
+        Resolution order:
+        1. api_key field in config (direct value)
+        2. Environment variable specified by api_key_env
 
         Returns:
             API key value or None if not found/not needed
         """
         if self.provider == EmbeddingProviderType.OLLAMA:
             return None  # Ollama doesn't need API key
+        # Check direct api_key first
+        if self.api_key:
+            return self.api_key
+        # Fall back to environment variable
         if self.api_key_env:
             return os.getenv(self.api_key_env)
         return None
@@ -93,6 +105,10 @@ class SummarizationConfig(BaseModel):
         default="claude-haiku-4-5-20251001",
         description="Model name for summarization",
     )
+    api_key: Optional[str] = Field(
+        default=None,
+        description="API key (alternative to api_key_env for local config files)",
+    )
     api_key_env: Optional[str] = Field(
         default="ANTHROPIC_API_KEY",
         description="Environment variable name containing API key",
@@ -119,13 +135,21 @@ class SummarizationConfig(BaseModel):
         return SummarizationProviderType(v)
 
     def get_api_key(self) -> Optional[str]:
-        """Resolve API key from environment variable.
+        """Resolve API key from config or environment variable.
+
+        Resolution order:
+        1. api_key field in config (direct value)
+        2. Environment variable specified by api_key_env
 
         Returns:
             API key value or None if not found/not needed
         """
         if self.provider == SummarizationProviderType.OLLAMA:
             return None  # Ollama doesn't need API key
+        # Check direct api_key first
+        if self.api_key:
+            return self.api_key
+        # Fall back to environment variable
         if self.api_key_env:
             return os.getenv(self.api_key_env)
         return None
@@ -162,40 +186,60 @@ def _find_config_file() -> Optional[Path]:
     """Find the configuration file in standard locations.
 
     Search order:
-    1. DOC_SERVE_CONFIG environment variable
-    2. Current directory config.yaml
-    3. State directory config.yaml (if DOC_SERVE_STATE_DIR set)
-    4. Project root config.yaml
+    1. AGENT_BRAIN_CONFIG environment variable
+    2. State directory config.yaml (if AGENT_BRAIN_STATE_DIR or DOC_SERVE_STATE_DIR set)
+    3. Current directory config.yaml
+    4. Walk up from CWD looking for .claude/agent-brain/config.yaml
+    5. User home ~/.agent-brain/config.yaml
+    6. XDG config ~/.config/agent-brain/config.yaml
 
     Returns:
         Path to config file or None if not found
     """
     # 1. Environment variable override
-    env_config = os.getenv("DOC_SERVE_CONFIG")
+    env_config = os.getenv("AGENT_BRAIN_CONFIG")
     if env_config:
         path = Path(env_config)
         if path.exists():
+            logger.debug(f"Found config via AGENT_BRAIN_CONFIG: {path}")
             return path
-        logger.warning(f"DOC_SERVE_CONFIG points to non-existent file: {env_config}")
+        logger.warning(f"AGENT_BRAIN_CONFIG points to non-existent file: {env_config}")
 
-    # 2. Current directory
-    cwd_config = Path.cwd() / "config.yaml"
-    if cwd_config.exists():
-        return cwd_config
-
-    # 3. State directory
-    state_dir = os.getenv("DOC_SERVE_STATE_DIR")
+    # 2. State directory (check both new and legacy env vars)
+    state_dir = os.getenv("AGENT_BRAIN_STATE_DIR") or os.getenv("DOC_SERVE_STATE_DIR")
     if state_dir:
         state_config = Path(state_dir) / "config.yaml"
         if state_config.exists():
+            logger.debug(f"Found config in state directory: {state_config}")
             return state_config
 
-    # 4. .claude/doc-serve directory (project root pattern)
-    claude_dir = Path.cwd() / ".claude" / "doc-serve"
-    if claude_dir.exists():
-        claude_config = claude_dir / "config.yaml"
+    # 3. Current directory
+    cwd_config = Path.cwd() / "config.yaml"
+    if cwd_config.exists():
+        logger.debug(f"Found config in current directory: {cwd_config}")
+        return cwd_config
+
+    # 4. Walk up from CWD looking for .claude/agent-brain/config.yaml
+    current = Path.cwd()
+    root = Path(current.anchor)
+    while current != root:
+        claude_config = current / ".claude" / "agent-brain" / "config.yaml"
         if claude_config.exists():
+            logger.debug(f"Found config walking up from CWD: {claude_config}")
             return claude_config
+        current = current.parent
+
+    # 5. User home directory ~/.agent-brain/config.yaml
+    home_config = Path.home() / ".agent-brain" / "config.yaml"
+    if home_config.exists():
+        logger.debug(f"Found config in home directory: {home_config}")
+        return home_config
+
+    # 6. XDG config directory ~/.config/agent-brain/config.yaml
+    xdg_config = Path.home() / ".config" / "agent-brain" / "config.yaml"
+    if xdg_config.exists():
+        logger.debug(f"Found config in XDG config directory: {xdg_config}")
+        return xdg_config
 
     return None
 

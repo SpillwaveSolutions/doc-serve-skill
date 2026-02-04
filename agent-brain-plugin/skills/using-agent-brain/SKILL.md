@@ -52,10 +52,9 @@ Expert-level skill for Agent Brain document search with five modes: BM25 (keywor
 | Parameter | Default | Description |
 |-----------|---------|-------------|
 | `--mode` | hybrid | Search mode: bm25, vector, hybrid, graph, multi |
-| `--threshold` | 0.7 | Minimum similarity (0.0-1.0) |
+| `--threshold` | 0.3 | Minimum similarity (0.0-1.0) |
 | `--top-k` | 5 | Number of results |
 | `--alpha` | 0.5 | Hybrid balance (0=BM25, 1=Vector) |
-| `--traversal-depth` | 2 | Graph traversal depth for graph/multi modes |
 
 ---
 
@@ -137,7 +136,7 @@ GraphRAG enables relationship-aware retrieval by building a knowledge graph from
 
 ```bash
 export ENABLE_GRAPH_INDEX=true
-agent-brain start --daemon
+agent-brain start
 ```
 
 ### Graph Query Types
@@ -159,7 +158,7 @@ See [Graph Search Guide](references/graph-search-guide.md) for detailed usage.
 
 ```bash
 agent-brain init              # Initialize project (first time)
-agent-brain start --daemon    # Start server
+agent-brain start    # Start server
 agent-brain index ./docs      # Index documents
 agent-brain query "search"    # Search
 agent-brain stop              # Stop when done
@@ -176,7 +175,7 @@ agent-brain stop              # Stop when done
 | Command | Description |
 |---------|-------------|
 | `agent-brain init` | Initialize project config |
-| `agent-brain start --daemon` | Start with auto-port |
+| `agent-brain start` | Start with auto-port |
 | `agent-brain status` | Show port, mode, document count |
 | `agent-brain list` | List all running instances |
 | `agent-brain stop` | Graceful shutdown |

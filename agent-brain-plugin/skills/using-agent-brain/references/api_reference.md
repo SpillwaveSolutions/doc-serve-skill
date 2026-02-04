@@ -239,7 +239,7 @@ The `agent-brain` CLI provides these commands:
 ```bash
 # Server lifecycle
 agent-brain init                      # Initialize project config
-agent-brain start --daemon            # Start server with auto-port
+agent-brain start            # Start server with auto-port
 agent-brain stop                      # Stop running server
 agent-brain list                      # List all running instances
 

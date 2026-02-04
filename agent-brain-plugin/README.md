@@ -34,7 +34,7 @@ export OPENAI_API_KEY="sk-proj-..."
 
 ```bash
 agent-brain init
-agent-brain start --daemon
+agent-brain start
 agent-brain index /path/to/docs
 ```
 

@@ -110,7 +110,7 @@ def get_server_url():
         return url
 
     # Start server and wait
-    subprocess.run(["agent-brain", "start", "--daemon"], check=True)
+    subprocess.run(["agent-brain", "start"], check=True)
 
     # Re-discover after startup
     import time
@@ -130,7 +130,7 @@ if __name__ == "__main__":
         print(f"Connected to: {server_url}")
     else:
         print("No running server found - starting one...")
-        subprocess.run(["agent-brain", "start", "--daemon"])
+        subprocess.run(["agent-brain", "start"])
 ```
 
 ---
@@ -139,7 +139,7 @@ if __name__ == "__main__":
 
 Multiple Claude agents in the same project share one instance:
 
-1. **First agent** starts server: `agent-brain start --daemon`
+1. **First agent** starts server: `agent-brain start`
 2. **Other agents** discover via `runtime.json`
 3. **All agents** use same `base_url`
 4. **Any agent** can stop when work complete
@@ -156,7 +156,7 @@ Lock file protocol prevents race conditions during concurrent startup attempts.
 Error: No running Agent Brain instance found for this project
 ```
 
-**Solution**: `agent-brain start --daemon`
+**Solution**: `agent-brain start`
 
 ### Stale Server State
 
@@ -167,12 +167,12 @@ Warning: Server not responding, cleaning up stale state
 **Solution**: CLI auto-cleans stale files. Manual cleanup:
 ```bash
 rm .claude/doc-serve/runtime.json
-agent-brain start --daemon
+agent-brain start
 ```
 
 ### Port Conflict
 
-**Solution**: Use auto-port (default): `agent-brain start --daemon`
+**Solution**: Use auto-port (default): `agent-brain start`
 
 ### Multiple Agents Racing
 

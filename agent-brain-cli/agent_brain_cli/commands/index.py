@@ -7,6 +7,7 @@ import click
 from rich.console import Console
 
 from ..client import ConnectionError, DocServeClient, ServerError
+from ..config import get_server_url
 
 console = Console()
 
@@ -15,9 +16,9 @@ console = Console()
 @click.argument("folder_path", type=click.Path(exists=True, file_okay=False))
 @click.option(
     "--url",
-    envvar="DOC_SERVE_URL",
-    default="http://127.0.0.1:8000",
-    help="Doc-Serve server URL",
+    envvar="AGENT_BRAIN_URL",
+    default=None,
+    help="Agent Brain server URL (default: from config or http://127.0.0.1:8000)",
 )
 @click.option(
     "--chunk-size",
@@ -64,10 +65,20 @@ console = Console()
     is_flag=True,
     help="Generate LLM summaries for code chunks to improve semantic search",
 )
+@click.option(
+    "--force",
+    is_flag=True,
+    help="Bypass deduplication and force a new indexing job",
+)
+@click.option(
+    "--allow-external",
+    is_flag=True,
+    help="Allow indexing paths outside the project directory",
+)
 @click.option("--json", "json_output", is_flag=True, help="Output as JSON")
 def index_command(
     folder_path: str,
-    url: str,
+    url: Optional[str],
     chunk_size: int,
     chunk_overlap: int,
     no_recursive: bool,
@@ -77,12 +88,17 @@ def index_command(
     include_patterns: Optional[str],
     exclude_patterns: Optional[str],
     generate_summaries: bool,
+    force: bool,
+    allow_external: bool,
     json_output: bool,
 ) -> None:
     """Index documents from a folder.
 
     FOLDER_PATH: Path to the folder containing documents to index.
     """
+    # Get URL from config if not specified
+    resolved_url = url or get_server_url()
+
     # Resolve to absolute path
     folder = Path(folder_path).resolve()
 
@@ -102,7 +118,7 @@ def index_command(
     )
 
     try:
-        with DocServeClient(base_url=url) as client:
+        with DocServeClient(base_url=resolved_url) as client:
             response = client.index(
                 folder_path=str(folder),
                 chunk_size=chunk_size,
@@ -114,6 +130,8 @@ def index_command(
                 include_patterns=include_patterns_list,
                 exclude_patterns=exclude_patterns_list,
                 generate_summaries=generate_summaries,
+                force=force,
+                allow_external=allow_external,
             )
 
             if json_output:
@@ -128,14 +146,21 @@ def index_command(
                 click.echo(json.dumps(output, indent=2))
                 return
 
-            console.print("\n[green]Indexing started![/]\n")
+            console.print("\n[green]Job queued![/]\n")
             console.print(f"[bold]Job ID:[/] {response.job_id}")
             console.print(f"[bold]Folder:[/] {folder}")
             console.print(f"[bold]Status:[/] {response.status}")
             if response.message:
-                console.print(f"[bold]Message:[/] {response.message}")
+                # Check for duplicate detection message
+                if "Duplicate" in (response.message or ""):
+                    console.print(f"[yellow]Note:[/] {response.message}")
+                else:
+                    console.print(f"[bold]Message:[/] {response.message}")
 
-            console.print("\n[dim]Use 'doc-svr-ctl status' to monitor progress.[/]")
+            console.print(
+                "\n[dim]Use 'agent-brain jobs' or 'agent-brain jobs --watch' "
+                "to monitor progress.[/]"
+            )
 
     except ConnectionError as e:
         if json_output:
@@ -153,9 +178,14 @@ def index_command(
             click.echo(json.dumps({"error": str(e), "detail": e.detail}))
         else:
             console.print(f"[red]Server Error ({e.status_code}):[/] {e.detail}")
-            if e.status_code == 409:
+            if e.status_code == 429:
                 console.print(
-                    "\n[dim]Indexing is already in progress. "
-                    "Wait for it to complete or reset the index.[/]"
+                    "\n[dim]The job queue is full. "
+                    "Wait for some jobs to complete and try again.[/]"
+                )
+            elif e.status_code == 409:
+                console.print(
+                    "\n[dim]A conflict occurred. "
+                    "Check 'agent-brain jobs' for queue status.[/]"
                 )
         raise SystemExit(1) from e

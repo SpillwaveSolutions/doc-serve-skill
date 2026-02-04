@@ -135,6 +135,8 @@ Show comprehensive details:
 | agent-brain-search | Search | Hybrid BM25+semantic search |
 | agent-brain-semantic | Search | Pure semantic vector search |
 | agent-brain-keyword | Search | Pure BM25 keyword search |
+| agent-brain-graph | Search | GraphRAG relationship search* |
+| agent-brain-multi | Search | Multi-mode fusion search* |
 | agent-brain-install | Setup | Install packages from PyPI |
 | agent-brain-setup | Setup | Complete guided setup |
 | agent-brain-config | Setup | Configure API keys |
@@ -147,6 +149,8 @@ Show comprehensive details:
 | agent-brain-index | Indexing | Index documents |
 | agent-brain-reset | Indexing | Clear the index |
 | agent-brain-help | Help | Show help |
+
+*Graph search requires `ENABLE_GRAPH_INDEX=true` (disabled by default)
 
 ## Error Handling
 
@@ -161,3 +165,4 @@ Show comprehensive details:
 - Commands can be invoked as `/agent-brain-<name>` in Claude Code
 - Setup commands are typically run once per project
 - Search commands require a running server with indexed documents
+- GraphRAG is disabled by default. Enable with `export ENABLE_GRAPH_INDEX=true` before starting the server, then re-index documents
