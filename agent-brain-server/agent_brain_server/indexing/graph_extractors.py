@@ -116,11 +116,27 @@ class LLMEntityExtractor:
             response_text = response.content[0].text
             triplets = self._parse_triplets(response_text, source_chunk_id)
 
-            logger.debug(f"Extracted {len(triplets)} triplets from text chunk")
+            logger.debug(
+                "llm_extractor.extract_triplets: completed",
+                extra={
+                    "triplet_count": len(triplets),
+                    "model": self.model,
+                    "text_length": len(text),
+                    "source_chunk_id": source_chunk_id,
+                },
+            )
             return triplets
 
         except Exception as e:
-            logger.warning(f"LLM entity extraction failed: {e}")
+            logger.warning(
+                "llm_extractor.extract_triplets: failed",
+                extra={
+                    "error": str(e),
+                    "model": self.model,
+                    "text_length": len(text),
+                    "source_chunk_id": source_chunk_id,
+                },
+            )
             return []
 
     def _build_extraction_prompt(self, text: str, max_triplets: int) -> str:
@@ -333,8 +349,15 @@ class CodeMetadataExtractor:
             triplets.append(triplet)
 
         logger.debug(
-            f"Extracted {len(triplets)} triplets from code metadata "
-            f"(symbol={symbol_name})"
+            "code_extractor.extract_from_metadata: completed",
+            extra={
+                "triplet_count": len(triplets),
+                "symbol_name": symbol_name,
+                "symbol_type": symbol_type,
+                "file_path": file_path,
+                "import_count": len(imports) if isinstance(imports, list) else 0,
+                "source_chunk_id": source_chunk_id,
+            },
         )
         return triplets
 

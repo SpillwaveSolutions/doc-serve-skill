@@ -88,16 +88,46 @@ class CLIRunner:
         self,
         query_text: str,
         top_k: int = 5,
-        threshold: float = 0.3
+        threshold: float = 0.3,
+        mode: str = "hybrid",
+        alpha: float = 0.5
     ) -> dict:
-        """Run a query and return results."""
-        result = self.run(
+        """Run a query and return results.
+
+        Args:
+            query_text: The search query
+            top_k: Number of results to return
+            threshold: Minimum similarity threshold
+            mode: Query mode - vector, bm25, hybrid, graph, multi
+            alpha: Weight for hybrid search (1.0=pure vector, 0.0=pure bm25)
+        """
+        args = [
             "query", query_text,
             "--json",
             "--top-k", str(top_k),
-            "--threshold", str(threshold)
-        )
+            "--threshold", str(threshold),
+            "--mode", mode,
+        ]
+        if mode == "hybrid":
+            args.extend(["--alpha", str(alpha)])
+
+        result = self.run(*args)
         return result.get("json") or {}
+
+    def query_raw(
+        self,
+        query_text: str,
+        mode: str = "hybrid",
+        **kwargs
+    ) -> dict:
+        """Run a query and return the full result including returncode.
+
+        Useful for testing error cases like disabled GraphRAG.
+        """
+        args = ["query", query_text, "--json", "--mode", mode]
+        for key, value in kwargs.items():
+            args.extend([f"--{key.replace('_', '-')}", str(value)])
+        return self.run(*args)
 
     def index(self, folder_path: str) -> dict:
         """Start indexing a folder."""

@@ -83,12 +83,29 @@ class GraphStoreManager:
         This is a no-op when ENABLE_GRAPH_INDEX is False.
         """
         if not settings.ENABLE_GRAPH_INDEX:
-            logger.debug("Graph indexing disabled, skipping initialization")
+            logger.debug(
+                "graph_store.initialize: skipped (ENABLE_GRAPH_INDEX=false)"
+            )
             return
 
         if self._initialized:
-            logger.debug("Graph store already initialized")
+            logger.debug(
+                "graph_store.initialize: skipped (already initialized)",
+                extra={
+                    "store_type": self.store_type,
+                    "entity_count": self._entity_count,
+                    "relationship_count": self._relationship_count,
+                },
+            )
             return
+
+        logger.info(
+            "graph_store.initialize: starting",
+            extra={
+                "store_type": self.store_type,
+                "persist_dir": str(self.persist_dir),
+            },
+        )
 
         # Ensure persistence directory exists
         self.persist_dir.mkdir(parents=True, exist_ok=True)
@@ -103,8 +120,13 @@ class GraphStoreManager:
 
         self._initialized = True
         logger.info(
-            f"Graph store initialized: type={self.store_type}, "
-            f"entities={self._entity_count}, relationships={self._relationship_count}"
+            "graph_store.initialize: completed",
+            extra={
+                "store_type": self.store_type,
+                "entity_count": self._entity_count,
+                "relationship_count": self._relationship_count,
+                "persist_dir": str(self.persist_dir),
+            },
         )
 
     def _initialize_simple_store(self) -> None:
@@ -338,6 +360,14 @@ class GraphStoreManager:
             return False
 
         if not self._initialized or self._graph_store is None:
+            logger.warning(
+                "graph_store.add_triplet: skipped (store not initialized)",
+                extra={
+                    "subject": subject,
+                    "predicate": predicate,
+                    "object": obj,
+                },
+            )
             return False
 
         try:
@@ -363,9 +393,30 @@ class GraphStoreManager:
             self._relationship_count += 1
             self._last_updated = datetime.now(timezone.utc)
 
+            logger.debug(
+                "graph_store.add_triplet: success",
+                extra={
+                    "subject": subject,
+                    "predicate": predicate,
+                    "object": obj,
+                    "subject_type": subject_type,
+                    "object_type": object_type,
+                    "source_chunk_id": source_chunk_id,
+                    "total_relationships": self._relationship_count,
+                },
+            )
+
             return True
         except Exception as e:
-            logger.error(f"Failed to add triplet: {e}")
+            logger.error(
+                "graph_store.add_triplet: failed",
+                extra={
+                    "subject": subject,
+                    "predicate": predicate,
+                    "object": obj,
+                    "error": str(e),
+                },
+            )
             return False
 
     def clear(self) -> None:
@@ -374,7 +425,11 @@ class GraphStoreManager:
         This is a no-op when ENABLE_GRAPH_INDEX is False.
         """
         if not settings.ENABLE_GRAPH_INDEX:
+            logger.debug("graph_store.clear: skipped (ENABLE_GRAPH_INDEX=false)")
             return
+
+        prev_entities = self._entity_count
+        prev_relationships = self._relationship_count
 
         if self._graph_store is not None:
             if hasattr(self._graph_store, "clear"):
@@ -391,7 +446,14 @@ class GraphStoreManager:
         if persist_path.exists():
             persist_path.unlink()
 
-        logger.info("Graph store cleared")
+        logger.info(
+            "graph_store.clear: completed",
+            extra={
+                "previous_entities": prev_entities,
+                "previous_relationships": prev_relationships,
+                "persist_dir": str(self.persist_dir),
+            },
+        )
 
     @property
     def is_initialized(self) -> bool:

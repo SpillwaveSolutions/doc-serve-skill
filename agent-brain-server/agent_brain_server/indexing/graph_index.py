@@ -85,17 +85,27 @@ class GraphIndexManager:
             Total number of triplets extracted and stored.
         """
         if not settings.ENABLE_GRAPH_INDEX:
-            logger.debug("Graph indexing disabled, skipping build")
+            logger.debug(
+                "graph_index.build_from_documents: skipped (ENABLE_GRAPH_INDEX=false)"
+            )
             return 0
 
         # Ensure graph store is initialized
         if not self.graph_store.is_initialized:
+            logger.info("graph_index.build_from_documents: initializing graph store")
             self.graph_store.initialize()
 
         total_triplets = 0
         total_docs = len(documents)
 
-        logger.info(f"Building graph index from {total_docs} documents")
+        logger.info(
+            "graph_index.build_from_documents: starting",
+            extra={
+                "document_count": total_docs,
+                "llm_extraction": settings.GRAPH_USE_LLM_EXTRACTION,
+                "code_metadata": settings.GRAPH_USE_CODE_METADATA,
+            },
+        )
 
         for idx, doc in enumerate(documents):
             if progress_callback:
@@ -125,7 +135,13 @@ class GraphIndexManager:
         self._last_triplet_count = total_triplets
 
         logger.info(
-            f"Graph index built: {total_triplets} triplets from {total_docs} docs"
+            "graph_index.build_from_documents: completed",
+            extra={
+                "triplet_count": total_triplets,
+                "document_count": total_docs,
+                "entity_count": self.graph_store.entity_count,
+                "relationship_count": self.graph_store.relationship_count,
+            },
         )
 
         return total_triplets
@@ -237,15 +253,26 @@ class GraphIndexManager:
             List of result dicts with entity info and relationship paths.
         """
         if not settings.ENABLE_GRAPH_INDEX:
+            logger.debug(
+                "graph_index.query: skipped (ENABLE_GRAPH_INDEX=false)",
+                extra={"query": query_text[:100]},
+            )
             return []
 
         if not self.graph_store.is_initialized:
-            logger.debug("Graph store not initialized for query")
+            logger.debug(
+                "graph_index.query: skipped (store not initialized)",
+                extra={"query": query_text[:100]},
+            )
             return []
 
         # Get graph store for querying
         graph_store = self.graph_store.graph_store
         if graph_store is None:
+            logger.debug(
+                "graph_index.query: skipped (no graph store)",
+                extra={"query": query_text[:100]},
+            )
             return []
 
         results: list[dict[str, Any]] = []
@@ -253,7 +280,14 @@ class GraphIndexManager:
         # Extract potential entity names from query
         query_entities = self._extract_query_entities(query_text)
 
-        logger.debug(f"Graph query entities: {query_entities}")
+        logger.debug(
+            "graph_index.query: extracted entities",
+            extra={
+                "query": query_text[:100],
+                "entity_count": len(query_entities),
+                "entities": query_entities[:5],
+            },
+        )
 
         # Find matching entities and their relationships
         for entity in query_entities:
@@ -279,7 +313,20 @@ class GraphIndexManager:
                 unique_results.append(result)
 
         # Limit to top_k
-        return unique_results[:top_k]
+        final_results = unique_results[:top_k]
+
+        logger.info(
+            "graph_index.query: completed",
+            extra={
+                "query": query_text[:100],
+                "result_count": len(final_results),
+                "entities_searched": len(query_entities),
+                "top_k": top_k,
+                "traversal_depth": traversal_depth,
+            },
+        )
+
+        return final_results
 
     def _extract_query_entities(self, query_text: str) -> list[str]:
         """Extract potential entity names from query text.
@@ -512,10 +559,24 @@ class GraphIndexManager:
     def clear(self) -> None:
         """Clear the graph index."""
         if settings.ENABLE_GRAPH_INDEX and self.graph_store.is_initialized:
+            prev_triplet_count = self._last_triplet_count
             self.graph_store.clear()
             self._last_build_time = None
             self._last_triplet_count = 0
-            logger.info("Graph index cleared")
+            logger.info(
+                "graph_index.clear: completed",
+                extra={"previous_triplet_count": prev_triplet_count},
+            )
+        else:
+            logger.debug(
+                "graph_index.clear: skipped",
+                extra={
+                    "enabled": settings.ENABLE_GRAPH_INDEX,
+                    "initialized": self.graph_store.is_initialized
+                    if settings.ENABLE_GRAPH_INDEX
+                    else False,
+                },
+            )
 
 
 # Module-level singleton

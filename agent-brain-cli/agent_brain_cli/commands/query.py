@@ -47,7 +47,12 @@ def _get_default_url() -> str:
     type=click.Choice(
         ["vector", "bm25", "hybrid", "graph", "multi"], case_sensitive=False
     ),
-    help="Retrieval mode. 'graph' uses knowledge graph, 'multi' combines all.",
+    help=(
+        "Retrieval mode: 'vector' (semantic similarity), 'bm25' (keyword matching), "
+        "'hybrid' (vector+bm25), 'graph' (knowledge graph relationships, requires "
+        "ENABLE_GRAPH_INDEX=true), 'multi' (fusion of vector+bm25+graph). "
+        "Default: hybrid."
+    ),
 )
 @click.option(
     "-a",

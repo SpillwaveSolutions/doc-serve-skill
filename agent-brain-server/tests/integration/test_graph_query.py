@@ -578,3 +578,204 @@ class TestGraphQueryResult:
             result = data["results"][0]
             # Should have related_entities field (may be null or list)
             assert "related_entities" in result or "metadata" in result
+
+
+class TestStoreTypeSwitching:
+    """Integration tests for store type switching (T037 - User Story 3).
+
+    Tests the ability to switch between SimplePropertyGraphStore and Kuzu
+    graph store backends.
+    """
+
+    def test_status_shows_store_type_simple(
+        self, client_graph_enabled, mock_graph_index_manager
+    ):
+        """Test /health/status shows store_type as 'simple' by default."""
+        # Configure mock to return simple store type
+        mock_graph_index_manager.get_status.return_value = MagicMock(
+            enabled=True,
+            initialized=True,
+            entity_count=10,
+            relationship_count=20,
+            store_type="simple",
+            last_updated=None,
+        )
+
+        response = client_graph_enabled.get("/health/status")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "graph_index" in data
+        assert data["graph_index"]["store_type"] == "simple"
+
+    def test_status_shows_store_type_kuzu(
+        self,
+        mock_vector_store,
+        mock_embedding_generator,
+        mock_bm25_manager,
+        mock_graph_index_manager,
+    ):
+        """Test /health/status shows store_type as 'kuzu' when configured."""
+        # Configure mock to return kuzu store type
+        mock_graph_index_manager.get_status.return_value = MagicMock(
+            enabled=True,
+            initialized=True,
+            entity_count=50,
+            relationship_count=100,
+            store_type="kuzu",
+            last_updated=None,
+        )
+
+        with create_test_client(
+            mock_vector_store,
+            mock_embedding_generator,
+            mock_bm25_manager,
+            mock_graph_index_manager,
+            enable_graph=True,
+        ) as client:
+            response = client.get("/health/status")
+
+            assert response.status_code == 200
+            data = response.json()
+            assert "graph_index" in data
+            assert data["graph_index"]["store_type"] == "kuzu"
+
+    def test_graph_query_works_with_simple_store(
+        self, client_graph_enabled, mock_graph_index_manager
+    ):
+        """Test graph queries work with simple store backend."""
+        mock_graph_index_manager.get_status.return_value = MagicMock(
+            enabled=True,
+            initialized=True,
+            entity_count=5,
+            relationship_count=10,
+            store_type="simple",
+            last_updated=None,
+        )
+
+        response = client_graph_enabled.post(
+            "/query/",
+            json={
+                "query": "test query",
+                "mode": "graph",
+                "top_k": 5,
+            },
+        )
+
+        assert response.status_code == 200
+        mock_graph_index_manager.query.assert_called()
+
+    def test_graph_query_works_with_kuzu_store(
+        self,
+        mock_vector_store,
+        mock_embedding_generator,
+        mock_bm25_manager,
+        mock_graph_index_manager,
+    ):
+        """Test graph queries work with kuzu store backend."""
+        mock_graph_index_manager.get_status.return_value = MagicMock(
+            enabled=True,
+            initialized=True,
+            entity_count=50,
+            relationship_count=100,
+            store_type="kuzu",
+            last_updated=None,
+        )
+
+        with create_test_client(
+            mock_vector_store,
+            mock_embedding_generator,
+            mock_bm25_manager,
+            mock_graph_index_manager,
+            enable_graph=True,
+        ) as client:
+            response = client.post(
+                "/query/",
+                json={
+                    "query": "test query with kuzu",
+                    "mode": "graph",
+                    "top_k": 5,
+                },
+            )
+
+            assert response.status_code == 200
+            mock_graph_index_manager.query.assert_called()
+
+    def test_store_type_in_graph_index_status_model(self):
+        """Test GraphIndexStatus model includes store_type field."""
+        from agent_brain_server.models import GraphIndexStatus
+
+        status = GraphIndexStatus(
+            enabled=True,
+            initialized=True,
+            entity_count=10,
+            relationship_count=20,
+            store_type="kuzu",
+        )
+
+        assert status.store_type == "kuzu"
+        assert status.model_dump()["store_type"] == "kuzu"
+
+    def test_store_type_defaults_to_simple(self):
+        """Test GraphIndexStatus defaults store_type to 'simple'."""
+        from agent_brain_server.models import GraphIndexStatus
+
+        status = GraphIndexStatus()
+
+        assert status.store_type == "simple"
+
+    def test_multi_query_works_regardless_of_store_type(
+        self,
+        mock_vector_store,
+        mock_embedding_generator,
+        mock_bm25_manager,
+        mock_graph_index_manager,
+    ):
+        """Test multi-mode query works with either store type."""
+        from agent_brain_server.storage.vector_store import SearchResult
+
+        mock_vector_store.similarity_search = AsyncMock(
+            return_value=[
+                SearchResult(
+                    text="Test result",
+                    metadata={"source": "test.md", "source_type": "doc"},
+                    score=0.9,
+                    chunk_id="test_chunk",
+                )
+            ]
+        )
+        mock_vector_store.get_count = AsyncMock(return_value=10)
+
+        mock_retriever = MagicMock()
+        mock_retriever.aretrieve = AsyncMock(return_value=[])
+        mock_bm25_manager.get_retriever = MagicMock(return_value=mock_retriever)
+
+        # Test with kuzu store type
+        mock_graph_index_manager.get_status.return_value = MagicMock(
+            enabled=True,
+            initialized=True,
+            entity_count=50,
+            relationship_count=100,
+            store_type="kuzu",
+            last_updated=None,
+        )
+
+        with create_test_client(
+            mock_vector_store,
+            mock_embedding_generator,
+            mock_bm25_manager,
+            mock_graph_index_manager,
+            enable_graph=True,
+        ) as client:
+            response = client.post(
+                "/query/",
+                json={
+                    "query": "multi-mode test",
+                    "mode": "multi",
+                    "top_k": 10,
+                },
+            )
+
+            assert response.status_code == 200
+            data = response.json()
+            assert "results" in data

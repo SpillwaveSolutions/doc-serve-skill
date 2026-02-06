@@ -1,0 +1,116 @@
+version: 1
+feature: 113-graphrag-integration
+summary: GraphRAG US1-4 (graph + multi-mode retrieval, optional Kuzu backend, code relationships)
+constitution: .speckit/memory/constitution.md
+sources:
+  - .speckit/features/113-graphrag-integration/spec.md
+  - .speckit/features/113-graphrag-integration/plan.md
+  - .speckit/features/113-graphrag-integration/tasks.md
+  - .speckit/features/113-graphrag-integration/research.md
+  - docs/plans/graphrag-integration-plan.md
+agents:
+  python-core:
+    skill: mastering-python-skill
+    access:
+      - agent-brain-server/**
+      - agent-brain-cli/**
+      - tests/**
+      - .speckit/features/113-graphrag-integration/**
+  installer-qa:
+    skill: installing-local
+    access:
+      - scripts/**
+      - docs/**
+      - .claude/skills/installing-local/**
+      - agent-brain-server/**
+      - agent-brain-cli/**
+  doc-sync:
+    skill: mastering-python-skill
+    access:
+      - .speckit/**
+      - .claude/tasks/113-graphrag/**
+      - docs/plans/**
+
+# DAG nodes map Speckit task IDs to Claude Code tasks. Status: pending | in_progress | done
+nodes:
+  - id: phase1-setup
+    title: Phase 1 - Graph config + enums
+    status: done
+    owner: python-core
+    speckit_ids: [T001, T002, T003, T004]
+    outputs:
+      - Updated settings.py, storage_paths.py, pyproject.toml extras, QueryMode enum
+    deps: []
+
+  - id: phase2-foundation
+    title: Phase 2 - Graph storage foundation
+    status: done
+    owner: python-core
+    speckit_ids: [T005, T006, T007, T008, T009, T010, T011, T012, T013]
+    deps: [phase1-setup]
+
+  - id: us1-graph-retrieval
+    title: US1 - Graph-only retrieval MVP
+    status: done
+    owner: python-core
+    speckit_ids: [T014, T015, T016, T017, T018, T019, T020, T021, T022, T023, T024, T025, T026, T027, T028, T029]
+    deps: [phase2-foundation]
+
+  - id: us2-multi-fusion
+    title: US2 - Multi-mode fusion (vector+bm25+graph)
+    status: done
+    owner: python-core
+    speckit_ids: [T030, T031, T032, T033, T034, T035]
+    deps: [us1-graph-retrieval]
+
+  - id: us3-backend-kuzu
+    title: US3 - Configurable graph store backend
+    status: done
+    owner: python-core
+    speckit_ids: [T036, T037, T038, T039, T040]
+    deps: [phase2-foundation]
+
+  - id: us4-code-relationships
+    title: US4 - Code relationships from AST metadata
+    status: done
+    owner: python-core
+    speckit_ids: [T041, T042, T043, T044, T045, T046, T047]
+    deps: [phase2-foundation]
+
+  - id: polish-crosscut
+    title: Phase 7 - Polish (logging, help, contracts)
+    status: done
+    owner: doc-sync
+    speckit_ids: [T048, T049, T050, T051, T054]
+    deps: [us1-graph-retrieval, us2-multi-fusion, us3-backend-kuzu, us4-code-relationships]
+
+  - id: polish-quickstart-validation
+    title: Validate quickstart with GraphRAG enabled
+    status: done
+    owner: installer-qa
+    speckit_ids: [T052]
+    deps: [polish-crosscut]
+    notes: |
+      Validated 2026-02-05. Results:
+      - Integration tests: 21/21 passed (test_graph_query.py)
+      - Contract tests: 19/19 passed (test_query_modes.py)
+      - Script syntax: OK (quick_start_guide.sh)
+      - Server health: v3.0.0 running, 1624 chunks indexed
+      - All GraphRAG modes (graph, multi) working with both simple and kuzu stores
+
+  - id: polish-performance
+    title: Performance benchmark on sample dataset
+    status: pending
+    owner: installer-qa
+    speckit_ids: [T053]
+    deps: [polish-crosscut]
+    notes: Benchmark graph + multi queries (~10k docs). Record latency, triplet counts, and RRF tuning.
+
+  - id: validation-grade
+    title: Implementation validation & grading
+    status: pending
+    owner: doc-sync
+    speckit_ids: []
+    deps: [polish-crosscut]
+    notes: Spot-check code vs plan, summarize gaps, and record 0-100% grade in .claude/tasks/113-graphrag/state.md.
+

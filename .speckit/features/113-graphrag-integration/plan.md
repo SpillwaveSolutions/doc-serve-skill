@@ -3,6 +3,8 @@
 **Branch**: `113-graphrag-integration` | **Date**: 2026-01-30 | **Spec**: [spec.md](./spec.md)
 **Input**: Feature specification from `.speckit/features/113-graphrag-integration/spec.md`
 
+> Claude Tasks Migration (2026-02-05): Execution for this feature is now tracked as a DAG at `.claude/tasks/113-graphrag/dag.yaml`. Keep Speckit status fields in sync with the Claude tasks file; Claude tasks are the active checklist.
+
 ## Summary
 
 Add optional GraphRAG capabilities to Agent Brain using LlamaIndex's PropertyGraphIndex with SimplePropertyGraphStore (default) and Kuzu (optional) backends. This extends the existing hybrid retrieval system with two new query modes: GRAPH (graph-only traversal) and MULTI (vector + BM25 + graph fusion using RRF). The feature is disabled by default and can be enabled via `ENABLE_GRAPH_INDEX=true`.
