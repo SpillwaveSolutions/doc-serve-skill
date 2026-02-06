@@ -13,7 +13,7 @@ allowed-tools:
   - Bash
   - Read
 metadata:
-  version: 3.0.0
+  version: 4.0.0
   category: ai-tools
   author: Spillwave
 ---
