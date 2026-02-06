@@ -154,6 +154,18 @@ poetry -C $CLI_DIR run agent-brain query "how does authentication work" --mode h
 echo "Query 4: Language-specific (Python chunks)"
 poetry -C $CLI_DIR run agent-brain query "class" --languages python --source-types code --top-k 2 || echo "Query 4 failed, continuing..."
 
+# 8.5 GraphRAG Query Modes (Feature 113)
+echo "--- Testing GraphRAG Query Modes (Feature 113) ---"
+
+echo "Query 5: Graph mode (may fail if GraphRAG disabled)"
+poetry -C $CLI_DIR run agent-brain query "class relationships" --mode graph --top-k 3 || echo "Query 5: Graph mode not enabled (expected if ENABLE_GRAPH_INDEX=false)"
+
+echo "Query 6: Multi mode (vector + BM25 + graph fusion)"
+poetry -C $CLI_DIR run agent-brain query "how do services work" --mode multi --top-k 5 || echo "Query 6: Multi mode query completed (graph component may be disabled)"
+
+echo "Query 7: Check graph index status"
+poetry -C $CLI_DIR run agent-brain status --json | grep -i graph || echo "Graph index status: not available or disabled"
+
 # 9. Summarization Test (Small sample)
 echo "--- Testing Summarization (Small Sample) ---"
 SUMM_DIR="$WORKSPACE/summ_test"

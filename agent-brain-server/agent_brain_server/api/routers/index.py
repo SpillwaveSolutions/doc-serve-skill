@@ -1,5 +1,6 @@
 """Indexing endpoints for document processing with job queue support."""
 
+import logging
 import os
 from pathlib import Path
 
@@ -7,6 +8,8 @@ from fastapi import APIRouter, HTTPException, Query, Request, status
 
 from agent_brain_server.config import settings
 from agent_brain_server.models import IndexRequest, IndexResponse
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -28,6 +31,11 @@ async def index_documents(
     allow_external: bool = Query(
         False, description="Allow paths outside the project directory"
     ),
+    rebuild_graph: bool = Query(
+        False,
+        description="Rebuild only the graph index without re-indexing documents "
+        "(requires ENABLE_GRAPH_INDEX=true)",
+    ),
 ) -> IndexResponse:
     """Enqueue an indexing job for documents from the specified folder.
 
@@ -35,19 +43,81 @@ async def index_documents(
     The job is processed asynchronously by a background worker.
     Use the /index/jobs/{job_id} endpoint to monitor progress.
 
+    If rebuild_graph=true, only rebuilds the graph index from existing chunks
+    without re-indexing documents (requires ENABLE_GRAPH_INDEX=true).
+
     Args:
         request_body: IndexRequest with folder_path and optional configuration.
         request: FastAPI request for accessing app state.
         force: If True, bypass deduplication and create a new job.
         allow_external: If True, allow indexing paths outside the project.
+        rebuild_graph: If True, only rebuild graph index from existing chunks.
 
     Returns:
         IndexResponse with job_id and status.
 
     Raises:
         400: Invalid folder path or path outside project (without allow_external)
+        400: rebuild_graph=true but GraphRAG not enabled
         429: Queue is full (backpressure)
     """
+    # Handle rebuild_graph parameter - rebuild graph index only
+    if rebuild_graph:
+        logger.info("Received rebuild_graph request")
+        if not settings.ENABLE_GRAPH_INDEX:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Cannot rebuild graph: ENABLE_GRAPH_INDEX is not enabled. "
+                "Set ENABLE_GRAPH_INDEX=true to use GraphRAG features.",
+            )
+
+        # Get indexing service and rebuild graph from existing chunks
+        indexing_service = request.app.state.indexing_service
+        try:
+            graph_manager = indexing_service.graph_index_manager
+
+            # Get existing chunks from vector store
+            vector_store = indexing_service.vector_store
+            if not vector_store.is_initialized:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="No documents indexed. Index documents first before "
+                    "rebuilding the graph.",
+                )
+
+            # Clear existing graph and rebuild
+            graph_manager.clear()
+            graph_manager.graph_store.initialize()
+
+            # Get all documents from BM25 index (has the text content)
+            bm25_manager = indexing_service.bm25_manager
+            if bm25_manager._index is not None:
+                nodes = bm25_manager._index.nodes
+                triplet_count = graph_manager.build_from_documents(nodes)
+                logger.info(f"Graph index rebuilt with {triplet_count} triplets")
+
+                return IndexResponse(
+                    job_id="rebuild_graph",
+                    status="completed",
+                    message=f"Graph index rebuilt successfully with {triplet_count} "
+                    "triplets",
+                )
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="No documents indexed. Index documents first before "
+                    "rebuilding the graph.",
+                )
+
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Failed to rebuild graph index: {e}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to rebuild graph index: {str(e)}",
+            ) from e
+
     # Validate folder path
     folder_path = Path(request_body.folder_path).expanduser().resolve()
 

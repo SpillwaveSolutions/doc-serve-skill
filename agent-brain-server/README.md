@@ -58,6 +58,82 @@ Agent Brain provides multiple search strategies to match your retrieval needs:
 - OpenAI API key (for embeddings)
 - Anthropic API key (for summarization)
 
+## GraphRAG Configuration (Feature 113)
+
+Agent Brain supports optional GraphRAG (Graph-based Retrieval-Augmented Generation) for enhanced relationship-aware queries.
+
+### Enabling GraphRAG
+
+Set the environment variable to enable graph indexing:
+
+```bash
+export ENABLE_GRAPH_INDEX=true
+```
+
+### Configuration Options
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `ENABLE_GRAPH_INDEX` | `false` | Enable/disable GraphRAG features |
+| `GRAPH_STORE_TYPE` | `simple` | Graph backend: `simple` (JSON) or `kuzu` (embedded DB) |
+| `GRAPH_MAX_TRIPLETS_PER_CHUNK` | `10` | Maximum entities to extract per document chunk |
+| `GRAPH_USE_CODE_METADATA` | `true` | Extract relationships from code AST metadata |
+| `GRAPH_USE_LLM_EXTRACTION` | `true` | Use LLM for entity extraction from documents |
+| `GRAPH_TRAVERSAL_DEPTH` | `2` | Default traversal depth for graph queries |
+
+### Query Modes
+
+With GraphRAG enabled, you have access to additional query modes:
+
+- **`graph`**: Query using only the knowledge graph (entity relationships)
+- **`multi`**: Combines vector search, BM25, and graph results using RRF fusion
+
+### Example: Graph Query
+
+```bash
+# CLI
+agent-brain query "authentication service" --mode graph
+
+# API
+curl -X POST http://localhost:8000/query \
+  -H "Content-Type: application/json" \
+  -d '{"query": "authentication service", "mode": "graph", "top_k": 10}'
+```
+
+### Example: Multi-Mode Query
+
+```bash
+# CLI
+agent-brain query "user login flow" --mode multi
+
+# API
+curl -X POST http://localhost:8000/query \
+  -H "Content-Type: application/json" \
+  -d '{"query": "user login flow", "mode": "multi", "top_k": 5}'
+```
+
+### Rebuilding the Graph Index
+
+To rebuild only the graph index without re-indexing documents:
+
+```bash
+curl -X POST "http://localhost:8000/index?rebuild_graph=true" \
+  -H "Content-Type: application/json" \
+  -d '{"folder_path": "."}'
+```
+
+### Optional Dependencies
+
+For enhanced GraphRAG features, install optional dependency groups:
+
+```bash
+# For Kuzu graph store (production workloads)
+poetry install --with graphrag-kuzu
+
+# For enhanced entity extraction
+poetry install --with graphrag
+```
+
 ## Development Installation
 
 ```bash

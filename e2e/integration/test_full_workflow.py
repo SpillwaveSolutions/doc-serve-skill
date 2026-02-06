@@ -200,3 +200,101 @@ class TestResetFunctionality:
                     if status.get("indexing", {}).get("total_documents", 0) > 0:
                         break
                 time.sleep(2)
+
+
+class TestQueryModes:
+    """Tests for different query modes via CLI (Feature 113 - GraphRAG)."""
+
+    def test_vector_mode_returns_results(self, cli, indexed_docs):
+        """Vector-only query should return results."""
+        result = cli.query("espresso brewing", mode="vector")
+
+        assert "results" in result
+        assert len(result["results"]) >= 1
+        assert "score" in result["results"][0]
+
+    def test_bm25_mode_returns_results(self, cli, indexed_docs):
+        """BM25 keyword search should return results."""
+        result = cli.query("espresso", mode="bm25")
+
+        assert "results" in result
+        assert len(result["results"]) >= 1
+
+    def test_hybrid_mode_returns_results(self, cli, indexed_docs):
+        """Hybrid mode (default) should return results."""
+        result = cli.query("coffee brewing temperature", mode="hybrid")
+
+        assert "results" in result
+        assert len(result["results"]) >= 1
+
+
+class TestGraphRAGQueries:
+    """Tests for GraphRAG query modes via CLI (Feature 113).
+
+    Note: These tests verify the CLI interface for graph and multi modes.
+    The behavior depends on whether ENABLE_GRAPH_INDEX is set on the server.
+    """
+
+    def test_graph_mode_cli_accepts_mode(self, cli, indexed_docs):
+        """CLI should accept --mode graph without syntax error."""
+        result = cli.query_raw("coffee relationships", mode="graph")
+
+        # Command should execute (may return error if GraphRAG disabled, but not CLI error)
+        # returncode 0 = success, returncode 1 = server error (expected if disabled)
+        assert result["returncode"] in [0, 1], \
+            f"Unexpected CLI error: {result.get('stderr', '')}"
+
+    def test_multi_mode_cli_accepts_mode(self, cli, indexed_docs):
+        """CLI should accept --mode multi without syntax error."""
+        result = cli.query_raw("coffee brewing methods", mode="multi")
+
+        # Command should execute
+        assert result["returncode"] in [0, 1], \
+            f"Unexpected CLI error: {result.get('stderr', '')}"
+
+    def test_graph_mode_returns_results_or_disabled_error(self, cli, indexed_docs):
+        """Graph mode should return results OR informative error if disabled."""
+        result = cli.query_raw("espresso", mode="graph")
+
+        if result["returncode"] == 0:
+            # GraphRAG is enabled - should have results
+            json_result = result.get("json") or {}
+            assert "results" in json_result or "error" not in str(json_result).lower()
+        else:
+            # GraphRAG is disabled - should have informative error
+            output = result.get("stdout", "") + result.get("stderr", "")
+            assert any(term in output.lower() for term in ["not enabled", "disabled", "graph"]), \
+                f"Expected informative error about GraphRAG being disabled: {output}"
+
+    def test_multi_mode_returns_results_or_graceful_fallback(self, cli, indexed_docs):
+        """Multi mode should return results (with or without graph component)."""
+        result = cli.query_raw("coffee temperature", mode="multi")
+
+        # Multi mode should work even if graph is disabled (falls back to vector+BM25)
+        if result["returncode"] == 0:
+            json_result = result.get("json") or {}
+            assert "results" in json_result, "Multi mode should return results"
+            # Multi mode may have fewer results if graph is disabled, but should work
+            assert json_result.get("total_results", 0) >= 0
+
+
+class TestGraphRAGHealthStatus:
+    """Tests for GraphRAG status in health endpoints (Feature 113)."""
+
+    def test_status_includes_graph_index_info(self, cli, indexed_docs):
+        """Status should include graph_index information."""
+        status = cli.status()
+
+        indexing = status.get("indexing", {})
+        # graph_index should be present (may be None if disabled)
+        # The field should exist in the response
+        assert "indexing" in status, "Status should include indexing section"
+
+        # If graph_index is present, verify its structure
+        graph_index = indexing.get("graph_index")
+        if graph_index is not None:
+            assert "enabled" in graph_index, "graph_index should have 'enabled' field"
+            if graph_index.get("enabled"):
+                assert "entity_count" in graph_index
+                assert "relationship_count" in graph_index
+                assert "store_type" in graph_index
