@@ -4,6 +4,16 @@ Instructions for Claude Code when working on this repository.
 
 Planning rule: after any planning step, save the plan to `docs/plans/<name>.md` before doing work.
 
+## CRITICAL: Pre-Push Requirement
+
+**BEFORE EVERY `git push`**, you MUST run:
+
+```bash
+task before-push
+```
+
+This runs format, lint, typecheck, and tests. **Do NOT push code that fails this check.** PRs are expensive due to CI testing - catch errors locally first.
+
 ## Project Overview
 
 Agent Brain is a RAG-based document indexing and semantic search system. It's a monorepo containing:

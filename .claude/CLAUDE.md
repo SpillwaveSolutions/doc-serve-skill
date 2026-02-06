@@ -2,6 +2,16 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with the Agent Brain repository.
 
+## CRITICAL: Pre-Push Requirement
+
+**BEFORE EVERY `git push`**, you MUST run:
+
+```bash
+task before-push
+```
+
+This runs format, lint, typecheck, and tests. **Do NOT push code that fails this check.** PRs are expensive due to CI testing - catch errors locally first.
+
 ## Repository Status
 
 Agent Brain is a fully implemented RAG-based document indexing and semantic search system. The repository contains:
