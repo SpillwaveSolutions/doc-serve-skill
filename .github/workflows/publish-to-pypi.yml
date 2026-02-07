@@ -56,8 +56,24 @@ jobs:
           restore-keys: |
             cli-venv-${{ runner.os }}-
 
-      - name: Install dependencies
-        run: task install
+      - name: Build server package first (CLI depends on it)
+        run: |
+          cd agent-brain-server
+          poetry build
+          echo "Built server package:"
+          ls -la dist/
+
+      - name: Install server from local build
+        run: |
+          cd agent-brain-server
+          poetry install
+
+      - name: Install CLI with local server dependency
+        run: |
+          cd agent-brain-cli
+          # Override agent-brain-rag to use local build
+          pip install ../agent-brain-server/dist/*.whl
+          poetry install
 
       - name: Run linting
         run: task lint

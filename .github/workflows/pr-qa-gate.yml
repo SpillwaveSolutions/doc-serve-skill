@@ -41,21 +41,37 @@ jobs:
       - name: Cache Poetry dependencies (server)
         uses: actions/cache@v4
         with:
-          path: doc-serve-server/.venv
-          key: server-venv-${{ runner.os }}-${{ hashFiles('doc-serve-server/poetry.lock') }}
+          path: agent-brain-server/.venv
+          key: server-venv-${{ runner.os }}-${{ hashFiles('agent-brain-server/poetry.lock') }}
           restore-keys: |
             server-venv-${{ runner.os }}-
 
       - name: Cache Poetry dependencies (cli)
         uses: actions/cache@v4
         with:
-          path: doc-svr-ctl/.venv
-          key: cli-venv-${{ runner.os }}-${{ hashFiles('doc-svr-ctl/poetry.lock') }}
+          path: agent-brain-cli/.venv
+          key: cli-venv-${{ runner.os }}-${{ hashFiles('agent-brain-cli/poetry.lock') }}
           restore-keys: |
             cli-venv-${{ runner.os }}-
 
-      - name: Install dependencies
-        run: task install
+      - name: Build server package first (CLI depends on it)
+        run: |
+          cd agent-brain-server
+          poetry build
+          echo "Built server package:"
+          ls -la dist/
+
+      - name: Install server from local build
+        run: |
+          cd agent-brain-server
+          poetry install
+
+      - name: Install CLI with local server dependency
+        run: |
+          cd agent-brain-cli
+          # Install local server wheel so CLI can resolve dependency
+          pip install ../agent-brain-server/dist/*.whl
+          poetry install
 
       - name: Run linting
         run: task lint
@@ -89,6 +105,6 @@ jobs:
         if: always()
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: doc-serve-server/coverage-server.xml,doc-svr-ctl/coverage-cli.xml
+          files: agent-brain-server/coverage-server.xml,agent-brain-cli/coverage-cli.xml
           fail_ci_if_error: false
           verbose: true
