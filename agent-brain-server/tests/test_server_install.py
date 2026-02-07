@@ -50,6 +50,7 @@ class TestServerCLI:
 
     def test_version_flag_returns_version(self):
         """T046: Verify --version returns version string."""
+        from agent_brain_server import __version__
         from agent_brain_server.api.main import cli
 
         runner = CliRunner()
@@ -59,8 +60,8 @@ class TestServerCLI:
             result.exit_code == 0
         ), f"--version should exit with 0, got {result.exit_code}"
         assert (
-            "3.0.0" in result.output
-        ), f"Should show version 3.0.0, got: {result.output}"
+            __version__ in result.output
+        ), f"Should show version {__version__}, got: {result.output}"
 
 
 class TestServerEntryPoint:
@@ -81,12 +82,17 @@ class TestServerEntryPoint:
         assert isinstance(app, FastAPI), "app should be a FastAPI instance"
 
     def test_version_importable(self):
-        """Verify __version__ can be imported."""
+        """Verify __version__ can be imported and is a valid semver."""
         from agent_brain_server import __version__
 
         assert __version__ is not None
         assert isinstance(__version__, str)
-        assert __version__ == "3.0.0"
+        # Verify it's a valid semantic version (x.y.z format)
+        parts = __version__.split(".")
+        assert len(parts) == 3, f"Version should be x.y.z, got: {__version__}"
+        assert all(
+            p.isdigit() for p in parts
+        ), f"Version parts should be digits: {__version__}"
 
 
 class TestServerApp:
@@ -99,10 +105,11 @@ class TestServerApp:
         assert app.title == "Agent Brain RAG API"
 
     def test_app_has_version(self):
-        """Verify app has version."""
+        """Verify app has version matching package version."""
+        from agent_brain_server import __version__
         from agent_brain_server.api.main import app
 
-        assert app.version == "3.0.0"
+        assert app.version == __version__
 
     def test_app_has_docs_url(self):
         """Verify docs URL is configured."""
