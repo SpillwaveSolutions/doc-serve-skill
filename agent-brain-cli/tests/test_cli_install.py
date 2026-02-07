@@ -18,10 +18,15 @@ class TestCLIEntryPoint:
         assert isinstance(cli, click.core.Group), "cli should be a Click Group"
 
     def test_version_importable(self):
-        """Verify __version__ can be imported."""
+        """Verify __version__ can be imported and is valid semver."""
         assert __version__ is not None
         assert isinstance(__version__, str)
-        assert __version__ == "3.0.0"
+        # Verify it's a valid semantic version (x.y.z format)
+        parts = __version__.split(".")
+        assert len(parts) == 3, f"Version should be x.y.z, got: {__version__}"
+        assert all(
+            p.isdigit() for p in parts
+        ), f"Version parts should be digits: {__version__}"
 
 
 class TestCLIHelpFlag:
@@ -68,8 +73,8 @@ class TestCLIVersionFlag:
             result.exit_code == 0
         ), f"--version should exit with 0, got {result.exit_code}"
         assert (
-            "3.0.0" in result.output
-        ), f"Should show version 3.0.0, got: {result.output}"
+            __version__ in result.output
+        ), f"Should show version {__version__}, got: {result.output}"
 
 
 class TestCLISubcommands:

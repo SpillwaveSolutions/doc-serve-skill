@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from click.testing import CliRunner
 
+from agent_brain_cli import __version__
 from agent_brain_cli.cli import cli
 from agent_brain_cli.client import ConnectionError
 
@@ -30,7 +31,7 @@ class TestCLIHelp:
         """Test --version flag."""
         result = runner.invoke(cli, ["--version"])
         assert result.exit_code == 0
-        assert "3.0.0" in result.output
+        assert __version__ in result.output
 
 
 class TestStatusCommand:
