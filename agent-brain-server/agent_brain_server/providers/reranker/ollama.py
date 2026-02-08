@@ -215,8 +215,10 @@ class OllamaRerankerProvider(BaseRerankerProvider):
 
         # Check circuit breaker - if open, signal caller to use fallback
         if not self._check_circuit():
-            logger.debug("Ollama circuit open, signaling fallback")
-            # Return empty to signal failure - caller will use stage 1 results
+            logger.warning(
+                "Ollama circuit breaker open - skipping rerank and using stage 1 results"
+            )
+            # Raise to trigger fallback in caller
             raise RuntimeError("Ollama circuit breaker open - reranking unavailable")
 
         # Create scoring tasks with semaphore for rate limiting

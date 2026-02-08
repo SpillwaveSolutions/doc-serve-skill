@@ -719,6 +719,13 @@ class QueryService:
                 top_k=top_k,
             )
 
+            # If reranker returned nothing, fall back gracefully
+            if not reranked:
+                logger.warning(
+                    "Reranker returned no results, falling back to stage 1 results"
+                )
+                return results[:top_k]
+
             # Build reranked results with updated scores and metadata
             reranked_results: list[QueryResult] = []
             for original_index, rerank_score in reranked:
