@@ -1,0 +1,227 @@
+# Agent Brain Roadmap
+
+**Created:** 2026-02-07
+**Migrated from:** .speckit/ (GitHub Spec-Driven Development)
+**Core Value:** Developers can semantically search their entire codebase and documentation through a single, fast, local-first API
+
+## Phase Summary
+
+| Phase | Name | Feature | Requirements | Status |
+|-------|------|---------|--------------|--------|
+| 1 | Two-Stage Reranking | 123 | RERANK-01 to RERANK-05 | **NEXT** |
+| 2 | Pluggable Providers | 103 | PROV-01 to PROV-07 | Pending |
+| 3 | Schema-Based GraphRAG | 122 | SCHEMA-01 to SCHEMA-05 | Pending |
+| 4 | Provider Integration Testing | 124 | TEST-01 to TEST-06 | Pending |
+
+---
+
+## Phase 1: Two-Stage Reranking
+
+**Feature:** 123
+**Goal:** Add optional two-stage retrieval with Ollama-based reranking for +3-4% precision improvement
+**Priority:** IMMEDIATE
+
+### Requirements Covered
+
+- RERANK-01: Two-stage retrieval with optional reranking
+- RERANK-02: Ollama-based reranker (local-first)
+- RERANK-03: Graceful degradation on failure
+- RERANK-04: <100ms additional latency
+- RERANK-05: Configuration via environment variables
+
+### Architecture
+
+```
+Stage 1: Fast Retrieval (BM25 + Vector + Graph, top_k=100)
+    ↓
+RRF Fusion → ~50 candidates
+    ↓
+Stage 2: Ollama Reranking (optional, top_k=10)
+    ↓
+Final Results
+```
+
+### Success Criteria
+
+1. [ ] User can enable reranking with `ENABLE_RERANKING=true`
+2. [ ] Queries use two-stage retrieval when reranking enabled
+3. [ ] Reranking works with Ollama models (bge-reranker-v2-m3)
+4. [ ] System returns stage 1 results if reranker fails (graceful degradation)
+5. [ ] Reranking adds <100ms latency for 100 candidates
+6. [ ] All existing tests pass (backward compatible)
+
+### Files to Create
+
+```
+agent_brain_server/providers/reranker/
+├── __init__.py
+├── base.py          # RerankerProvider protocol + BaseRerankerProvider
+└── ollama.py        # OllamaRerankerProvider implementation
+```
+
+### Files to Modify
+
+| File | Changes |
+|------|---------|
+| config/settings.py | Add ENABLE_RERANKING, RERANKER_* settings |
+| config/provider_config.py | Add RerankerConfig class |
+| models/query.py | Add rerank_score, original_rank fields |
+| services/query_service.py | Add _rerank_results(), integrate into execute_query() |
+
+---
+
+## Phase 2: Pluggable Providers
+
+**Feature:** 103
+**Goal:** Configuration-driven model selection for embeddings and summarization
+**Priority:** HIGH
+
+### Requirements Covered
+
+- PROV-01 to PROV-07
+
+### Success Criteria
+
+1. [ ] Provider switching via config.yaml only (no code changes)
+2. [ ] OpenAI, Ollama, Cohere embeddings work
+3. [ ] Anthropic, OpenAI, Gemini, Grok, Ollama summarization work
+4. [ ] Fully offline operation with Ollama
+5. [ ] API keys read from environment variables
+6. [ ] Provider config validated on startup
+
+### Configuration Example
+
+```yaml
+embedding:
+  provider: ollama
+  model: nomic-embed-text
+  params:
+    base_url: http://localhost:11434
+
+summarization:
+  provider: anthropic
+  model: claude-haiku-4-5
+  params:
+    api_key_env: ANTHROPIC_API_KEY
+```
+
+---
+
+## Phase 3: Schema-Based GraphRAG
+
+**Feature:** 122
+**Goal:** Add domain-specific entity schema for improved code understanding
+**Priority:** MEDIUM
+
+### Requirements Covered
+
+- SCHEMA-01 to SCHEMA-05
+
+### Entity Type Schema
+
+| Category | Entity Types |
+|----------|-------------|
+| Code | Package, Module, Class, Method, Function, Interface, Enum |
+| Documentation | DesignDoc, UserDoc, PRD, Runbook, README, APIDoc |
+| Infrastructure | Service, Endpoint, Database, ConfigFile |
+
+### Relationship Predicates
+
+| Predicate | Description |
+|-----------|-------------|
+| `calls` | Function/method invocation |
+| `extends` | Class inheritance |
+| `implements` | Interface implementation |
+| `references` | Documentation references code |
+| `depends_on` | Package/module dependency |
+
+### Success Criteria
+
+1. [ ] Entity types defined as Pydantic enums
+2. [ ] CodeMetadataExtractor categorizes entities by type
+3. [ ] LLM extraction uses schema vocabulary
+4. [ ] Graph queries support type filtering
+5. [ ] Existing graph functionality preserved
+
+---
+
+## Phase 4: Provider Integration Testing
+
+**Feature:** 124
+**Goal:** Validate all provider combinations with E2E tests
+**Priority:** MEDIUM
+
+### Requirements Covered
+
+- TEST-01 to TEST-06
+
+### Test Matrix
+
+| Provider | Embeddings | Summarization | Status |
+|----------|------------|---------------|--------|
+| OpenAI | text-embedding-3-large | gpt-4-mini | Needs E2E |
+| Anthropic | — | claude-haiku-4-5 | Needs E2E |
+| Ollama | nomic-embed-text | llama3.2 | Working |
+| Cohere | embed-english-v3.0 | — | Needs E2E |
+
+### Success Criteria
+
+1. [ ] E2E test for each provider
+2. [ ] Provider health check endpoint
+3. [ ] Verified configuration documentation
+4. [ ] All providers pass CI
+
+---
+
+## Future Phases (v2)
+
+### Phase 5: PostgreSQL/AlloyDB Backend (Feature 104)
+
+- pgvector for similarity search
+- tsvector for full-text (replaces BM25)
+- JSONB for graph storage
+- Migration tool from ChromaDB
+
+### Phase 6: AWS Bedrock Provider (Feature 105)
+
+- Bedrock embeddings (Titan, Cohere)
+- Bedrock summarization (Claude, Llama, Mistral)
+
+### Phase 7: Vertex AI Provider (Feature 106)
+
+- Vertex embeddings (textembedding-gecko)
+- Vertex summarization (Gemini)
+
+### Future Optimizations
+
+- Embedding cache with content hashing
+- File watcher for auto-indexing
+- Background incremental updates
+- Query caching with LRU
+- UDS transport for sub-ms latency
+
+---
+
+## Completed Phases (Archive)
+
+### Phase 1 (Legacy): Core Document RAG — COMPLETED
+Features 001-005: Document ingestion, vector search, REST API, CLI
+
+### Phase 2 (Legacy): BM25 & Hybrid Retrieval — COMPLETED
+Feature 100: BM25 keyword search, hybrid retrieval with RRF
+
+### Phase 3 (Legacy): Source Code Ingestion — COMPLETED
+Feature 101: AST-aware code ingestion, code summaries
+
+### Phase 3.1-3.6 (Legacy): Extensions — COMPLETED
+- 109: Multi-instance architecture
+- 110: C# code indexing
+- 111: Skill instance discovery
+- 112: Agent Brain naming
+- 113: GraphRAG integration
+- 114: Agent Brain plugin
+- 115: Server-side job queue
+
+---
+*Roadmap created: 2026-02-07*
+*Last updated: 2026-02-07 after GSD migration*
