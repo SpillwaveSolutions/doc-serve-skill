@@ -3,6 +3,7 @@
 import asyncio
 import logging
 import re
+import time
 from typing import TYPE_CHECKING
 
 import httpx
@@ -21,6 +22,9 @@ class OllamaRerankerProvider(BaseRerankerProvider):
 
     Uses prompt-based scoring to rank documents by relevance to the query.
     This approach works with any Ollama model but is slower than CrossEncoder.
+
+    Includes circuit breaker pattern to skip reranking when Ollama is down,
+    preventing all-zero scoring that would silently degrade results.
 
     Recommended models:
     - qwen3:0.6b-reranker (if available)
@@ -45,6 +49,10 @@ class OllamaRerankerProvider(BaseRerankerProvider):
         "Score:"
     )
 
+    # Circuit breaker settings
+    FAILURE_THRESHOLD = 3  # Consecutive failures before opening circuit
+    CIRCUIT_RESET_TIME = 60.0  # Seconds before trying again after circuit opens
+
     def __init__(self, config: "RerankerConfig") -> None:
         """Initialize the Ollama reranker.
 
@@ -57,6 +65,11 @@ class OllamaRerankerProvider(BaseRerankerProvider):
         self._max_concurrent = config.params.get("max_concurrent", 5)
         self._client: httpx.AsyncClient | None = None
 
+        # Circuit breaker state
+        self._consecutive_failures = 0
+        self._circuit_open = False
+        self._circuit_opened_at: float = 0.0
+
     def _get_client(self) -> httpx.AsyncClient:
         """Get or create HTTP client."""
         if self._client is None:
@@ -65,6 +78,46 @@ class OllamaRerankerProvider(BaseRerankerProvider):
                 timeout=httpx.Timeout(self._timeout),
             )
         return self._client
+
+    def _check_circuit(self) -> bool:
+        """Check if circuit breaker allows requests.
+
+        Returns:
+            True if requests should proceed, False if circuit is open.
+        """
+        if not self._circuit_open:
+            return True
+
+        # Check if enough time has passed to try again
+        elapsed = time.time() - self._circuit_opened_at
+        if elapsed >= self.CIRCUIT_RESET_TIME:
+            logger.info("Ollama circuit breaker: attempting reset after timeout")
+            self._circuit_open = False
+            self._consecutive_failures = 0
+            return True
+
+        return False
+
+    def _record_success(self) -> None:
+        """Record a successful request, resetting failure count."""
+        self._consecutive_failures = 0
+        if self._circuit_open:
+            logger.info("Ollama circuit breaker: closed after successful request")
+            self._circuit_open = False
+
+    def _record_failure(self) -> None:
+        """Record a failed request, potentially opening circuit."""
+        self._consecutive_failures += 1
+        if (
+            self._consecutive_failures >= self.FAILURE_THRESHOLD
+            and not self._circuit_open
+        ):
+            logger.warning(
+                f"Ollama circuit breaker: OPEN after {self._consecutive_failures} "
+                f"consecutive failures. Skipping rerank for {self.CIRCUIT_RESET_TIME}s"
+            )
+            self._circuit_open = True
+            self._circuit_opened_at = time.time()
 
     async def _score_document(
         self,
@@ -105,13 +158,16 @@ class OllamaRerankerProvider(BaseRerankerProvider):
             # Parse score from response
             content = result.get("message", {}).get("content", "").strip()
             score = self._parse_score(content)
+            self._record_success()
             return (doc_index, score)
 
         except httpx.HTTPError as e:
             logger.warning(f"Ollama request failed for doc {doc_index}: {e}")
+            self._record_failure()
             return (doc_index, 0.0)
         except Exception as e:
             logger.warning(f"Error scoring doc {doc_index}: {e}")
+            self._record_failure()
             return (doc_index, 0.0)
 
     def _parse_score(self, content: str) -> float:
@@ -143,6 +199,7 @@ class OllamaRerankerProvider(BaseRerankerProvider):
         """Rerank documents using Ollama chat completions.
 
         Scores each document concurrently with rate limiting.
+        Uses circuit breaker to skip reranking when Ollama is down.
 
         Args:
             query: The search query.
@@ -151,9 +208,16 @@ class OllamaRerankerProvider(BaseRerankerProvider):
 
         Returns:
             List of (original_index, score) tuples, sorted by score descending.
+            Returns empty list if circuit breaker is open (caller should fallback).
         """
         if not documents:
             return []
+
+        # Check circuit breaker - if open, signal caller to use fallback
+        if not self._check_circuit():
+            logger.debug("Ollama circuit open, signaling fallback")
+            # Return empty to signal failure - caller will use stage 1 results
+            raise RuntimeError("Ollama circuit breaker open - reranking unavailable")
 
         # Create scoring tasks with semaphore for rate limiting
         semaphore = asyncio.Semaphore(self._max_concurrent)
@@ -165,6 +229,11 @@ class OllamaRerankerProvider(BaseRerankerProvider):
         # Score all documents concurrently
         tasks = [score_with_limit(i, doc) for i, doc in enumerate(documents)]
         scores = await asyncio.gather(*tasks)
+
+        # Check if all scores are zero (likely Ollama failure)
+        if all(score == 0.0 for _, score in scores):
+            logger.warning("All Ollama scores are 0.0 - possible endpoint failure")
+            # Don't raise here, let caller decide based on results
 
         # Sort by score descending and take top_k
         sorted_scores = sorted(scores, key=lambda x: x[1], reverse=True)
@@ -183,9 +252,15 @@ class OllamaRerankerProvider(BaseRerankerProvider):
     def is_available(self) -> bool:
         """Check if Ollama is running and model is available.
 
+        Also checks circuit breaker state.
+
         Returns:
             True if Ollama responds to health check, False otherwise.
         """
+        # If circuit is open, report unavailable
+        if self._circuit_open and not self._check_circuit():
+            return False
+
         try:
             import httpx as sync_httpx
 

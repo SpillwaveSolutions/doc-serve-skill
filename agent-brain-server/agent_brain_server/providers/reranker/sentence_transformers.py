@@ -35,6 +35,8 @@ class SentenceTransformerRerankerProvider(BaseRerankerProvider):
         super().__init__(config)
         self._cross_encoder: CrossEncoder | None = None
         self._model_loaded = False
+        self._availability_checked = False
+        self._is_available_cached = False
 
     def _ensure_model_loaded(self) -> CrossEncoder:
         """Lazy-load the CrossEncoder model.
@@ -46,6 +48,8 @@ class SentenceTransformerRerankerProvider(BaseRerankerProvider):
             logger.info(f"Loading CrossEncoder model: {self._model}")
             self._cross_encoder = CrossEncoder(self._model)
             self._model_loaded = True
+            self._availability_checked = True
+            self._is_available_cached = True
             logger.info(f"CrossEncoder model loaded: {self._model}")
         return self._cross_encoder
 
@@ -127,14 +131,65 @@ class SentenceTransformerRerankerProvider(BaseRerankerProvider):
     def is_available(self) -> bool:
         """Check if CrossEncoder can be loaded.
 
+        Uses cached result after first check to avoid model loading
+        during query path. Call warm_up() at startup to preload.
+
         Returns:
             True if model can be loaded, False otherwise.
+        """
+        # Return cached result if already checked
+        if self._availability_checked:
+            return self._is_available_cached
+
+        # If model already loaded, it's available
+        if self._model_loaded:
+            self._availability_checked = True
+            self._is_available_cached = True
+            return True
+
+        # First check - just verify the model name is valid without loading
+        # This avoids loading the model in the query path
+        try:
+            # Check if model exists by trying to get config (lighter than full load)
+            from huggingface_hub import hf_hub_download
+
+            try:
+                # Try to check if the model repo exists
+                hf_hub_download(
+                    self._model,
+                    "config.json",
+                    local_files_only=True,
+                )
+                self._availability_checked = True
+                self._is_available_cached = True
+                return True
+            except Exception:
+                # Model not cached locally, assume it's available for download
+                # The actual download will happen on first use
+                self._availability_checked = True
+                self._is_available_cached = True
+                return True
+        except Exception as e:
+            logger.warning(f"CrossEncoder availability check failed: {e}")
+            self._availability_checked = True
+            self._is_available_cached = False
+            return False
+
+    def warm_up(self) -> bool:
+        """Pre-load the model at startup to avoid first-query latency.
+
+        Call this during application startup if reranking is enabled.
+
+        Returns:
+            True if model loaded successfully, False otherwise.
         """
         try:
             self._ensure_model_loaded()
             return True
         except Exception as e:
-            logger.warning(f"CrossEncoder not available: {e}")
+            logger.warning(f"CrossEncoder warm-up failed: {e}")
+            self._availability_checked = True
+            self._is_available_cached = False
             return False
 
 

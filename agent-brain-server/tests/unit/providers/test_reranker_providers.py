@@ -507,24 +507,7 @@ class TestGracefulDegradation:
 class TestRerankerConfigParams:
     """Test configuration parameter handling."""
 
-    def test_batch_size_from_params(self) -> None:
-        """Batch size is read from params."""
-        config = RerankerConfig(
-            provider=RerankerProviderType.SENTENCE_TRANSFORMERS,
-            model="test-model",
-            params={"batch_size": 64},
-        )
-        provider = SentenceTransformerRerankerProvider(config)
-        assert provider._batch_size == 64
-
-    def test_default_batch_size(self) -> None:
-        """Default batch size is used when not specified."""
-        config = RerankerConfig(
-            provider=RerankerProviderType.SENTENCE_TRANSFORMERS,
-            model="test-model",
-        )
-        provider = SentenceTransformerRerankerProvider(config)
-        assert provider._batch_size == 32  # Default value
+    # Note: batch_size tests removed - CrossEncoder.rank() handles batching internally
 
     def test_ollama_timeout_from_params(self) -> None:
         """Ollama timeout is read from params."""
@@ -545,3 +528,142 @@ class TestRerankerConfigParams:
         )
         provider = OllamaRerankerProvider(config)
         assert provider._max_concurrent == 10
+
+
+class TestSentenceTransformerWarmUp:
+    """Test warm_up and availability caching for SentenceTransformer."""
+
+    def test_warm_up_success(self) -> None:
+        """warm_up() preloads the model successfully."""
+        config = RerankerConfig(
+            provider=RerankerProviderType.SENTENCE_TRANSFORMERS,
+            model="cross-encoder/ms-marco-MiniLM-L-6-v2",
+        )
+        provider = SentenceTransformerRerankerProvider(config)
+
+        # Before warm_up, model is not loaded
+        assert provider._model_loaded is False
+
+        # Warm up should succeed
+        result = provider.warm_up()
+        assert result is True
+        assert provider._model_loaded is True
+        assert provider._availability_checked is True
+        assert provider._is_available_cached is True
+
+    def test_availability_caching(self) -> None:
+        """is_available() returns cached result after first check."""
+        config = RerankerConfig(
+            provider=RerankerProviderType.SENTENCE_TRANSFORMERS,
+            model="cross-encoder/ms-marco-MiniLM-L-6-v2",
+        )
+        provider = SentenceTransformerRerankerProvider(config)
+
+        # First call sets the cache
+        result1 = provider.is_available()
+        assert result1 is True
+        assert provider._availability_checked is True
+
+        # Second call returns cached result
+        result2 = provider.is_available()
+        assert result2 is True
+
+
+class TestOllamaCircuitBreaker:
+    """Test circuit breaker pattern in Ollama reranker."""
+
+    def test_circuit_starts_closed(self) -> None:
+        """Circuit breaker starts in closed state."""
+        config = RerankerConfig(
+            provider=RerankerProviderType.OLLAMA,
+            model="test-model",
+        )
+        provider = OllamaRerankerProvider(config)
+        assert provider._circuit_open is False
+        assert provider._consecutive_failures == 0
+
+    def test_record_success_resets_failures(self) -> None:
+        """Successful request resets failure count."""
+        config = RerankerConfig(
+            provider=RerankerProviderType.OLLAMA,
+            model="test-model",
+        )
+        provider = OllamaRerankerProvider(config)
+        provider._consecutive_failures = 2
+
+        provider._record_success()
+        assert provider._consecutive_failures == 0
+
+    def test_record_failure_increments_count(self) -> None:
+        """Failed request increments failure count."""
+        config = RerankerConfig(
+            provider=RerankerProviderType.OLLAMA,
+            model="test-model",
+        )
+        provider = OllamaRerankerProvider(config)
+
+        provider._record_failure()
+        assert provider._consecutive_failures == 1
+
+        provider._record_failure()
+        assert provider._consecutive_failures == 2
+
+    def test_circuit_opens_after_threshold(self) -> None:
+        """Circuit opens after FAILURE_THRESHOLD consecutive failures."""
+        config = RerankerConfig(
+            provider=RerankerProviderType.OLLAMA,
+            model="test-model",
+        )
+        provider = OllamaRerankerProvider(config)
+
+        # Record failures up to threshold
+        for _ in range(OllamaRerankerProvider.FAILURE_THRESHOLD):
+            provider._record_failure()
+
+        assert provider._circuit_open is True
+        assert provider._circuit_opened_at > 0
+
+    def test_check_circuit_returns_false_when_open(self) -> None:
+        """_check_circuit returns False when circuit is open."""
+        config = RerankerConfig(
+            provider=RerankerProviderType.OLLAMA,
+            model="test-model",
+        )
+        provider = OllamaRerankerProvider(config)
+
+        # Open the circuit
+        for _ in range(OllamaRerankerProvider.FAILURE_THRESHOLD):
+            provider._record_failure()
+
+        assert provider._check_circuit() is False
+
+    @pytest.mark.asyncio
+    async def test_rerank_raises_when_circuit_open(self) -> None:
+        """rerank() raises RuntimeError when circuit is open."""
+        config = RerankerConfig(
+            provider=RerankerProviderType.OLLAMA,
+            model="test-model",
+        )
+        provider = OllamaRerankerProvider(config)
+
+        # Open the circuit
+        for _ in range(OllamaRerankerProvider.FAILURE_THRESHOLD):
+            provider._record_failure()
+
+        with pytest.raises(RuntimeError, match="circuit breaker open"):
+            await provider.rerank("test query", ["doc1", "doc2"])
+
+    def test_is_available_returns_false_when_circuit_open(self) -> None:
+        """is_available() returns False when circuit is open."""
+        config = RerankerConfig(
+            provider=RerankerProviderType.OLLAMA,
+            model="test-model",
+        )
+        provider = OllamaRerankerProvider(config)
+
+        # Open the circuit
+        for _ in range(OllamaRerankerProvider.FAILURE_THRESHOLD):
+            provider._record_failure()
+
+        # Ollama not running + circuit open = False
+        assert provider.is_available() is False

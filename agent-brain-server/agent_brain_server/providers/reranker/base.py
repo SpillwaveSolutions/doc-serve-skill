@@ -69,11 +69,21 @@ class BaseRerankerProvider(ABC):
             config: Reranker configuration.
         """
         self._model = config.model
-        self._batch_size = config.params.get("batch_size", 32)
         self._config = config
         logger.info(
             f"Initialized {self.provider_name} reranker with model {self._model}"
         )
+
+    def warm_up(self) -> bool:
+        """Pre-load resources at startup to avoid first-query latency.
+
+        Override in subclasses that need startup initialization.
+        Default implementation returns True (no warm-up needed).
+
+        Returns:
+            True if warm-up successful, False otherwise.
+        """
+        return True
 
     @property
     def model_name(self) -> str:

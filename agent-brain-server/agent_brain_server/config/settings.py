@@ -74,7 +74,7 @@ class Settings(BaseSettings):
     RERANKER_MODEL: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     RERANKER_TOP_K_MULTIPLIER: int = 10  # Retrieve top_k * this for Stage 1
     RERANKER_MAX_CANDIDATES: int = 100  # Cap on Stage 1 candidates
-    RERANKER_BATCH_SIZE: int = 32  # Batch size for reranking inference
+    # Note: CrossEncoder.rank() handles batching internally, no batch_size config needed
 
     model_config = SettingsConfigDict(
         env_file=[

@@ -169,12 +169,12 @@ class TestRerankingContract:
 
         settings = Settings()
         # All reranking settings should be present
+        # Note: RERANKER_BATCH_SIZE removed (CrossEncoder handles batching)
         assert hasattr(settings, "ENABLE_RERANKING")
         assert hasattr(settings, "RERANKER_PROVIDER")
         assert hasattr(settings, "RERANKER_MODEL")
         assert hasattr(settings, "RERANKER_TOP_K_MULTIPLIER")
         assert hasattr(settings, "RERANKER_MAX_CANDIDATES")
-        assert hasattr(settings, "RERANKER_BATCH_SIZE")
 
     def test_query_result_has_rerank_fields(self) -> None:
         """QueryResult model includes reranking fields."""
