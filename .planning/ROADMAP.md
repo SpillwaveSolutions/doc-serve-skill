@@ -8,7 +8,7 @@
 
 | Phase | Name | Feature | Requirements | Status |
 |-------|------|---------|--------------|--------|
-| 1 | Two-Stage Reranking | 123 | RERANK-01 to RERANK-05 | **NEXT** |
+| 1 | Two-Stage Reranking | 123 | RERANK-01 to RERANK-05 | **PLANNED** |
 | 2 | Pluggable Providers | 103 | PROV-01 to PROV-07 | Pending |
 | 3 | Schema-Based GraphRAG | 122 | SCHEMA-01 to SCHEMA-05 | Pending |
 | 4 | Provider Integration Testing | 124 | TEST-01 to TEST-06 | Pending |
@@ -67,6 +67,20 @@ agent_brain_server/providers/reranker/
 | config/provider_config.py | Add RerankerConfig class |
 | models/query.py | Add rerank_score, original_rank fields |
 | services/query_service.py | Add _rerank_results(), integrate into execute_query() |
+
+### Plans
+
+**Plans:** 7 plans in 4 waves
+
+| Plan | Wave | Objective |
+|------|------|-----------|
+| [01-01-PLAN.md](.planning/phases/01-two-stage-reranking/01-01-PLAN.md) | 1 | Add reranking settings and configuration |
+| [01-02-PLAN.md](.planning/phases/01-two-stage-reranking/01-02-PLAN.md) | 1 | Create RerankerProvider protocol and base class |
+| [01-03-PLAN.md](.planning/phases/01-two-stage-reranking/01-03-PLAN.md) | 2 | Implement SentenceTransformerRerankerProvider |
+| [01-04-PLAN.md](.planning/phases/01-two-stage-reranking/01-04-PLAN.md) | 2 | Implement OllamaRerankerProvider |
+| [01-05-PLAN.md](.planning/phases/01-two-stage-reranking/01-05-PLAN.md) | 3 | Integrate reranking into query_service.py |
+| [01-06-PLAN.md](.planning/phases/01-two-stage-reranking/01-06-PLAN.md) | 4 | Add unit and integration tests |
+| [01-07-PLAN.md](.planning/phases/01-two-stage-reranking/01-07-PLAN.md) | 4 | Update documentation |
 
 ---
 
