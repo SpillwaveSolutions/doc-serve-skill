@@ -6,6 +6,8 @@ provider configuration, and functions to load configuration from YAML files.
 
 import logging
 import os
+from dataclasses import dataclass
+from enum import Enum
 from functools import lru_cache
 from pathlib import Path
 from typing import Any, Optional
@@ -20,6 +22,27 @@ from agent_brain_server.providers.base import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+class ValidationSeverity(str, Enum):
+    """Severity level for validation errors."""
+
+    CRITICAL = "critical"  # Blocks startup in strict mode
+    WARNING = "warning"    # Logged but doesn't block startup
+
+
+@dataclass
+class ValidationError:
+    """A validation error with severity and details."""
+
+    message: str
+    severity: ValidationSeverity
+    provider_type: str  # "embedding", "summarization", "reranker"
+    field: str = ""     # Optional field name
+
+    def __str__(self) -> str:
+        prefix = "[CRITICAL]" if self.severity == ValidationSeverity.CRITICAL else "[WARNING]"
+        return f"{prefix} {self.provider_type}: {self.message}"
 
 
 class EmbeddingConfig(BaseModel):
@@ -368,39 +391,61 @@ def clear_settings_cache() -> None:
     load_provider_settings.cache_clear()
 
 
-def validate_provider_config(settings: ProviderSettings) -> list[str]:
+def validate_provider_config(settings: ProviderSettings) -> list[ValidationError]:
     """Validate provider configuration and return list of errors.
 
     Checks:
-    - API keys are available for providers that need them
-    - Models are known for the selected provider
+    - API keys are available for providers that need them (CRITICAL)
+    - Provider health checks pass (WARNING)
 
     Args:
         settings: Provider settings to validate
 
     Returns:
-        List of validation error messages (empty if valid)
+        List of ValidationError objects (empty if valid)
     """
-    errors: list[str] = []
+    errors: list[ValidationError] = []
 
     # Validate embedding provider
     if settings.embedding.provider != EmbeddingProviderType.OLLAMA:
         api_key = settings.embedding.get_api_key()
         if not api_key:
             env_var = settings.embedding.api_key_env or "OPENAI_API_KEY"
-            errors.append(
-                f"Missing API key for {settings.embedding.provider} embeddings. "
-                f"Set {env_var} environment variable."
-            )
+            errors.append(ValidationError(
+                message=(
+                    f"Missing API key for {settings.embedding.provider} embeddings. "
+                    f"Set {env_var} environment variable."
+                ),
+                severity=ValidationSeverity.CRITICAL,
+                provider_type="embedding",
+                field="api_key",
+            ))
 
     # Validate summarization provider
     if settings.summarization.provider != SummarizationProviderType.OLLAMA:
         api_key = settings.summarization.get_api_key()
         if not api_key:
             env_var = settings.summarization.api_key_env or "ANTHROPIC_API_KEY"
-            errors.append(
-                f"Missing API key for {settings.summarization.provider} summarization. "
-                f"Set {env_var} environment variable."
-            )
+            errors.append(ValidationError(
+                message=(
+                    f"Missing API key for {settings.summarization.provider} summarization. "
+                    f"Set {env_var} environment variable."
+                ),
+                severity=ValidationSeverity.CRITICAL,
+                provider_type="summarization",
+                field="api_key",
+            ))
 
     return errors
+
+
+def has_critical_errors(errors: list[ValidationError]) -> bool:
+    """Check if any validation errors are critical.
+
+    Args:
+        errors: List of validation errors
+
+    Returns:
+        True if any error has CRITICAL severity
+    """
+    return any(e.severity == ValidationSeverity.CRITICAL for e in errors)
