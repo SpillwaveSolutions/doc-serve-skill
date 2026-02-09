@@ -27,6 +27,8 @@ from agent_brain_server.config.provider_config import (
     clear_settings_cache,
     load_provider_settings,
     validate_provider_config,
+    has_critical_errors,
+    ValidationSeverity,
 )
 from agent_brain_server.indexing.bm25_index import BM25IndexManager
 from agent_brain_server.job_queue import JobQueueService, JobQueueStore, JobWorker
@@ -37,6 +39,7 @@ from agent_brain_server.locking import (
     release_lock,
 )
 from agent_brain_server.project_root import resolve_project_root
+from agent_brain_server.providers.exceptions import ProviderMismatchError
 from agent_brain_server.runtime import RuntimeState, delete_runtime, write_runtime
 from agent_brain_server.services import IndexingService, QueryService
 from agent_brain_server.storage import VectorStoreManager
@@ -57,6 +60,53 @@ _state_dir: Optional[Path] = None
 
 # Module-level reference to job worker for cleanup
 _job_worker: Optional[JobWorker] = None
+
+
+async def check_embedding_compatibility(
+    vector_store: VectorStoreManager,
+) -> Optional[str]:
+    """Check if current embedding config matches existing index.
+
+    Args:
+        vector_store: Initialized vector store manager
+
+    Returns:
+        Warning message if mismatch detected, None if compatible
+    """
+    try:
+        stored_metadata = await vector_store.get_embedding_metadata()
+        if stored_metadata is None:
+            return None  # No existing index
+
+        # Get current config
+        provider_settings = load_provider_settings()
+        from agent_brain_server.providers.factory import ProviderRegistry
+
+        embedding_provider = ProviderRegistry.get_embedding_provider(
+            provider_settings.embedding
+        )
+        current_dimensions = embedding_provider.get_dimensions()
+        current_provider = str(provider_settings.embedding.provider)
+        current_model = provider_settings.embedding.model
+
+        # Check for mismatch
+        if (
+            stored_metadata.dimensions != current_dimensions
+            or stored_metadata.provider != current_provider
+            or stored_metadata.model != current_model
+        ):
+            return (
+                f"Embedding provider mismatch: index was created with "
+                f"{stored_metadata.provider}/{stored_metadata.model} "
+                f"({stored_metadata.dimensions}d), but current config uses "
+                f"{current_provider}/{current_model} ({current_dimensions}d). "
+                f"Queries may return incorrect results. "
+                f"Re-index with --force to update."
+            )
+        return None
+    except Exception as e:
+        logger.warning(f"Failed to check embedding compatibility: {e}")
+        return None
 
 
 @asynccontextmanager
@@ -162,6 +212,15 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         await vector_store.initialize()
         app.state.vector_store = vector_store
         logger.info("Vector store initialized")
+
+        # Check embedding compatibility (PROV-07)
+        embedding_warning = await check_embedding_compatibility(vector_store)
+        if embedding_warning:
+            logger.warning(f"Embedding compatibility: {embedding_warning}")
+            # Store warning for health endpoint
+            app.state.embedding_warning = embedding_warning
+        else:
+            app.state.embedding_warning = None
 
         bm25_manager = BM25IndexManager(
             persist_dir=bm25_dir,
