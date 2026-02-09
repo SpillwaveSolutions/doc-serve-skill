@@ -4,7 +4,7 @@ import asyncio
 import logging
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import chromadb
 from chromadb.config import Settings as ChromaSettings
@@ -57,8 +57,8 @@ class VectorStoreManager:
 
     def __init__(
         self,
-        persist_dir: Optional[str] = None,
-        collection_name: Optional[str] = None,
+        persist_dir: str | None = None,
+        collection_name: str | None = None,
     ):
         """
         Initialize the vector store manager.
@@ -69,8 +69,8 @@ class VectorStoreManager:
         """
         self.persist_dir = persist_dir or settings.CHROMA_PERSIST_DIR
         self.collection_name = collection_name or settings.COLLECTION_NAME
-        self._client: Optional[chromadb.PersistentClient] = None  # type: ignore[valid-type]
-        self._collection: Optional[chromadb.Collection] = None
+        self._client: chromadb.PersistentClient | None = None  # type: ignore[valid-type]
+        self._collection: chromadb.Collection | None = None
         self._lock = asyncio.Lock()
         self._initialized = False
 
@@ -115,7 +115,7 @@ class VectorStoreManager:
                 f"({self._collection.count()} existing documents)"
             )
 
-    async def get_embedding_metadata(self) -> Optional[EmbeddingMetadata]:
+    async def get_embedding_metadata(self) -> EmbeddingMetadata | None:
         """Get stored embedding metadata from collection.
 
         Returns:
@@ -173,7 +173,7 @@ class VectorStoreManager:
         provider: str,
         model: str,
         dimensions: int,
-        stored_metadata: Optional[EmbeddingMetadata],
+        stored_metadata: EmbeddingMetadata | None,
     ) -> None:
         """Validate current embedding config against stored metadata.
 
@@ -199,10 +199,7 @@ class VectorStoreManager:
             )
 
         # Check provider/model mismatch (even same dimensions can be incompatible)
-        if (
-            stored_metadata.provider != provider
-            or stored_metadata.model != model
-        ):
+        if stored_metadata.provider != provider or stored_metadata.model != model:
             raise ProviderMismatchError(
                 current_provider=provider,
                 current_model=model,
@@ -215,7 +212,7 @@ class VectorStoreManager:
         ids: list[str],
         embeddings: list[list[float]],
         documents: list[str],
-        metadatas: Optional[list[dict[str, Any]]] = None,
+        metadatas: list[dict[str, Any]] | None = None,
     ) -> int:
         """
         Add documents with embeddings to the vector store.
@@ -252,7 +249,7 @@ class VectorStoreManager:
         ids: list[str],
         embeddings: list[list[float]],
         documents: list[str],
-        metadatas: Optional[list[dict[str, Any]]] = None,
+        metadatas: list[dict[str, Any]] | None = None,
     ) -> int:
         """
         Upsert documents with embeddings to the vector store.
@@ -290,7 +287,7 @@ class VectorStoreManager:
         query_embedding: list[float],
         top_k: int = 5,
         similarity_threshold: float = 0.0,
-        where: Optional[dict[str, Any]] = None,
+        where: dict[str, Any] | None = None,
     ) -> list[SearchResult]:
         """
         Perform similarity search on the vector store.
@@ -354,7 +351,7 @@ class VectorStoreManager:
         )
         return search_results
 
-    async def get_count(self, where: Optional[dict[str, Any]] = None) -> int:
+    async def get_count(self, where: dict[str, Any] | None = None) -> int:
         """
         Get the number of documents in the collection, optionally filtered.
 
@@ -378,7 +375,7 @@ class VectorStoreManager:
                 return 0
             return self._collection.count()
 
-    async def get_by_id(self, chunk_id: str) -> Optional[dict[str, Any]]:
+    async def get_by_id(self, chunk_id: str) -> dict[str, Any] | None:
         """
         Get a document by its chunk ID.
 
@@ -458,7 +455,7 @@ class VectorStoreManager:
 
 
 # Global singleton instance
-_vector_store: Optional[VectorStoreManager] = None
+_vector_store: VectorStoreManager | None = None
 
 
 def get_vector_store() -> VectorStoreManager:

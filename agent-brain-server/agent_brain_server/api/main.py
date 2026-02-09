@@ -14,7 +14,6 @@ import socket
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Optional
 
 import click
 import uvicorn
@@ -24,11 +23,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from agent_brain_server import __version__
 from agent_brain_server.config import settings
 from agent_brain_server.config.provider_config import (
+    ValidationSeverity,
     clear_settings_cache,
+    has_critical_errors,
     load_provider_settings,
     validate_provider_config,
-    has_critical_errors,
-    ValidationSeverity,
 )
 from agent_brain_server.indexing.bm25_index import BM25IndexManager
 from agent_brain_server.job_queue import JobQueueService, JobQueueStore, JobWorker
@@ -39,7 +38,6 @@ from agent_brain_server.locking import (
     release_lock,
 )
 from agent_brain_server.project_root import resolve_project_root
-from agent_brain_server.providers.exceptions import ProviderMismatchError
 from agent_brain_server.runtime import RuntimeState, delete_runtime, write_runtime
 from agent_brain_server.services import IndexingService, QueryService
 from agent_brain_server.storage import VectorStoreManager
@@ -55,16 +53,16 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # Module-level state for multi-instance mode
-_runtime_state: Optional[RuntimeState] = None
-_state_dir: Optional[Path] = None
+_runtime_state: RuntimeState | None = None
+_state_dir: Path | None = None
 
 # Module-level reference to job worker for cleanup
-_job_worker: Optional[JobWorker] = None
+_job_worker: JobWorker | None = None
 
 
 async def check_embedding_compatibility(
     vector_store: VectorStoreManager,
-) -> Optional[str]:
+) -> str | None:
     """Check if current embedding config matches existing index.
 
     Args:
@@ -180,7 +178,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         state_dir = Path(settings.AGENT_BRAIN_STATE_DIR).resolve()
         logger.info(f"Using state directory from environment: {state_dir}")
 
-    storage_paths: Optional[dict[str, Path]] = None
+    storage_paths: dict[str, Path] | None = None
 
     if state_dir is not None:
         # Per-project mode with explicit state directory
@@ -202,7 +200,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         logger.info(f"State directory: {state_dir}")
 
     # Determine project root for path validation
-    project_root: Optional[Path] = None
+    project_root: Path | None = None
     if state_dir is not None:
         # Project root is 3 levels up from .claude/agent-brain
         project_root = state_dir.parent.parent.parent
@@ -413,10 +411,10 @@ def _find_free_port() -> int:
 
 
 def run(
-    host: Optional[str] = None,
-    port: Optional[int] = None,
-    reload: Optional[bool] = None,
-    state_dir: Optional[str] = None,
+    host: str | None = None,
+    port: int | None = None,
+    reload: bool | None = None,
+    state_dir: str | None = None,
 ) -> None:
     """Run the server using uvicorn.
 
@@ -498,11 +496,11 @@ def run(
     help="Project directory (auto-resolves state-dir to .claude/agent-brain)",
 )
 def cli(
-    host: Optional[str],
-    port: Optional[int],
-    reload: Optional[bool],
-    state_dir: Optional[str],
-    project_dir: Optional[str],
+    host: str | None,
+    port: int | None,
+    reload: bool | None,
+    state_dir: str | None,
+    project_dir: str | None,
 ) -> None:
     """Agent Brain RAG Server - Document indexing and semantic search API.
 

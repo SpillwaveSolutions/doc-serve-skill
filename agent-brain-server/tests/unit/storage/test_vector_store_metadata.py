@@ -1,13 +1,12 @@
 """Tests for embedding metadata storage and validation."""
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
 
+from agent_brain_server.providers.exceptions import ProviderMismatchError
 from agent_brain_server.storage.vector_store import (
     EmbeddingMetadata,
     VectorStoreManager,
 )
-from agent_brain_server.providers.exceptions import ProviderMismatchError
 
 
 class TestEmbeddingMetadata:

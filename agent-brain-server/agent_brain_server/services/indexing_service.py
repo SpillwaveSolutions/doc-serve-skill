@@ -4,9 +4,9 @@ import asyncio
 import logging
 import os
 import uuid
-from collections.abc import Awaitable
+from collections.abc import Awaitable, Callable
 from datetime import datetime, timezone
-from typing import Any, Callable, Optional, Union
+from typing import Any
 
 from llama_index.core.schema import TextNode
 
@@ -25,9 +25,7 @@ from agent_brain_server.indexing.graph_index import (
     get_graph_index_manager,
 )
 from agent_brain_server.models import IndexingState, IndexingStatusEnum, IndexRequest
-from agent_brain_server.providers.exceptions import ProviderMismatchError
 from agent_brain_server.storage import VectorStoreManager, get_vector_store
-from agent_brain_server.storage.vector_store import EmbeddingMetadata
 
 logger = logging.getLogger(__name__)
 
@@ -46,12 +44,12 @@ class IndexingService:
 
     def __init__(
         self,
-        vector_store: Optional[VectorStoreManager] = None,
-        document_loader: Optional[DocumentLoader] = None,
-        chunker: Optional[ContextAwareChunker] = None,
-        embedding_generator: Optional[EmbeddingGenerator] = None,
-        bm25_manager: Optional[BM25IndexManager] = None,
-        graph_index_manager: Optional[GraphIndexManager] = None,
+        vector_store: VectorStoreManager | None = None,
+        document_loader: DocumentLoader | None = None,
+        chunker: ContextAwareChunker | None = None,
+        embedding_generator: EmbeddingGenerator | None = None,
+        bm25_manager: BM25IndexManager | None = None,
+        graph_index_manager: GraphIndexManager | None = None,
     ):
         """
         Initialize the indexing service.
@@ -107,7 +105,7 @@ class IndexingService:
     async def start_indexing(
         self,
         request: IndexRequest,
-        progress_callback: Optional[ProgressCallback] = None,
+        progress_callback: ProgressCallback | None = None,
         force: bool = False,
     ) -> str:
         """
@@ -184,7 +182,7 @@ class IndexingService:
         self,
         request: IndexRequest,
         job_id: str,
-        progress_callback: Optional[ProgressCallback] = None,
+        progress_callback: ProgressCallback | None = None,
     ) -> None:
         """
         Execute the full indexing pipeline.
@@ -258,7 +256,7 @@ class IndexingService:
                 f"{len(code_documents)} code files"
             )
 
-            all_chunks: list[Union[TextChunk, CodeChunk]] = []
+            all_chunks: list[TextChunk | CodeChunk] = []
             total_to_process = len(documents)
 
             # Chunk documents
@@ -568,7 +566,7 @@ class IndexingService:
 
 
 # Singleton instance
-_indexing_service: Optional[IndexingService] = None
+_indexing_service: IndexingService | None = None
 
 
 def get_indexing_service() -> IndexingService:

@@ -1,17 +1,16 @@
 """Tests for provider configuration validation with severity levels."""
 
 import os
-import pytest
 from unittest.mock import patch
 
 from agent_brain_server.config.provider_config import (
     EmbeddingConfig,
-    SummarizationConfig,
     ProviderSettings,
+    SummarizationConfig,
     ValidationError,
     ValidationSeverity,
-    validate_provider_config,
     has_critical_errors,
+    validate_provider_config,
 )
 from agent_brain_server.providers.base import (
     EmbeddingProviderType,

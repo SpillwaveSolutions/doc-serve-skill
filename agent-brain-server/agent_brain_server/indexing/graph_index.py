@@ -5,8 +5,9 @@ Coordinates between extractors, graph store, and vector store.
 """
 
 import logging
+from collections.abc import Callable
 from datetime import datetime, timezone
-from typing import Any, Callable, Optional
+from typing import Any
 
 from agent_brain_server.config import settings
 from agent_brain_server.indexing.graph_extractors import (
@@ -50,9 +51,9 @@ class GraphIndexManager:
 
     def __init__(
         self,
-        graph_store: Optional[GraphStoreManager] = None,
-        llm_extractor: Optional[LLMEntityExtractor] = None,
-        code_extractor: Optional[CodeMetadataExtractor] = None,
+        graph_store: GraphStoreManager | None = None,
+        llm_extractor: LLMEntityExtractor | None = None,
+        code_extractor: CodeMetadataExtractor | None = None,
     ) -> None:
         """Initialize graph index manager.
 
@@ -64,13 +65,13 @@ class GraphIndexManager:
         self.graph_store = graph_store or get_graph_store_manager()
         self.llm_extractor = llm_extractor or get_llm_extractor()
         self.code_extractor = code_extractor or get_code_extractor()
-        self._last_build_time: Optional[datetime] = None
+        self._last_build_time: datetime | None = None
         self._last_triplet_count: int = 0
 
     def build_from_documents(
         self,
         documents: list[Any],
-        progress_callback: Optional[ProgressCallback] = None,
+        progress_callback: ProgressCallback | None = None,
     ) -> int:
         """Build graph index from documents.
 
@@ -217,7 +218,7 @@ class GraphIndexManager:
             return dict(meta) if meta else {}
         return {}
 
-    def _get_document_id(self, doc: Any) -> Optional[str]:
+    def _get_document_id(self, doc: Any) -> str | None:
         """Get document/chunk ID."""
         if hasattr(doc, "chunk_id"):
             val = doc.chunk_id
@@ -582,7 +583,7 @@ class GraphIndexManager:
 
 
 # Module-level singleton
-_graph_index_manager: Optional[GraphIndexManager] = None
+_graph_index_manager: GraphIndexManager | None = None
 
 
 def get_graph_index_manager() -> GraphIndexManager:

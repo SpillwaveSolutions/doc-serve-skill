@@ -10,7 +10,7 @@ from dataclasses import dataclass
 from enum import Enum
 from functools import lru_cache
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import yaml
 from pydantic import BaseModel, Field, field_validator
@@ -60,15 +60,15 @@ class EmbeddingConfig(BaseModel):
         default="text-embedding-3-large",
         description="Model name for embeddings",
     )
-    api_key: Optional[str] = Field(
+    api_key: str | None = Field(
         default=None,
         description="API key (alternative to api_key_env for local config files)",
     )
-    api_key_env: Optional[str] = Field(
+    api_key_env: str | None = Field(
         default="OPENAI_API_KEY",
         description="Environment variable name containing API key",
     )
-    base_url: Optional[str] = Field(
+    base_url: str | None = Field(
         default=None,
         description="Custom base URL (for Ollama or compatible APIs)",
     )
@@ -89,7 +89,7 @@ class EmbeddingConfig(BaseModel):
             return v
         return EmbeddingProviderType(v)
 
-    def get_api_key(self) -> Optional[str]:
+    def get_api_key(self) -> str | None:
         """Resolve API key from config or environment variable.
 
         Resolution order:
@@ -109,7 +109,7 @@ class EmbeddingConfig(BaseModel):
             return os.getenv(self.api_key_env)
         return None
 
-    def get_base_url(self) -> Optional[str]:
+    def get_base_url(self) -> str | None:
         """Get base URL with defaults for specific providers.
 
         Returns:
@@ -133,15 +133,15 @@ class SummarizationConfig(BaseModel):
         default="claude-haiku-4-5-20251001",
         description="Model name for summarization",
     )
-    api_key: Optional[str] = Field(
+    api_key: str | None = Field(
         default=None,
         description="API key (alternative to api_key_env for local config files)",
     )
-    api_key_env: Optional[str] = Field(
+    api_key_env: str | None = Field(
         default="ANTHROPIC_API_KEY",
         description="Environment variable name containing API key",
     )
-    base_url: Optional[str] = Field(
+    base_url: str | None = Field(
         default=None,
         description="Custom base URL (for Grok or Ollama)",
     )
@@ -162,7 +162,7 @@ class SummarizationConfig(BaseModel):
             return v
         return SummarizationProviderType(v)
 
-    def get_api_key(self) -> Optional[str]:
+    def get_api_key(self) -> str | None:
         """Resolve API key from config or environment variable.
 
         Resolution order:
@@ -182,7 +182,7 @@ class SummarizationConfig(BaseModel):
             return os.getenv(self.api_key_env)
         return None
 
-    def get_base_url(self) -> Optional[str]:
+    def get_base_url(self) -> str | None:
         """Get base URL with defaults for specific providers.
 
         Returns:
@@ -208,7 +208,7 @@ class RerankerConfig(BaseModel):
         default="cross-encoder/ms-marco-MiniLM-L-6-v2",
         description="Model name for reranking",
     )
-    base_url: Optional[str] = Field(
+    base_url: str | None = Field(
         default=None,
         description="Custom base URL (for Ollama)",
     )
@@ -229,7 +229,7 @@ class RerankerConfig(BaseModel):
             return v
         return RerankerProviderType(v)
 
-    def get_base_url(self) -> Optional[str]:
+    def get_base_url(self) -> str | None:
         """Get base URL with defaults for specific providers.
 
         Returns:
@@ -259,7 +259,7 @@ class ProviderSettings(BaseModel):
     )
 
 
-def _find_config_file() -> Optional[Path]:
+def _find_config_file() -> Path | None:
     """Find the configuration file in standard locations.
 
     Search order:

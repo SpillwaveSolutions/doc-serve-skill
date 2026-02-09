@@ -6,13 +6,13 @@ from typing import Literal
 from fastapi import APIRouter, Request
 
 from agent_brain_server import __version__
-from agent_brain_server.models import HealthStatus, IndexingStatus
-from agent_brain_server.models.health import ProviderHealth, ProvidersStatus
 from agent_brain_server.config.provider_config import (
+    _find_config_file,
     load_provider_settings,
     validate_provider_config,
-    _find_config_file,
 )
+from agent_brain_server.models import HealthStatus, IndexingStatus
+from agent_brain_server.models.health import ProviderHealth, ProvidersStatus
 from agent_brain_server.providers.factory import ProviderRegistry
 
 router = APIRouter()
@@ -223,9 +223,7 @@ async def providers_status(request: Request) -> ProvidersStatus:
 
     # Check summarization provider
     try:
-        _ = ProviderRegistry.get_summarization_provider(
-            settings.summarization
-        )
+        _ = ProviderRegistry.get_summarization_provider(settings.summarization)
         summarization_status = "healthy"
         summarization_message = None
     except Exception as e:
@@ -247,9 +245,7 @@ async def providers_status(request: Request) -> ProvidersStatus:
 
     if app_settings.ENABLE_RERANKING:
         try:
-            _ = ProviderRegistry.get_reranker_provider(
-                settings.reranker
-            )
+            _ = ProviderRegistry.get_reranker_provider(settings.reranker)
             reranker_status = "healthy"
             reranker_message = None
         except Exception as e:

@@ -5,7 +5,6 @@ All models are configured with frozen=True for immutability.
 """
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -54,7 +53,7 @@ class GraphTriple(BaseModel):
         min_length=1,
         description="Subject entity in the triple",
     )
-    subject_type: Optional[str] = Field(
+    subject_type: str | None = Field(
         default=None,
         description="Type classification for subject entity",
     )
@@ -68,11 +67,11 @@ class GraphTriple(BaseModel):
         min_length=1,
         description="Object entity in the triple",
     )
-    object_type: Optional[str] = Field(
+    object_type: str | None = Field(
         default=None,
         description="Type classification for object entity",
     )
-    source_chunk_id: Optional[str] = Field(
+    source_chunk_id: str | None = Field(
         default=None,
         description="ID of the source document chunk",
     )
@@ -112,11 +111,11 @@ class GraphEntity(BaseModel):
         min_length=1,
         description="Unique name/identifier of the entity",
     )
-    entity_type: Optional[str] = Field(
+    entity_type: str | None = Field(
         default=None,
         description="Classification type for the entity",
     )
-    description: Optional[str] = Field(
+    description: str | None = Field(
         default=None,
         description="Description of the entity",
     )
@@ -187,7 +186,7 @@ class GraphIndexStatus(BaseModel):
         ge=0,
         description="Number of relationships in the graph",
     )
-    last_updated: Optional[datetime] = Field(
+    last_updated: datetime | None = Field(
         default=None,
         description="Timestamp of last graph update",
     )
