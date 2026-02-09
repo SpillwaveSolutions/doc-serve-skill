@@ -130,15 +130,29 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # Load and validate provider configuration
     # Clear cache first to ensure we pick up env vars set by CLI
     clear_settings_cache()
+    strict_mode = settings.AGENT_BRAIN_STRICT_MODE
+
     try:
         provider_settings = load_provider_settings()
         validation_errors = validate_provider_config(provider_settings)
 
         if validation_errors:
             for error in validation_errors:
-                logger.warning(f"Provider config warning: {error}")
-            # Log but don't fail - providers may work if keys are set later
-            # or if using Ollama which doesn't need keys
+                if error.severity == ValidationSeverity.CRITICAL:
+                    logger.error(f"Provider config error: {error}")
+                else:
+                    logger.warning(f"Provider config warning: {error}")
+
+            # In strict mode, fail on critical errors
+            if strict_mode and has_critical_errors(validation_errors):
+                critical_msgs = [
+                    str(e) for e in validation_errors
+                    if e.severity == ValidationSeverity.CRITICAL
+                ]
+                raise RuntimeError(
+                    f"Critical provider configuration errors (strict mode): "
+                    f"{'; '.join(critical_msgs)}"
+                )
 
         # Log active provider configuration
         logger.info(
@@ -317,6 +331,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         app.state.instance_id = _runtime_state.instance_id if _runtime_state else None
         app.state.project_id = _runtime_state.project_id if _runtime_state else None
         app.state.active_projects = None  # For shared mode (future)
+        app.state.strict_mode = strict_mode
 
     except Exception as e:
         logger.error(f"Failed to initialize services: {e}")

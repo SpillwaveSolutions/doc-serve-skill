@@ -51,6 +51,9 @@ class Settings(BaseSettings):
     AGENT_BRAIN_STATE_DIR: Optional[str] = None  # Override state directory
     AGENT_BRAIN_MODE: str = "project"  # "project" or "shared"
 
+    # Strict Mode Configuration
+    AGENT_BRAIN_STRICT_MODE: bool = False  # Fail on critical validation errors
+
     # GraphRAG Configuration (Feature 113)
     ENABLE_GRAPH_INDEX: bool = False  # Master switch for graph indexing
     GRAPH_STORE_TYPE: str = "simple"  # "simple" (in-memory) or "kuzu" (persistent)
