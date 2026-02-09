@@ -146,7 +146,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             # In strict mode, fail on critical errors
             if strict_mode and has_critical_errors(validation_errors):
                 critical_msgs = [
-                    str(e) for e in validation_errors
+                    str(e)
+                    for e in validation_errors
                     if e.severity == ValidationSeverity.CRITICAL
                 ]
                 raise RuntimeError(

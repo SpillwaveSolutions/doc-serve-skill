@@ -210,14 +210,16 @@ async def providers_status(request: Request) -> ProvidersStatus:
         embedding_message = str(e)
         embedding_dimensions = None
 
-    providers.append(ProviderHealth(
-        provider_type="embedding",
-        provider_name=str(settings.embedding.provider),
-        model=settings.embedding.model,
-        status=embedding_status,
-        message=embedding_message,
-        dimensions=embedding_dimensions,
-    ))
+    providers.append(
+        ProviderHealth(
+            provider_type="embedding",
+            provider_name=str(settings.embedding.provider),
+            model=settings.embedding.model,
+            status=embedding_status,
+            message=embedding_message,
+            dimensions=embedding_dimensions,
+        )
+    )
 
     # Check summarization provider
     try:
@@ -230,16 +232,19 @@ async def providers_status(request: Request) -> ProvidersStatus:
         summarization_status = "unavailable"
         summarization_message = str(e)
 
-    providers.append(ProviderHealth(
-        provider_type="summarization",
-        provider_name=str(settings.summarization.provider),
-        model=settings.summarization.model,
-        status=summarization_status,
-        message=summarization_message,
-    ))
+    providers.append(
+        ProviderHealth(
+            provider_type="summarization",
+            provider_name=str(settings.summarization.provider),
+            model=settings.summarization.model,
+            status=summarization_status,
+            message=summarization_message,
+        )
+    )
 
     # Check reranker provider if reranking is enabled
     from agent_brain_server.config import settings as app_settings
+
     if app_settings.ENABLE_RERANKING:
         try:
             reranker_provider = ProviderRegistry.get_reranker_provider(
@@ -251,13 +256,15 @@ async def providers_status(request: Request) -> ProvidersStatus:
             reranker_status = "unavailable"
             reranker_message = str(e)
 
-        providers.append(ProviderHealth(
-            provider_type="reranker",
-            provider_name=str(settings.reranker.provider),
-            model=settings.reranker.model,
-            status=reranker_status,
-            message=reranker_message,
-        ))
+        providers.append(
+            ProviderHealth(
+                provider_type="reranker",
+                provider_name=str(settings.reranker.provider),
+                model=settings.reranker.model,
+                status=reranker_status,
+                message=reranker_message,
+            )
+        )
 
     return ProvidersStatus(
         config_source=config_source,

@@ -52,19 +52,26 @@ class TestValidateProviderConfig:
 
     def test_valid_config_with_env_keys(self) -> None:
         """Test validation passes when env vars are set."""
-        with patch.dict(os.environ, {
-            "OPENAI_API_KEY": "sk-test-key",
-            "ANTHROPIC_API_KEY": "sk-ant-test",
-        }):
+        with patch.dict(
+            os.environ,
+            {
+                "OPENAI_API_KEY": "sk-test-key",
+                "ANTHROPIC_API_KEY": "sk-ant-test",
+            },
+        ):
             settings = ProviderSettings()
             errors = validate_provider_config(settings)
             assert len(errors) == 0
 
     def test_missing_embedding_key_is_critical(self) -> None:
         """Test missing embedding API key is CRITICAL severity."""
-        with patch.dict(os.environ, {
-            "ANTHROPIC_API_KEY": "sk-ant-test",
-        }, clear=True):
+        with patch.dict(
+            os.environ,
+            {
+                "ANTHROPIC_API_KEY": "sk-ant-test",
+            },
+            clear=True,
+        ):
             # Clear OPENAI_API_KEY
             os.environ.pop("OPENAI_API_KEY", None)
 

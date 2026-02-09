@@ -28,7 +28,7 @@ class ValidationSeverity(str, Enum):
     """Severity level for validation errors."""
 
     CRITICAL = "critical"  # Blocks startup in strict mode
-    WARNING = "warning"    # Logged but doesn't block startup
+    WARNING = "warning"  # Logged but doesn't block startup
 
 
 @dataclass
@@ -38,10 +38,14 @@ class ValidationError:
     message: str
     severity: ValidationSeverity
     provider_type: str  # "embedding", "summarization", "reranker"
-    field: str = ""     # Optional field name
+    field: str = ""  # Optional field name
 
     def __str__(self) -> str:
-        prefix = "[CRITICAL]" if self.severity == ValidationSeverity.CRITICAL else "[WARNING]"
+        prefix = (
+            "[CRITICAL]"
+            if self.severity == ValidationSeverity.CRITICAL
+            else "[WARNING]"
+        )
         return f"{prefix} {self.provider_type}: {self.message}"
 
 
@@ -411,30 +415,34 @@ def validate_provider_config(settings: ProviderSettings) -> list[ValidationError
         api_key = settings.embedding.get_api_key()
         if not api_key:
             env_var = settings.embedding.api_key_env or "OPENAI_API_KEY"
-            errors.append(ValidationError(
-                message=(
-                    f"Missing API key for {settings.embedding.provider} embeddings. "
-                    f"Set {env_var} environment variable."
-                ),
-                severity=ValidationSeverity.CRITICAL,
-                provider_type="embedding",
-                field="api_key",
-            ))
+            errors.append(
+                ValidationError(
+                    message=(
+                        f"Missing API key for {settings.embedding.provider} embeddings. "
+                        f"Set {env_var} environment variable."
+                    ),
+                    severity=ValidationSeverity.CRITICAL,
+                    provider_type="embedding",
+                    field="api_key",
+                )
+            )
 
     # Validate summarization provider
     if settings.summarization.provider != SummarizationProviderType.OLLAMA:
         api_key = settings.summarization.get_api_key()
         if not api_key:
             env_var = settings.summarization.api_key_env or "ANTHROPIC_API_KEY"
-            errors.append(ValidationError(
-                message=(
-                    f"Missing API key for {settings.summarization.provider} summarization. "
-                    f"Set {env_var} environment variable."
-                ),
-                severity=ValidationSeverity.CRITICAL,
-                provider_type="summarization",
-                field="api_key",
-            ))
+            errors.append(
+                ValidationError(
+                    message=(
+                        f"Missing API key for {settings.summarization.provider} summarization. "
+                        f"Set {env_var} environment variable."
+                    ),
+                    severity=ValidationSeverity.CRITICAL,
+                    provider_type="summarization",
+                    field="api_key",
+                )
+            )
 
     return errors
 
