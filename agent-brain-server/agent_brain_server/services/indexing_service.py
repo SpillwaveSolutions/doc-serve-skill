@@ -204,6 +204,17 @@ class IndexingService:
             current_model = provider_settings.embedding.model
             current_dimensions = self.embedding_generator.get_embedding_dimensions()
 
+            # Validate embedding compatibility unless force=True
+            if not request.force:
+                stored_metadata = await self.vector_store.get_embedding_metadata()
+                if stored_metadata is not None:
+                    self.vector_store.validate_embedding_compatibility(
+                        provider=current_provider,
+                        model=current_model,
+                        dimensions=current_dimensions,
+                        stored_metadata=stored_metadata,
+                    )
+
             # Step 1: Load documents
             if progress_callback:
                 await progress_callback(0, 100, "Loading documents...")

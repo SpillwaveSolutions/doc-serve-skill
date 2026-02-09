@@ -68,7 +68,7 @@ console = Console()
 @click.option(
     "--force",
     is_flag=True,
-    help="Bypass deduplication and force a new indexing job",
+    help="Force re-indexing even if embedding provider has changed",
 )
 @click.option(
     "--allow-external",

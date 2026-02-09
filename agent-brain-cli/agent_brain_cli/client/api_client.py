@@ -315,6 +315,7 @@ class DocServeClient:
                 "include_patterns": include_patterns,
                 "exclude_patterns": exclude_patterns,
                 "generate_summaries": generate_summaries,
+                "force": force,
             },
             params={"force": force, "allow_external": allow_external},
         )

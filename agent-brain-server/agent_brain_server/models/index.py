@@ -66,6 +66,10 @@ class IndexRequest(BaseModel):
         default=False,
         description="Generate LLM summaries for code chunks to improve semantic search",
     )
+    force: bool = Field(
+        default=False,
+        description="Force re-indexing even if embedding provider has changed",
+    )
 
     # File filtering options
     include_patterns: Optional[list[str]] = Field(
