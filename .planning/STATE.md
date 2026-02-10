@@ -1,29 +1,28 @@
 # Agent Brain — Project State
 
 **Last Updated:** 2026-02-10
-**Current Phase:** Phase 4 — Provider Integration Testing
-**Status:** PHASE 4 COMPLETE — VERIFIED
+**Current Milestone:** v3.0 Advanced RAG — SHIPPED
+**Status:** MILESTONE COMPLETE
 
 ## Current Position
 
-Phase: 4 of 4 (Provider Integration Testing)
-Plan: 2 of 2 in current phase
-Status: Phase 4 verified (11/11 must-haves)
-Last activity: 2026-02-10 - Phase 4 verified complete
+Milestone: v3.0 Advanced RAG (shipped 2026-02-10)
+Phases: 4/4 complete (15 plans total)
+Next: Planning next milestone
 
 Progress: ██████████ 100%
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-02-07)
+See: .planning/PROJECT.md (updated 2026-02-10)
 
 **Core value:** Developers can semantically search their entire codebase and documentation through a single, fast, local-first API
-**Current focus:** All phases complete
+**Current focus:** Milestone complete — planning next milestone
 
-## Progress
+## Milestone Summary
 
 ```
-Roadmap Progress: ██████████ 100%
+v3.0 Advanced RAG: ██████████ 100% SHIPPED
 ```
 
 | Phase | Status | Plans | Progress |
@@ -33,85 +32,25 @@ Roadmap Progress: ██████████ 100%
 | 3 — Schema GraphRAG | ● Complete | 2/2 | 100% |
 | 4 — Provider Testing | ● Complete | 2/2 | 100% |
 
-## Completed Phases
+## Archive
 
-### Phase 1: Two-Stage Reranking (COMPLETE)
-
-- 7 plans executed across 4 waves
-- SentenceTransformerRerankerProvider + OllamaRerankerProvider
-- 55 new tests, all 453 tests passing
-- See: `.planning/phases/01-two-stage-reranking/`
-
-### Phase 2: Pluggable Providers (COMPLETE)
-
-- 4 plans executed across 2 waves
-- Dimension mismatch prevention (PROV-07)
-- Strict startup validation with severity levels (PROV-06)
-- Provider switching E2E tests + config CLI (PROV-03)
-- Ollama offline E2E tests (PROV-04)
-- 20+ new tests, verification passed (23/23 must-haves)
-- See: `.planning/phases/02-pluggable-providers/`
-
-### Phase 3: Schema-Based GraphRAG (COMPLETE)
-
-- Plan 03-01 complete: Schema Foundation
-  - 17 entity types (Code, Documentation, Infrastructure)
-  - 8 relationship predicates
-  - Case-insensitive normalization with acronym preservation
-  - Schema-guided LLM extraction prompts
-  - 19 new tests, all 494 tests passing (70% coverage)
-- Plan 03-02 complete: Type Filtering for Graph Queries
-  - GraphIndexManager.query_by_type() with entity_types/relationship_types filtering
-  - QueryRequest entity_types and relationship_types filter fields
-  - Subject_type and object_type fields in graph query results
-  - 11 new tests, all 505 tests passing (70% coverage)
-- See: `.planning/phases/03-schema-graphrag/`
-
-### Phase 4: Provider Integration Testing (COMPLETE)
-
-- Plan 04-01 complete: Per-Provider E2E Test Suites
-  - 5 provider test files (OpenAI, Anthropic, Cohere, Ollama, Health)
-  - 42 new tests with graceful API key skipping
-  - Config-level tests pass without API keys
-  - Health endpoint tests validate structured provider status
-- Plan 04-02 complete: CI Workflow and Provider Configuration Documentation
-  - GitHub Actions workflow with matrix strategy for 4 providers
-  - Graceful CI skipping when API keys missing (doesn't fail build)
-  - 641-line provider configuration documentation covering 7 providers
-  - Verified examples, troubleshooting guide, testing instructions
-- Verification: 11/11 must-haves passed
-- See: `.planning/phases/04-provider-integration-testing/`
-
-## Key Decisions
-
-- **Embedding Metadata Storage**: Store provider/model/dimensions in ChromaDB collection metadata
-- **Validation Strategy**: Dual-layer — startup (warning) + indexing (error unless force=True)
-- **Strict Mode**: Opt-in via --strict flag or AGENT_BRAIN_STRICT_MODE env var
-- **Config CLI**: `agent-brain config show/path` for debugging provider configuration
-- **Test Fixtures**: YAML config fixtures for different provider combinations
-- **Entity Type Schema**: Use Literal types (not Enum) for entity types — better for LLM prompts, less verbose
-- **Acronym Preservation**: Explicit mapping table for README, APIDoc, PRD (not .capitalize())
-- **Schema Enforcement**: Permissive (log unknown types, don't reject) to enable schema evolution
-- **Backward Compatibility**: GraphTriple types remain str | None to preserve existing untyped triplets
-- **Type Filtering Strategy**: Over-fetch (3x top_k) then post-filter for type-filtered queries to ensure enough results
-- **Cohere Provider Testing**: Cohere requires API key at instantiation, provider instantiation tests need check_cohere_key fixture
-- **Health Endpoint Testing**: Use minimal FastAPI app with custom lifespan to avoid ChromaDB initialization in tests
-- **CI Provider Testing**: Matrix strategy with conditional execution, skip when API keys unavailable
-- **Provider Documentation**: Verify all config examples against actual fixture files and source code
+- Roadmap: `.planning/milestones/v3.0-ROADMAP.md`
+- Requirements: `.planning/milestones/v3.0-REQUIREMENTS.md`
+- Milestones log: `.planning/MILESTONES.md`
 
 ## Session Continuity
 
 Last session: 2026-02-10
-Stopped at: Phase 4 verified complete — all phases done
+Stopped at: v3.0 milestone archived
 Resume file: None
 
 ## Next Action
 
 ```
-/gsd:complete-milestone
+/gsd:new-milestone
 ```
 
-All 4 phases complete. Ready to archive milestone.
+Start next milestone (questioning -> research -> requirements -> roadmap).
 
 ---
 *State updated: 2026-02-10*
