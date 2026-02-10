@@ -10,7 +10,7 @@
 |-------|------|---------|--------------|--------|
 | 1 | Two-Stage Reranking | 123 | RERANK-01 to RERANK-05 | **COMPLETE** (7/7 plans) |
 | 2 | Pluggable Providers | 103 | PROV-01 to PROV-07 | **COMPLETE** (4/4 plans) |
-| 3 | Schema-Based GraphRAG | 122 | SCHEMA-01 to SCHEMA-05 | **Planned** (2 plans) |
+| 3 | Schema-Based GraphRAG | 122 | SCHEMA-01 to SCHEMA-05 | **COMPLETE** (2/2 plans) |
 | 4 | Provider Integration Testing | 124 | TEST-01 to TEST-06 | Pending |
 
 ---
@@ -175,11 +175,11 @@ See: `.planning/phases/02-pluggable-providers/02-RESEARCH.md`
 
 ### Success Criteria
 
-1. [ ] Entity types defined as Literal types with runtime validation helpers
-2. [ ] CodeMetadataExtractor categorizes entities by type (normalize_entity_type)
-3. [ ] LLM extraction uses schema vocabulary in prompts
-4. [ ] Graph queries support type filtering (query_by_type)
-5. [ ] Existing graph functionality preserved (backward compatible)
+1. [x] Entity types defined as Literal types with runtime validation helpers
+2. [x] CodeMetadataExtractor categorizes entities by type (normalize_entity_type)
+3. [x] LLM extraction uses schema vocabulary in prompts
+4. [x] Graph queries support type filtering (query_by_type)
+5. [x] Existing graph functionality preserved (backward compatible)
 
 ### Plans
 
@@ -187,8 +187,8 @@ See: `.planning/phases/02-pluggable-providers/02-RESEARCH.md`
 
 | Plan | Wave | Status | Objective |
 |------|------|--------|-----------|
-| [03-01-PLAN.md](.planning/phases/03-schema-graphrag/03-01-PLAN.md) | 1 | Pending | Schema definitions + extractor integration (SCHEMA-01/02/03/05) |
-| [03-02-PLAN.md](.planning/phases/03-schema-graphrag/03-02-PLAN.md) | 2 | Pending | Type filtering in graph queries (SCHEMA-04) |
+| [03-01-PLAN.md](.planning/phases/03-schema-graphrag/03-01-PLAN.md) | 1 | Complete | Schema definitions + extractor integration (SCHEMA-01/02/03/05) |
+| [03-02-PLAN.md](.planning/phases/03-schema-graphrag/03-02-PLAN.md) | 2 | Complete | Type filtering in graph queries (SCHEMA-04) |
 
 ---
 
@@ -271,4 +271,4 @@ Feature 101: AST-aware code ingestion, code summaries
 
 ---
 *Roadmap created: 2026-02-07*
-*Last updated: 2026-02-10 - Phase 3 planned (2 plans in 2 waves)*
+*Last updated: 2026-02-10 - Phase 3 COMPLETE (2/2 plans, verified 11/11 must-haves)*
