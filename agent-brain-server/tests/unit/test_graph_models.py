@@ -505,3 +505,62 @@ class TestEntityTypeSchema:
         # Should also have SYMBOL_TYPE_MAPPING entries
         for key in SYMBOL_TYPE_MAPPING.keys():
             assert key in ENTITY_TYPE_NORMALIZE
+
+
+class TestQueryRequestGraphFilters:
+    """Tests for entity_types and relationship_types fields (SCHEMA-04)."""
+
+    def test_query_request_entity_types_field(self):
+        """Test QueryRequest accepts entity_types filter."""
+        from agent_brain_server.models import QueryRequest
+
+        request = QueryRequest(query="test query", entity_types=["Class", "Function"])
+
+        assert request.entity_types == ["Class", "Function"]
+
+    def test_query_request_relationship_types_field(self):
+        """Test QueryRequest accepts relationship_types filter."""
+        from agent_brain_server.models import QueryRequest
+
+        request = QueryRequest(
+            query="test query", relationship_types=["calls", "extends"]
+        )
+
+        assert request.relationship_types == ["calls", "extends"]
+
+    def test_query_request_defaults_none(self):
+        """Test QueryRequest filter fields default to None."""
+        from agent_brain_server.models import QueryRequest
+
+        request = QueryRequest(query="test query")
+
+        assert request.entity_types is None
+        assert request.relationship_types is None
+
+    def test_query_request_both_filters(self):
+        """Test QueryRequest with both filters set."""
+        from agent_brain_server.models import QueryRequest
+
+        request = QueryRequest(
+            query="test query",
+            entity_types=["Class"],
+            relationship_types=["calls"],
+        )
+
+        assert request.entity_types == ["Class"]
+        assert request.relationship_types == ["calls"]
+
+    def test_query_request_serialization_with_filters(self):
+        """Test QueryRequest serialization includes filter fields."""
+        from agent_brain_server.models import QueryRequest
+
+        request = QueryRequest(
+            query="test query",
+            entity_types=["Class", "Function"],
+            relationship_types=["calls"],
+        )
+
+        data = request.model_dump()
+
+        assert data["entity_types"] == ["Class", "Function"]
+        assert data["relationship_types"] == ["calls"]
