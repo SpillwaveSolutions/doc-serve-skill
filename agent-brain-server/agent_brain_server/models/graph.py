@@ -9,58 +9,71 @@ from typing import Literal, get_args
 
 from pydantic import BaseModel, ConfigDict, Field
 
-
 # Entity Type Schema (SCHEMA-01, SCHEMA-02, SCHEMA-03)
 
 # Code entity types
 CodeEntityType = Literal[
-    "Package",    # Top-level package
-    "Module",     # Python module, JS file
-    "Class",      # Class definition
-    "Method",     # Class method
-    "Function",   # Standalone function
+    "Package",  # Top-level package
+    "Module",  # Python module, JS file
+    "Class",  # Class definition
+    "Method",  # Class method
+    "Function",  # Standalone function
     "Interface",  # Interface/Protocol
-    "Enum",       # Enumeration type
+    "Enum",  # Enumeration type
 ]
 
 # Documentation entity types
 DocEntityType = Literal[
     "DesignDoc",  # Design documents
-    "UserDoc",    # User documentation
-    "PRD",        # Product requirements
-    "Runbook",    # Operational runbooks
-    "README",     # README files
-    "APIDoc",     # API documentation
+    "UserDoc",  # User documentation
+    "PRD",  # Product requirements
+    "Runbook",  # Operational runbooks
+    "README",  # README files
+    "APIDoc",  # API documentation
 ]
 
 # Infrastructure entity types
 InfraEntityType = Literal[
-    "Service",    # Microservice
-    "Endpoint",   # API endpoint
-    "Database",   # Database
-    "ConfigFile", # Configuration file
+    "Service",  # Microservice
+    "Endpoint",  # API endpoint
+    "Database",  # Database
+    "ConfigFile",  # Configuration file
 ]
 
 # Combined entity type (all 17 types)
 EntityType = Literal[
     # Code (7 types)
-    "Package", "Module", "Class", "Method", "Function", "Interface", "Enum",
+    "Package",
+    "Module",
+    "Class",
+    "Method",
+    "Function",
+    "Interface",
+    "Enum",
     # Documentation (6 types)
-    "DesignDoc", "UserDoc", "PRD", "Runbook", "README", "APIDoc",
+    "DesignDoc",
+    "UserDoc",
+    "PRD",
+    "Runbook",
+    "README",
+    "APIDoc",
     # Infrastructure (4 types)
-    "Service", "Endpoint", "Database", "ConfigFile",
+    "Service",
+    "Endpoint",
+    "Database",
+    "ConfigFile",
 ]
 
 # Relationship types (8 predicates)
 RelationshipType = Literal[
-    "calls",      # Function/method invocation
-    "extends",    # Class inheritance
-    "implements", # Interface implementation
-    "references", # Documentation references code
-    "depends_on", # Package/module dependency
-    "imports",    # Import statement
-    "contains",   # Containment relationship
-    "defined_in", # Symbol defined in module
+    "calls",  # Function/method invocation
+    "extends",  # Class inheritance
+    "implements",  # Interface implementation
+    "references",  # Documentation references code
+    "depends_on",  # Package/module dependency
+    "imports",  # Import statement
+    "contains",  # Containment relationship
+    "defined_in",  # Symbol defined in module
 ]
 
 # Runtime constants for validation and iteration
@@ -84,13 +97,9 @@ SYMBOL_TYPE_MAPPING: dict[str, str] = {
 # Comprehensive case-insensitive mapping for ALL entity types.
 # .capitalize() breaks acronyms like README and APIDoc, so we use
 # an explicit lookup table built from get_args(EntityType).
-ENTITY_TYPE_NORMALIZE: dict[str, str] = {
-    t.lower(): t for t in ENTITY_TYPES
-}
+ENTITY_TYPE_NORMALIZE: dict[str, str] = {t.lower(): t for t in ENTITY_TYPES}
 # Also merge SYMBOL_TYPE_MAPPING for AST symbol types
-ENTITY_TYPE_NORMALIZE.update(
-    {k: v for k, v in SYMBOL_TYPE_MAPPING.items()}
-)
+ENTITY_TYPE_NORMALIZE.update(SYMBOL_TYPE_MAPPING)
 
 
 def normalize_entity_type(raw_type: str | None) -> str | None:
