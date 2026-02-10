@@ -8,7 +8,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 from urllib.request import Request, urlopen
 
 import click
@@ -23,7 +23,7 @@ PID_FILE = "agent-brain.pid"
 RUNTIME_FILE = "runtime.json"
 
 
-def resolve_project_root(start_path: Optional[Path] = None) -> Path:
+def resolve_project_root(start_path: Path | None = None) -> Path:
     """Resolve the canonical project root directory."""
     start = (start_path or Path.cwd()).resolve()
 
@@ -62,7 +62,7 @@ def read_config(state_dir: Path) -> dict[str, Any]:
     return {}
 
 
-def read_runtime(state_dir: Path) -> Optional[dict[str, Any]]:
+def read_runtime(state_dir: Path) -> dict[str, Any] | None:
     """Read runtime state from state directory."""
     runtime_path = state_dir / RUNTIME_FILE
     if not runtime_path.exists():
@@ -131,7 +131,7 @@ def check_health(base_url: str, timeout: float = 3.0) -> bool:
         return False
 
 
-def find_available_port(host: str, start_port: int, end_port: int) -> Optional[int]:
+def find_available_port(host: str, start_port: int, end_port: int) -> int | None:
     """Find an available port in the given range."""
     for port in range(start_port, end_port + 1):
         try:
@@ -201,9 +201,9 @@ def update_registry(project_root: Path, state_dir: Path) -> None:
     help="Enable strict mode: fail on critical provider configuration errors",
 )
 def start_command(
-    path: Optional[str],
-    host: Optional[str],
-    port: Optional[int],
+    path: str | None,
+    host: str | None,
+    port: int | None,
     foreground: bool,
     timeout: int,
     json_output: bool,

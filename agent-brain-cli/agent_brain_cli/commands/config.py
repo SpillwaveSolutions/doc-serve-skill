@@ -3,17 +3,16 @@
 import json
 import os
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 import click
 from rich.console import Console
-from rich.panel import Panel
 from rich.table import Table
 
 console = Console()
 
 
-def _find_config_file() -> Optional[Path]:
+def _find_config_file() -> Path | None:
     """Find the configuration file in standard locations.
 
     Search order:
@@ -132,9 +131,7 @@ def show_config(json_output: bool) -> None:
         console.print(f"\n[bold]Config file:[/] {config_path}\n")
         config = _load_yaml(config_path)
     else:
-        console.print(
-            "\n[yellow]No config file found, using defaults[/]\n"
-        )
+        console.print("\n[yellow]No config file found, using defaults[/]\n")
         config = {}
 
     # Embedding provider
@@ -196,10 +193,12 @@ def config_path(json_output: bool) -> None:
 
     if json_output:
         click.echo(
-            json.dumps({
-                "config_file": str(config_path) if config_path else None,
-                "exists": config_path.exists() if config_path else False,
-            })
+            json.dumps(
+                {
+                    "config_file": str(config_path) if config_path else None,
+                    "exists": config_path.exists() if config_path else False,
+                }
+            )
         )
         return
 
