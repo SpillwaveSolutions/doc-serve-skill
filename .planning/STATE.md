@@ -7,11 +7,11 @@
 ## Current Position
 
 Phase: 3 of 4 (Schema-Based GraphRAG)
-Plan: 1 of 2 in current phase
-Status: Plan 03-01 complete
-Last activity: 2026-02-10 - Completed 03-01-PLAN.md (Schema Foundation)
+Plan: 2 of 2 in current phase
+Status: Plan 03-02 complete
+Last activity: 2026-02-10 - Completed 03-02-PLAN.md (Type Filtering for Graph Queries)
 
-Progress: ██████░░░░ 60%
+Progress: ████████░░ 80%
 
 ## Project Reference
 
@@ -23,14 +23,14 @@ See: .planning/PROJECT.md (updated 2026-02-07)
 ## Progress
 
 ```
-Roadmap Progress: ██████░░░░ 60%
+Roadmap Progress: ████████░░ 80%
 ```
 
 | Phase | Status | Plans | Progress |
 |-------|--------|-------|----------|
 | 1 — Two-Stage Reranking | ● Complete | 7/7 | 100% |
 | 2 — Pluggable Providers | ● Complete | 4/4 | 100% |
-| 3 — Schema GraphRAG | ◐ In Progress | 1/2 | 50% |
+| 3 — Schema GraphRAG | ● Complete | 2/2 | 100% |
 | 4 — Provider Testing | ○ Pending | 0/0 | 0% |
 
 ## Completed Phases
@@ -52,7 +52,7 @@ Roadmap Progress: ██████░░░░ 60%
 - 20+ new tests, verification passed (23/23 must-haves)
 - See: `.planning/phases/02-pluggable-providers/`
 
-### Phase 3: Schema-Based GraphRAG (IN PROGRESS)
+### Phase 3: Schema-Based GraphRAG (COMPLETE)
 
 - Plan 03-01 complete: Schema Foundation
   - 17 entity types (Code, Documentation, Infrastructure)
@@ -60,6 +60,11 @@ Roadmap Progress: ██████░░░░ 60%
   - Case-insensitive normalization with acronym preservation
   - Schema-guided LLM extraction prompts
   - 19 new tests, all 494 tests passing (70% coverage)
+- Plan 03-02 complete: Type Filtering for Graph Queries
+  - GraphIndexManager.query_by_type() with entity_types/relationship_types filtering
+  - QueryRequest entity_types and relationship_types filter fields
+  - Subject_type and object_type fields in graph query results
+  - 11 new tests, all 505 tests passing (70% coverage)
 - See: `.planning/phases/03-schema-graphrag/`
 
 ## Key Decisions
@@ -73,20 +78,21 @@ Roadmap Progress: ██████░░░░ 60%
 - **Acronym Preservation**: Explicit mapping table for README, APIDoc, PRD (not .capitalize())
 - **Schema Enforcement**: Permissive (log unknown types, don't reject) to enable schema evolution
 - **Backward Compatibility**: GraphTriple types remain str | None to preserve existing untyped triplets
+- **Type Filtering Strategy**: Over-fetch (3x top_k) then post-filter for type-filtered queries to ensure enough results
 
 ## Session Continuity
 
 Last session: 2026-02-10
-Stopped at: Completed 03-01-PLAN.md (Schema Foundation)
+Stopped at: Completed 03-02-PLAN.md (Type Filtering for Graph Queries)
 Resume file: None
 
 ## Next Action
 
 ```
-/gsd:execute-phase 3
+/gsd:execute-phase 4
 ```
 
-Continue Phase 3 with Plan 03-02 (schema-aware features).
+Phase 3 complete. Ready to begin Phase 4 (Provider Testing) or other next steps.
 
 ---
 *State updated: 2026-02-10*
