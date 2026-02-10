@@ -395,15 +395,19 @@ def clear_settings_cache() -> None:
     load_provider_settings.cache_clear()
 
 
-def validate_provider_config(settings: ProviderSettings) -> list[ValidationError]:
+def validate_provider_config(
+    settings: ProviderSettings,
+    reranking_enabled: bool = False,
+) -> list[ValidationError]:
     """Validate provider configuration and return list of errors.
 
     Checks:
     - API keys are available for providers that need them (CRITICAL)
-    - Provider health checks pass (WARNING)
+    - Reranker base_url is set for Ollama reranker when enabled (WARNING)
 
     Args:
         settings: Provider settings to validate
+        reranking_enabled: Whether reranking is enabled (from app settings)
 
     Returns:
         List of ValidationError objects (empty if valid)
@@ -443,6 +447,24 @@ def validate_provider_config(settings: ProviderSettings) -> list[ValidationError
                     field="api_key",
                 )
             )
+
+    # Validate reranker provider (when reranking is enabled)
+    if reranking_enabled:
+        if settings.reranker.provider == RerankerProviderType.OLLAMA:
+            base_url = settings.reranker.get_base_url()
+            if not base_url:
+                errors.append(
+                    ValidationError(
+                        message=(
+                            "Ollama reranker enabled but no base_url configured. "
+                            "Set reranker.base_url in config.yaml or use "
+                            "default (http://localhost:11434)."
+                        ),
+                        severity=ValidationSeverity.WARNING,
+                        provider_type="reranker",
+                        field="base_url",
+                    )
+                )
 
     return errors
 

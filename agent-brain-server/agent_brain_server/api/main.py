@@ -132,7 +132,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     try:
         provider_settings = load_provider_settings()
-        validation_errors = validate_provider_config(provider_settings)
+        enable_reranking = getattr(settings, "ENABLE_RERANKING", False)
+        validation_errors = validate_provider_config(
+            provider_settings,
+            reranking_enabled=bool(enable_reranking),
+        )
 
         if validation_errors:
             for error in validation_errors:
