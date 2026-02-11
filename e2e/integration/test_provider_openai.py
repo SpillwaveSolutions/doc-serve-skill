@@ -156,9 +156,11 @@ class TestOpenAILiveIntegration:
             settings = load_provider_settings()
             provider = ProviderRegistry.get_embedding_provider(settings.embedding)
 
-            embeddings = asyncio.get_event_loop().run_until_complete(
-                provider.embed_batch(["Hello", "World"])
-            )
+            loop = asyncio.get_event_loop()
+            embeddings = [
+                loop.run_until_complete(provider.embed_text(text))
+                for text in ["Hello", "World"]
+            ]
 
             assert len(embeddings) == 2
             for embedding in embeddings:
