@@ -150,17 +150,20 @@ class VectorStoreManager:
             assert self._client is not None
             # ChromaDB requires recreating collection to update metadata
             # Get existing metadata and merge
-            existing_meta = dict(self._collection.metadata or {})
+            existing_meta = {
+                key: value
+                for key, value in (self._collection.metadata or {}).items()
+                if key != "hnsw:space"
+            }
             existing_meta.update(
                 {
                     "embedding_provider": provider,
                     "embedding_model": model,
                     "embedding_dimensions": dimensions,
-                    "hnsw:space": "cosine",
                 }
             )
 
-            # Modify collection metadata
+            # Modify collection metadata (avoid updating hnsw:space)
             self._collection.modify(metadata=existing_meta)
 
             logger.info(
