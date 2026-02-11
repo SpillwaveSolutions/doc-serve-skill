@@ -18,6 +18,24 @@ jobs:
     runs-on: ubuntu-latest
     environment: ci-testing
 
+    # PostgreSQL service container with pgvector for contract + load tests
+    # Tests marked @pytest.mark.postgres skip without DATABASE_URL locally
+    # but run in CI with this service container providing the database
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: agent_brain_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
     steps:
       - name: Free up disk space
         run: |
@@ -69,7 +87,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: agent-brain-server/.venv
-          key: server-venv-${{ runner.os }}-${{ hashFiles('agent-brain-server/poetry.lock') }}
+          key: server-venv-postgres-${{ runner.os }}-${{ hashFiles('agent-brain-server/poetry.lock') }}
           restore-keys: |
             server-venv-${{ runner.os }}-
 
@@ -91,7 +109,7 @@ jobs:
       - name: Install server from local build
         run: |
           cd agent-brain-server
-          poetry install
+          poetry install --extras postgres
 
       - name: Install CLI with local server dependency
         run: |
@@ -126,6 +144,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/agent_brain_test
         run: task server:pr-qa-gate
 
       - name: Run tests with coverage (CLI)
