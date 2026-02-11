@@ -9,8 +9,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Protocol, runtime_checkable
 
-from agent_brain_server.providers.exceptions import ProviderMismatchError
-
 
 @dataclass
 class SearchResult:

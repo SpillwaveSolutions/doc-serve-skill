@@ -261,9 +261,7 @@ class StorageConfig(BaseModel):
         valid = {"chroma", "postgres"}
         val = str(v).lower()
         if val not in valid:
-            raise ValueError(
-                f"Invalid storage backend '{v}'. Must be one of: {valid}"
-            )
+            raise ValueError(f"Invalid storage backend '{v}'. Must be one of: {valid}")
         return val
 
 

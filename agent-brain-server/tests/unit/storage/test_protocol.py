@@ -140,8 +140,8 @@ def test_storage_error_inheritance() -> None:
 
     assert isinstance(error, Exception)
 
-    # Can be caught as Exception
-    with pytest.raises(Exception):
+    # Can be caught as StorageError (more specific than Exception)
+    with pytest.raises(StorageError):
         raise error
 
 

@@ -57,7 +57,23 @@
       "Bash(/Users/richardhightower/clients/spillwave/src/doc-serve/.claude/skills/installing-local/remove.sh:*)",
       "Bash(git rev-parse:*)",
       "Bash(bash:*)",
-      "Bash(poetry --version:*)"
+      "Bash(poetry --version:*)",
+      "Bash(node:*)",
+      "Bash(poetry run black:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr edit:*)",
+      "Bash(gh auth status:*)",
+      "Bash(gh auth switch:*)",
+      "Bash(.venv/bin/pip install:*)",
+      "Bash(.venv/bin/pytest:*)",
+      "Skill(gsd:new-milestone)",
+      "Bash(poetry show:*)",
+      "Bash(poetry run python:*)",
+      "Bash(task:*)",
+      "Bash(gh run list:*)",
+      "Bash(git checkout:*)",
+      "Bash(git pull:*)",
+      "Skill(gsd:plan-phase)"
     ]
   },
   "sandbox": {

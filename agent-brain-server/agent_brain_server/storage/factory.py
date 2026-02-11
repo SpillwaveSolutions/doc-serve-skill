@@ -5,7 +5,6 @@ backend based on configuration (env var > YAML > default).
 """
 
 import logging
-from typing import Any
 
 from agent_brain_server.config import settings
 from agent_brain_server.config.provider_config import load_provider_settings
