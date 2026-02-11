@@ -40,7 +40,11 @@ from agent_brain_server.locking import (
 from agent_brain_server.project_root import resolve_project_root
 from agent_brain_server.runtime import RuntimeState, delete_runtime, write_runtime
 from agent_brain_server.services import IndexingService, QueryService
-from agent_brain_server.storage import VectorStoreManager, get_effective_backend_type, get_storage_backend
+from agent_brain_server.storage import (
+    VectorStoreManager,
+    get_effective_backend_type,
+    get_storage_backend,
+)
 from agent_brain_server.storage_paths import resolve_state_dir, resolve_storage_paths
 
 from .routers import health_router, index_router, jobs_router, query_router

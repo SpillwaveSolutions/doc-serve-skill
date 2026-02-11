@@ -1,6 +1,6 @@
 """Integration tests for BM25 retrieval mode."""
 
-from unittest.mock import AsyncMock, MagicMock
+from unittest.mock import AsyncMock
 
 
 class TestBM25QueryEndpoint:
