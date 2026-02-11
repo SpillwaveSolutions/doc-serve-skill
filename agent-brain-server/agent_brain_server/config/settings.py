@@ -54,6 +54,11 @@ class Settings(BaseSettings):
     # Strict Mode Configuration
     AGENT_BRAIN_STRICT_MODE: bool = False  # Fail on critical validation errors
 
+    # Storage Backend Configuration (Phase 5)
+    AGENT_BRAIN_STORAGE_BACKEND: str = (
+        ""  # Empty = use YAML config; "chroma" or "postgres" overrides YAML
+    )
+
     # GraphRAG Configuration (Feature 113)
     ENABLE_GRAPH_INDEX: bool = False  # Master switch for graph indexing
     GRAPH_STORE_TYPE: str = "simple"  # "simple" (in-memory) or "kuzu" (persistent)

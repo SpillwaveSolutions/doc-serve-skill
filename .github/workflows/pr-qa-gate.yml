@@ -16,6 +16,7 @@ jobs:
   qa-gate:
     name: Quality Assurance Gate
     runs-on: ubuntu-latest
+    environment: ci-testing
 
     steps:
       - name: Free up disk space
@@ -121,6 +122,10 @@ jobs:
           echo "✓ Versions aligned: $SERVER_VERSION"
 
       - name: Run tests with coverage (Server)
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
         run: task server:pr-qa-gate
 
       - name: Run tests with coverage (CLI)

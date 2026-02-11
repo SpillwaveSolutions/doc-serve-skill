@@ -242,6 +242,29 @@ class RerankerConfig(BaseModel):
         return None
 
 
+class StorageConfig(BaseModel):
+    """Configuration for storage backend selection."""
+
+    backend: str = Field(
+        default="chroma",
+        description="Storage backend: 'chroma' or 'postgres'",
+    )
+    postgres: dict[str, Any] = Field(
+        default_factory=dict,
+        description="PostgreSQL connection parameters (Phase 6)",
+    )
+
+    @field_validator("backend", mode="before")
+    @classmethod
+    def validate_backend(cls, v: Any) -> str:
+        """Validate and normalize backend value."""
+        valid = {"chroma", "postgres"}
+        val = str(v).lower()
+        if val not in valid:
+            raise ValueError(f"Invalid storage backend '{v}'. Must be one of: {valid}")
+        return val
+
+
 class ProviderSettings(BaseModel):
     """Top-level provider configuration."""
 
@@ -256,6 +279,10 @@ class ProviderSettings(BaseModel):
     reranker: RerankerConfig = Field(
         default_factory=RerankerConfig,
         description="Reranking provider configuration (optional)",
+    )
+    storage: StorageConfig = Field(
+        default_factory=StorageConfig,
+        description="Storage backend configuration",
     )
 
 
@@ -386,6 +413,7 @@ def load_provider_settings() -> ProviderSettings:
         f"Active reranker provider: {settings.reranker.provider} "
         f"(model: {settings.reranker.model})"
     )
+    logger.info(f"Active storage backend: {settings.storage.backend}")
 
     return settings
 
@@ -465,6 +493,22 @@ def validate_provider_config(
                         field="base_url",
                     )
                 )
+
+    # Validate storage backend configuration
+    if settings.storage.backend == "postgres":
+        if not settings.storage.postgres:
+            errors.append(
+                ValidationError(
+                    message=(
+                        "PostgreSQL backend selected but no postgres configuration "
+                        "provided. Set storage.postgres in config.yaml with connection "
+                        "parameters (host, port, database, user, password)."
+                    ),
+                    severity=ValidationSeverity.WARNING,
+                    provider_type="storage",
+                    field="postgres",
+                )
+            )
 
     return errors
 
