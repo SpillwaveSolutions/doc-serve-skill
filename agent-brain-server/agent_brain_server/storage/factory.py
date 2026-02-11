@@ -5,6 +5,7 @@ backend based on configuration (env var > YAML > default).
 """
 
 import logging
+import os
 
 from agent_brain_server.config import settings
 from agent_brain_server.config.provider_config import load_provider_settings
@@ -93,12 +94,34 @@ def get_storage_backend() -> StorageBackendProtocol:
         _backend_type = backend_type
         return _storage_backend
     elif backend_type == "postgres":
-        # PostgresBackend will be implemented in Phase 6
-        raise NotImplementedError(
-            "PostgresBackend not yet implemented — see Phase 6 (STOR-06). "
-            "PostgreSQL backend requires pgvector extension and will provide "
-            "async vector search with native BM25 via tsvector."
+        from agent_brain_server.storage.postgres import (
+            PostgresBackend,
+            PostgresConfig,
         )
+
+        # Load postgres config from YAML
+        provider_settings = load_provider_settings()
+        postgres_dict = dict(provider_settings.storage.postgres)
+
+        # Check for DATABASE_URL env var override
+        database_url = os.getenv("DATABASE_URL")
+        if database_url:
+            # DATABASE_URL overrides connection string only,
+            # pool config stays from YAML (per user decision)
+            config = PostgresConfig.from_database_url(database_url)
+            if "pool_size" in postgres_dict:
+                config.pool_size = int(postgres_dict["pool_size"])
+            if "pool_max_overflow" in postgres_dict:
+                config.pool_max_overflow = int(
+                    postgres_dict["pool_max_overflow"]
+                )
+            logger.info("Using DATABASE_URL for PostgreSQL connection")
+        else:
+            config = PostgresConfig(**postgres_dict)
+
+        _storage_backend = PostgresBackend(config=config)
+        _backend_type = backend_type
+        return _storage_backend
 
     # This should never be reached due to validation above
     raise ValueError(f"Unknown storage backend: {backend_type}")

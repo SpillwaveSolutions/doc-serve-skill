@@ -53,10 +53,15 @@ sentence-transformers = "^3.4.0"
 langextract = {version = "^1.0.0", optional = true}
 llama-index-graph-stores-kuzu = {version = "^0.9.0", optional = true}
 
+# Optional PostgreSQL dependencies (Phase 6)
+asyncpg = {version = "^0.29.0", optional = true}
+sqlalchemy = {version = "^2.0.0", extras = ["asyncio"], optional = true}
+
 [tool.poetry.extras]
 graphrag = ["langextract"]
 graphrag-kuzu = ["llama-index-graph-stores-kuzu"]
 graphrag-all = ["langextract", "llama-index-graph-stores-kuzu"]
+postgres = ["asyncpg", "sqlalchemy"]
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.0"
@@ -108,5 +113,6 @@ markers = [
     "anthropic: marks tests that require ANTHROPIC_API_KEY",
     "cohere: marks tests that require COHERE_API_KEY",
     "ollama: marks tests that require Ollama to be running",
+    "postgres: marks tests that require PostgreSQL database",
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
 ]

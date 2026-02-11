@@ -1,9 +1,10 @@
 """Health check endpoints with non-blocking queue status."""
 
+import logging
 from datetime import datetime, timezone
-from typing import Literal
+from typing import Any, Literal
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, HTTPException, Request
 
 from agent_brain_server import __version__
 from agent_brain_server.config.provider_config import (
@@ -14,6 +15,9 @@ from agent_brain_server.config.provider_config import (
 from agent_brain_server.models import HealthStatus, IndexingStatus
 from agent_brain_server.models.health import ProviderHealth, ProvidersStatus
 from agent_brain_server.providers.factory import ProviderRegistry
+from agent_brain_server.storage import get_effective_backend_type
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -269,3 +273,71 @@ async def providers_status(request: Request) -> ProvidersStatus:
         providers=providers,
         timestamp=datetime.now(timezone.utc),
     )
+
+
+@router.get(
+    "/postgres",
+    summary="PostgreSQL Health",
+    description=(
+        "Returns PostgreSQL connection pool metrics and database info. "
+        "Only available when storage backend is 'postgres'."
+    ),
+)
+async def postgres_health(request: Request) -> dict[str, Any]:
+    """Check PostgreSQL backend health and pool metrics.
+
+    Returns pool status (pool_size, checked_in, checked_out, overflow)
+    and database connection info when the backend is PostgreSQL.
+
+    Returns:
+        Dictionary with pool metrics and database info.
+
+    Raises:
+        HTTPException: If backend is not postgres (400).
+    """
+    backend_type = get_effective_backend_type()
+    if backend_type != "postgres":
+        raise HTTPException(
+            status_code=400,
+            detail=(
+                "PostgreSQL health endpoint only available when "
+                "storage backend is 'postgres'"
+            ),
+        )
+
+    try:
+        backend = request.app.state.storage_backend
+        pool_metrics = await backend.connection_manager.get_pool_status()
+
+        # Try a test query for database version
+        from sqlalchemy import text as sa_text
+
+        db_info: dict[str, Any] = {}
+        try:
+            async with backend.connection_manager.engine.connect() as conn:
+                result = await conn.execute(sa_text("SELECT version()"))
+                row = result.fetchone()
+                if row:
+                    db_info["version"] = row[0]
+        except Exception:
+            db_info["version"] = "unavailable"
+
+        db_info["host"] = backend.config.host
+        db_info["port"] = backend.config.port
+        db_info["database"] = backend.config.database
+
+        return {
+            "status": "healthy",
+            "backend": "postgres",
+            "pool": pool_metrics,
+            "database": db_info,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("PostgreSQL health check failed: %s", e)
+        return {
+            "status": "unhealthy",
+            "backend": "postgres",
+            "error": str(e),
+        }

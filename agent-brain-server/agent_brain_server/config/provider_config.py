@@ -497,18 +497,37 @@ def validate_provider_config(
     # Validate storage backend configuration
     if settings.storage.backend == "postgres":
         if not settings.storage.postgres:
-            errors.append(
-                ValidationError(
-                    message=(
-                        "PostgreSQL backend selected but no postgres configuration "
-                        "provided. Set storage.postgres in config.yaml with connection "
-                        "parameters (host, port, database, user, password)."
-                    ),
-                    severity=ValidationSeverity.WARNING,
-                    provider_type="storage",
-                    field="postgres",
+            # Check if DATABASE_URL env var is set as an alternative
+            if not os.getenv("DATABASE_URL"):
+                errors.append(
+                    ValidationError(
+                        message=(
+                            "PostgreSQL backend selected but no postgres "
+                            "configuration provided. Set storage.postgres "
+                            "in config.yaml with connection parameters "
+                            "(host, port, database, user, password) or "
+                            "set DATABASE_URL environment variable."
+                        ),
+                        severity=ValidationSeverity.WARNING,
+                        provider_type="storage",
+                        field="postgres",
+                    )
                 )
-            )
+        elif "host" not in settings.storage.postgres:
+            # postgres config exists but missing host key
+            if not os.getenv("DATABASE_URL"):
+                errors.append(
+                    ValidationError(
+                        message=(
+                            "PostgreSQL configuration missing 'host' key. "
+                            "Ensure storage.postgres.host is set in "
+                            "config.yaml or set DATABASE_URL."
+                        ),
+                        severity=ValidationSeverity.WARNING,
+                        provider_type="storage",
+                        field="postgres.host",
+                    )
+                )
 
     return errors
 
