@@ -116,19 +116,19 @@ Which phases cover which requirements. Updated during roadmap creation.
 | CONF-01 | Phase 5 | Done |
 | CONF-02 | Phase 5 | Done |
 | CONF-03 | Phase 5 | Done |
-| PGVEC-01 | Phase 6 | Pending |
-| PGVEC-02 | Phase 6 | Pending |
-| PGVEC-03 | Phase 6 | Pending |
-| PGVEC-04 | Phase 6 | Pending |
-| PGFTS-01 | Phase 6 | Pending |
-| PGFTS-02 | Phase 6 | Pending |
-| PGFTS-03 | Phase 6 | Pending |
-| PGFTS-04 | Phase 6 | Pending |
-| INFRA-01 | Phase 6 | Pending |
-| INFRA-02 | Phase 6 | Pending |
-| INFRA-03 | Phase 6 | Pending |
-| INFRA-04 | Phase 6 | Pending |
-| INFRA-05 | Phase 6 | Pending |
+| PGVEC-01 | Phase 6 | Done |
+| PGVEC-02 | Phase 6 | Done |
+| PGVEC-03 | Phase 6 | Done |
+| PGVEC-04 | Phase 6 | Done |
+| PGFTS-01 | Phase 6 | Done |
+| PGFTS-02 | Phase 6 | Done |
+| PGFTS-03 | Phase 6 | Done |
+| PGFTS-04 | Phase 6 | Done |
+| INFRA-01 | Phase 6 | Done |
+| INFRA-02 | Phase 6 | Done |
+| INFRA-03 | Phase 6 | Done |
+| INFRA-04 | Phase 6 | Done |
+| INFRA-05 | Phase 6 | Done |
 | TEST-01 | Phase 7 | Pending |
 | TEST-02 | Phase 7 | Pending |
 | TEST-03 | Phase 7 | Pending |
@@ -158,4 +158,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-10*
-*Last updated: 2026-02-10 after v5.0 roadmap creation — 100% coverage validated*
+*Last updated: 2026-02-11 — Phase 6 requirements marked Done (13 requirements)*
