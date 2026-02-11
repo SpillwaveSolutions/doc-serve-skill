@@ -109,13 +109,13 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| STOR-01 | Phase 5 | Pending |
-| STOR-02 | Phase 5 | Pending |
-| STOR-03 | Phase 5 | Pending |
-| STOR-04 | Phase 5 | Pending |
-| CONF-01 | Phase 5 | Pending |
-| CONF-02 | Phase 5 | Pending |
-| CONF-03 | Phase 5 | Pending |
+| STOR-01 | Phase 5 | Done |
+| STOR-02 | Phase 5 | Done |
+| STOR-03 | Phase 5 | Done |
+| STOR-04 | Phase 5 | Done |
+| CONF-01 | Phase 5 | Done |
+| CONF-02 | Phase 5 | Done |
+| CONF-03 | Phase 5 | Done |
 | PGVEC-01 | Phase 6 | Pending |
 | PGVEC-02 | Phase 6 | Pending |
 | PGVEC-03 | Phase 6 | Pending |

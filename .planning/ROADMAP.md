@@ -39,8 +39,8 @@
 **Plans**: 2 plans
 
 Plans:
-- [ ] 05-01-PLAN.md — StorageBackendProtocol definition, StorageConfig YAML schema, backend factory
-- [ ] 05-02-PLAN.md — ChromaBackend adapter, service refactor to protocol, integration verification
+- [x] 05-01-PLAN.md — StorageBackendProtocol definition, StorageConfig YAML schema, backend factory
+- [x] 05-02-PLAN.md — ChromaBackend adapter, service refactor to protocol, integration verification
 
 #### Phase 6: PostgreSQL Backend Implementation
 **Goal**: Implement PostgreSQL backend with pgvector for vector search, tsvector for full-text search, and proper async connection pooling
@@ -106,7 +106,7 @@ Phases execute in numeric order: 5 → 6 → 7 → 8
 | 2. Pluggable Providers | v3.0 | 4/4 | Complete | 2026-02-09 |
 | 3. Schema-Based GraphRAG | v3.0 | 2/2 | Complete | 2026-02-10 |
 | 4. Provider Integration Testing | v3.0 | 2/2 | Complete | 2026-02-10 |
-| 5. Storage Abstraction | v5.0 | 0/2 | Planned | - |
+| 5. Storage Abstraction | v5.0 | 2/2 | Complete | 2026-02-10 |
 | 6. PostgreSQL Backend | v5.0 | 0/? | Not started | - |
 | 7. Testing & CI | v5.0 | 0/? | Not started | - |
 | 8. Plugin & Documentation | v5.0 | 0/? | Not started | - |
@@ -155,4 +155,4 @@ Feature 101: AST-aware code ingestion, code summaries
 
 ---
 *Roadmap created: 2026-02-07*
-*Last updated: 2026-02-10 — Phase 5 planned with 2 plans*
+*Last updated: 2026-02-10 — Phase 5 complete (2/2 plans, verified)*
