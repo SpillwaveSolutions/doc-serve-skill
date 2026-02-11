@@ -558,6 +558,10 @@ class TestRRFEdgeCases:
         mock_retriever = MagicMock()
         mock_retriever.aretrieve = AsyncMock(return_value=[mock_bm25_node])
         mock_bm25_manager.get_retriever = MagicMock(return_value=mock_retriever)
+        # Mock search_with_filters for ChromaBackend path (Phase 5)
+        mock_bm25_manager.search_with_filters = AsyncMock(
+            return_value=[mock_bm25_node]
+        )
 
         with patch(
             "agent_brain_server.services.query_service.settings"

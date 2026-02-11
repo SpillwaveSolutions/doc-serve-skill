@@ -396,6 +396,11 @@ class TestMultiQueryMode:
             mock_graph_index_manager,
             enable_graph=True,
         ) as client:
+            # Re-set search_with_filters after create_test_client resets it
+            mock_bm25_manager.search_with_filters = AsyncMock(
+                return_value=[mock_bm25_node]
+            )
+
             response = client.post(
                 "/query/",
                 json={
