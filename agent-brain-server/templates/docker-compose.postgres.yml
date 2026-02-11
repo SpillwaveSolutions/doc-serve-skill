@@ -1,0 +1,28 @@
+# Docker Compose for Agent Brain PostgreSQL backend
+# Usage: docker compose -f docker-compose.postgres.yml up -d
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: agent-brain-postgres
+    environment:
+      POSTGRES_USER: agent_brain
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-agent_brain_dev}
+      POSTGRES_DB: agent_brain
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - agent-brain-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U agent_brain -d agent_brain"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  agent-brain-postgres-data:
+    name: agent-brain-postgres-data
+    labels:
+      project: "agent-brain"
+      description: "Agent Brain PostgreSQL data with pgvector indexes"
