@@ -76,6 +76,7 @@ jobs:
   provider-tests:
     name: Provider Tests - ${{ matrix.provider }}
     runs-on: ubuntu-latest
+    environment: ci-testing
     if: github.event_name == 'push' || contains(github.event.pull_request.labels.*.name, 'test-providers')
 
     strategy:
