@@ -67,10 +67,7 @@ class TestPostgresConfigConnectionUrl:
             password="mypass",
         )
         url = config.get_connection_url()
-        assert url == (
-            "postgresql+asyncpg://myuser:mypass"
-            "@db.example.com:5433/mydb"
-        )
+        assert url == ("postgresql+asyncpg://myuser:mypass" "@db.example.com:5433/mydb")
 
     def test_connection_url_without_password(self) -> None:
         """Connection URL omits password when empty."""
@@ -124,9 +121,7 @@ class TestPostgresConfigFromDatabaseUrl:
 
     def test_parse_url_with_port(self) -> None:
         """Parses URL with explicit port."""
-        config = PostgresConfig.from_database_url(
-            "postgresql://user:pass@db:5433/mydb"
-        )
+        config = PostgresConfig.from_database_url("postgresql://user:pass@db:5433/mydb")
         assert config.port == 5433
 
     def test_parse_asyncpg_url(self) -> None:

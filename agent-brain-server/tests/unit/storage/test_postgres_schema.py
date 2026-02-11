@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, cast
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -248,9 +248,7 @@ class TestGetEmbeddingMetadata:
         connect_cm = connection_manager._engine.connect.return_value  # type: ignore[union-attr]
         mock_conn = connect_cm.__aenter__.return_value
         mock_conn.execute = AsyncMock(
-            side_effect=Exception(
-                'relation "embedding_metadata" does not exist'
-            )
+            side_effect=Exception('relation "embedding_metadata" does not exist')
         )
 
         result = await schema_manager.get_embedding_metadata()

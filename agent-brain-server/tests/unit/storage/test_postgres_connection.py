@@ -34,9 +34,7 @@ def manager(config: PostgresConfig) -> PostgresConnectionManager:
 class TestInitialize:
     """Tests for initialize() method."""
 
-    @patch(
-        "agent_brain_server.storage.postgres.connection.create_async_engine"
-    )
+    @patch("agent_brain_server.storage.postgres.connection.create_async_engine")
     async def test_initialize_creates_engine(
         self,
         mock_create: MagicMock,
@@ -55,9 +53,7 @@ class TestInitialize:
         assert call_kwargs["pool_pre_ping"] is True
         assert call_kwargs["pool_recycle"] == 3600
 
-    @patch(
-        "agent_brain_server.storage.postgres.connection.create_async_engine"
-    )
+    @patch("agent_brain_server.storage.postgres.connection.create_async_engine")
     async def test_initialize_uses_connection_url(
         self,
         mock_create: MagicMock,
@@ -169,9 +165,7 @@ class TestGetPoolStatus:
 class TestInitializeWithRetry:
     """Tests for initialize_with_retry() method."""
 
-    @patch(
-        "agent_brain_server.storage.postgres.connection.create_async_engine"
-    )
+    @patch("agent_brain_server.storage.postgres.connection.create_async_engine")
     async def test_succeeds_on_first_attempt(
         self,
         mock_create: MagicMock,
@@ -193,9 +187,7 @@ class TestInitializeWithRetry:
         assert manager._engine is mock_engine
 
     @patch("asyncio.sleep", new_callable=AsyncMock)
-    @patch(
-        "agent_brain_server.storage.postgres.connection.create_async_engine"
-    )
+    @patch("agent_brain_server.storage.postgres.connection.create_async_engine")
     async def test_retries_on_failure_then_succeeds(
         self,
         mock_create: MagicMock,
@@ -230,9 +222,7 @@ class TestInitializeWithRetry:
         mock_sleep.assert_awaited_once()
 
     @patch("asyncio.sleep", new_callable=AsyncMock)
-    @patch(
-        "agent_brain_server.storage.postgres.connection.create_async_engine"
-    )
+    @patch("agent_brain_server.storage.postgres.connection.create_async_engine")
     async def test_raises_after_max_attempts(
         self,
         mock_create: MagicMock,
@@ -241,9 +231,7 @@ class TestInitializeWithRetry:
     ) -> None:
         """Raises StorageError after max_attempts exhausted."""
         mock_engine = MagicMock()
-        mock_engine.connect = MagicMock(
-            side_effect=Exception("Connection refused")
-        )
+        mock_engine.connect = MagicMock(side_effect=Exception("Connection refused"))
         mock_engine.dispose = AsyncMock()
         mock_create.return_value = mock_engine
 

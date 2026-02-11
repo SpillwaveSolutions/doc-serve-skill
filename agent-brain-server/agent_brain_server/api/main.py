@@ -368,9 +368,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         _job_worker = None
 
     # Close storage backend if it has a close method (PostgreSQL pool)
-    storage_backend = getattr(app.state, "storage_backend", None)
-    if storage_backend and hasattr(storage_backend, "close"):
-        await storage_backend.close()
+    shutdown_backend = getattr(app.state, "storage_backend", None)
+    if shutdown_backend is not None and hasattr(shutdown_backend, "close"):
+        await shutdown_backend.close()
         logger.info("Storage backend connection pool closed")
 
     # Cleanup for per-project mode
