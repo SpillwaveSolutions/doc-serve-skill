@@ -6,7 +6,7 @@
 ## Milestones
 
 - ✅ **v3.0 Advanced RAG** — Phases 1-4 (shipped 2026-02-10)
-- 🚧 **v5.0 PostgreSQL Backend** — Phases 5-8 (in progress)
+- ✅ **v5.0 PostgreSQL Backend** — Phases 5-8 (shipped 2026-02-12)
 
 ## Phases
 
@@ -93,7 +93,7 @@ Plans:
 
 Plans:
 - [x] 08-01-PLAN.md — Plugin backend selection, setup flow updates, and v5.0.0 metadata bump
-- [ ] 08-02-PLAN.md — PostgreSQL setup, configuration, and performance tradeoff documentation
+- [x] 08-02-PLAN.md — PostgreSQL setup, configuration, and performance tradeoff documentation
 
 ## Progress
 
@@ -109,7 +109,7 @@ Phases execute in numeric order: 5 → 6 → 7 → 8
 | 5. Storage Abstraction | v5.0 | 2/2 | Complete | 2026-02-10 |
 | 6. PostgreSQL Backend | v5.0 | 3/3 | Complete | 2026-02-11 |
 | 7. Testing & CI | v5.0 | 2/2 | Complete | 2026-02-12 |
-| 8. Plugin & Documentation | v5.0 | 1/2 | In progress | - |
+| 8. Plugin & Documentation | v5.0 | 2/2 | Complete | 2026-02-12 |
 
 ## Future Phases
 
@@ -155,4 +155,4 @@ Feature 101: AST-aware code ingestion, code summaries
 
 ---
 *Roadmap created: 2026-02-07*
-*Last updated: 2026-02-11 — Phase 7 planned (2 plans in 2 waves)*
+*Last updated: 2026-02-12 — Phase 8 complete (2 plans in 2 waves)*
