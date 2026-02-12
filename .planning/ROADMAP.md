@@ -75,8 +75,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 07-01-PLAN.md — Contract test fixtures, protocol contract tests (all 11 methods), hybrid search similarity
-- [ ] 07-02-PLAN.md — Connection pool load test, CI workflow with pgvector service container, before-push verification
+- [x] 07-01-PLAN.md — Contract test fixtures, protocol contract tests (all 11 methods), hybrid search similarity
+- [x] 07-02-PLAN.md — Connection pool load test, CI workflow with pgvector service container, before-push verification
 
 #### Phase 8: Plugin & Documentation
 **Goal**: Update Claude Code plugin for PostgreSQL configuration and document backend selection, setup, and performance tradeoffs
@@ -89,11 +89,11 @@ Plans:
   4. Docker Compose setup guide exists in documentation
   5. Performance tradeoffs guide helps users choose between ChromaDB and PostgreSQL
   6. Plugin version bumped to v5.0.0 with updated metadata
-**Plans**: TBD
+**Plans**: 2 plans
 
 Plans:
-- [ ] 08-01: TBD
-- [ ] 08-02: TBD
+- [ ] 08-01-PLAN.md — Plugin backend selection, setup flow updates, and v5.0.0 metadata bump
+- [ ] 08-02-PLAN.md — PostgreSQL setup, configuration, and performance tradeoff documentation
 
 ## Progress
 
@@ -108,7 +108,7 @@ Phases execute in numeric order: 5 → 6 → 7 → 8
 | 4. Provider Integration Testing | v3.0 | 2/2 | Complete | 2026-02-10 |
 | 5. Storage Abstraction | v5.0 | 2/2 | Complete | 2026-02-10 |
 | 6. PostgreSQL Backend | v5.0 | 3/3 | Complete | 2026-02-11 |
-| 7. Testing & CI | v5.0 | 0/2 | Planned | - |
+| 7. Testing & CI | v5.0 | 2/2 | Complete | 2026-02-12 |
 | 8. Plugin & Documentation | v5.0 | 0/? | Not started | - |
 
 ## Future Phases
