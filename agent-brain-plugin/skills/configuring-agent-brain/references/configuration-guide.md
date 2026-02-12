@@ -111,6 +111,44 @@ For API keys specifically:
 
 ---
 
+## Storage Backend Configuration
+
+Agent Brain supports two storage backends:
+
+- `chroma` (default)
+- `postgres`
+
+**Recommended YAML configuration**:
+
+```yaml
+storage:
+  backend: "postgres"  # or "chroma"
+  postgres:
+    host: "localhost"
+    port: 5432
+    database: "agent_brain"
+    user: "agent_brain"
+    password: "agent_brain_dev"
+    pool_size: 10
+    pool_max_overflow: 10
+    language: "english"
+    hnsw_m: 16
+    hnsw_ef_construction: 64
+    debug: false
+```
+
+**Environment overrides**:
+
+- `AGENT_BRAIN_STORAGE_BACKEND` overrides `storage.backend`
+- `DATABASE_URL` overrides the connection string only (pool settings stay in YAML)
+
+```bash
+export AGENT_BRAIN_STORAGE_BACKEND="postgres"
+export DATABASE_URL="postgresql+asyncpg://agent_brain:agent_brain_dev@localhost:5432/agent_brain"
+```
+
+---
+
 ## API Keys
 
 ### OpenAI API Key

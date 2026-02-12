@@ -297,6 +297,63 @@ agent-brain start --project-dir /path/to/project
 
 ## Storage Configuration
 
+### Storage Backend Selection
+
+Agent Brain supports multiple storage backends:
+
+- `chroma` (default)
+- `postgres`
+
+Selection order (first match wins):
+
+1. `AGENT_BRAIN_STORAGE_BACKEND` environment variable
+2. `storage.backend` in `config.yaml`
+3. Built-in default (`chroma`)
+
+**Example** (`config.yaml`):
+
+```yaml
+storage:
+  backend: "postgres"  # or "chroma"
+```
+
+**Environment override**:
+
+```bash
+export AGENT_BRAIN_STORAGE_BACKEND="postgres"
+```
+
+### PostgreSQL Backend (pgvector)
+
+When `storage.backend` is `postgres`, configure connection and pool settings
+under `storage.postgres`:
+
+```yaml
+storage:
+  backend: "postgres"
+  postgres:
+    host: "localhost"
+    port: 5432
+    database: "agent_brain"
+    user: "agent_brain"
+    password: "agent_brain_dev"
+    pool_size: 10
+    pool_max_overflow: 10
+    language: "english"
+    hnsw_m: 16
+    hnsw_ef_construction: 64
+    debug: false
+```
+
+**Connection string override**:
+
+`DATABASE_URL` overrides the host/user/password/database/port connection
+string, but pool settings and HNSW tuning remain in YAML.
+
+```bash
+export DATABASE_URL="postgresql+asyncpg://agent_brain:agent_brain_dev@localhost:5432/agent_brain"
+```
+
 ### ChromaDB Vector Store
 
 | Variable | Default | Description |

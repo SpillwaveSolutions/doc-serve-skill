@@ -89,6 +89,38 @@ export DOC_SERVE_URL="http://localhost:49321"
 agent-brain status
 ```
 
+### PostgreSQL Backend Issues
+
+**Connection refused (PostgreSQL):**
+
+- Confirm the container is running:
+```bash
+docker compose -f docker-compose.postgres.yml ps
+```
+- Check readiness:
+```bash
+docker compose -f docker-compose.postgres.yml exec postgres \
+  pg_isready -U agent_brain -d agent_brain
+```
+
+**pgvector extension missing:**
+
+- Use the pgvector image (`pgvector/pgvector:pg16`).
+- If using another image, install the pgvector extension before start.
+
+**Pool exhaustion / too many connections:**
+
+- Increase `pool_size` and `pool_max_overflow` under `storage.postgres`.
+- Ensure PostgreSQL `max_connections` is high enough for your workload.
+
+**Embedding dimension mismatch:**
+
+- If you change embedding models, reset and re-index:
+```bash
+agent-brain reset --yes
+agent-brain index /path/to/docs
+```
+
 ### Stale Server State
 
 **Symptoms:**
