@@ -363,7 +363,55 @@ For xAI:       export XAI_API_KEY="xai-..."
 - Runs locally - no keys to manage
 - Data stays on your machine
 
-## Step 5: Configure Indexing Excludes
+## Step 5: Select Storage Backend (ChromaDB or PostgreSQL)
+
+After provider configuration, confirm which storage backend to use for indexing and search.
+
+### AskUserQuestion: Storage Backend Selection
+
+```
+Which storage backend would you like to use?
+
+Options:
+1. ChromaDB (Default) - Local-first, zero ops, best for small to medium projects
+2. PostgreSQL + pgvector - Best for larger datasets, requires a running database
+```
+
+### Backend Resolution Order
+
+Agent Brain resolves the storage backend in this order:
+1. `AGENT_BRAIN_STORAGE_BACKEND` environment variable (highest priority)
+2. `storage.backend` in config.yaml
+3. Default: `chroma`
+
+### YAML Configuration (PostgreSQL Example)
+
+If the user selects PostgreSQL, add the `storage.backend` selection plus a full `storage.postgres` block:
+
+```yaml
+storage:
+  backend: "postgres"  # or "chroma"
+  postgres:
+    host: "localhost"
+    port: 5432
+    database: "agent_brain"
+    user: "agent_brain"
+    password: "agent_brain_dev"
+    pool_size: 10
+    pool_max_overflow: 10
+    language: "english"
+    hnsw_m: 16
+    hnsw_ef_construction: 64
+    debug: false
+```
+
+**Important notes:**
+- `DATABASE_URL` overrides only the PostgreSQL connection string. Pool sizing and HNSW tuning still come from `storage.postgres`.
+- There is no automatic migration between backends. Switching backends requires re-indexing your documents.
+
+If the user selects ChromaDB, you can omit `storage.postgres` entirely and leave `storage.backend` as `chroma` (or omit it to use the default).
+
+## Step 6: Configure Indexing Excludes
 
 After provider setup, help the user configure which directories to exclude from indexing.
 
