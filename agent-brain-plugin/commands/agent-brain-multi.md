@@ -180,6 +180,8 @@ agent-brain index /path/to/code
 
 Multi-mode gracefully degrades if graph is unavailable.
 
+**Note:** When using PostgreSQL backend, graph is automatically excluded from multi-mode results. No action needed.
+
 ### No Results Found
 
 ```
@@ -250,6 +252,8 @@ Multi-mode adapts to available capabilities:
 | BM25 + Vector | Hybrid-like fusion |
 | BM25 only | BM25 results only |
 | Vector only | Vector results only |
+
+**Note:** When using the PostgreSQL backend (`AGENT_BRAIN_STORAGE_BACKEND=postgres`), multi-mode automatically uses BM25 + Vector only (graph component is skipped). No error is raised -- multi-mode gracefully adapts.
 
 Check server status to see available capabilities:
 ```bash

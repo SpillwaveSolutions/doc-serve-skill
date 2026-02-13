@@ -72,6 +72,18 @@ agent-brain status
 # Look for: Graph Index: enabled (X entities, Y relationships)
 ```
 
+## Backend Requirements
+
+Graph search is only available when using the **ChromaDB** storage backend (default). If you are using the PostgreSQL backend (`AGENT_BRAIN_STORAGE_BACKEND=postgres`), graph queries will return an error:
+
+```
+Error: Graph queries (mode='graph') require ChromaDB backend.
+Current backend: 'postgres'.
+To use graph queries, set AGENT_BRAIN_STORAGE_BACKEND=chroma.
+```
+
+To use graph search, switch to ChromaDB backend or use `/agent-brain-hybrid` for hybrid BM25 + vector search on any backend.
+
 ## Execution
 
 ### Pre-flight Check
@@ -207,6 +219,17 @@ Error: Could not connect to Agent Brain server
 ```bash
 agent-brain start
 ```
+
+### PostgreSQL Backend
+
+```
+Error: Graph queries require ChromaDB backend
+```
+
+**Resolution:**
+Graph search is not supported on the PostgreSQL backend. Options:
+- Switch to ChromaDB: `export AGENT_BRAIN_STORAGE_BACKEND=chroma`
+- Use hybrid search instead: `agent-brain query "..." --mode hybrid`
 
 ## Performance Notes
 
