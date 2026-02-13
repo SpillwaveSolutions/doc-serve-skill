@@ -171,9 +171,7 @@ async def indexing_status(request: Request) -> IndexingStatus:
     backend_type = get_effective_backend_type()
     graph_index_info = service_status.get("graph_index")
     if backend_type != "chroma" and graph_index_info is not None:
-        reason_msg = (
-            f"Graph queries require ChromaDB backend (current: {backend_type})"
-        )
+        reason_msg = f"Graph queries require ChromaDB backend (current: {backend_type})"
         graph_index_info = {
             "enabled": False,
             "initialized": False,
