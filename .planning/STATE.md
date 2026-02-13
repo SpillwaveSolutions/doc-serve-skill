@@ -63,6 +63,7 @@ v6.0 PostgreSQL:       [██████████] Phase 8 complete (Plan 2
 | Phase 08-plugin-documentation P02 | 2 min | 2 tasks | 7 files |
 | Phase 09-runtime-backend-wiring P01 | 4 min | 3 tasks | 5 files modified |
 | Phase 09-runtime-backend-wiring P02 | 5 | 2 tasks | 1 files |
+| Phase 10-live-postgres-e2e P01 | 3.5 | 2 tasks | 1 files |
 
 ## Accumulated Context
 ### From v3.0 Advanced RAG
@@ -110,6 +111,7 @@ v6.0 PostgreSQL:       [██████████] Phase 8 complete (Plan 2
 - 09-01: Graph queries raise ValueError on postgres, multi-mode gracefully skips — graph is ChromaDB-only
 - 09-01: Health endpoints use getattr() for vector_store — handles None safely on postgres backend
 - [Phase 09-02]: All wiring tests mock-based (no PostgreSQL required)
+- [Phase 10-live-postgres-e2e]: Service-level testing approach (direct backend instantiation) avoids ASGI lifespan complexity
 
 ### From Phase 6 Plan 03 (Integration)
 - Factory creates PostgresBackend from YAML config with DATABASE_URL env var override
@@ -153,8 +155,8 @@ v6.0 PostgreSQL:       [██████████] Phase 8 complete (Plan 2
 
 ## Session Continuity
 
-**Last Session:** 2026-02-13T02:16:21.737Z
-**Stopped At:** Completed 09-runtime-backend-wiring-02-PLAN.md
+**Last Session:** 2026-02-13T03:54:16.966Z
+**Stopped At:** Completed 10-live-postgres-e2e-01-PLAN.md
 **Resume File:** None
 
 ---
