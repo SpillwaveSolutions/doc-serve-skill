@@ -3,7 +3,7 @@
 **Defined:** 2026-02-10
 **Core Value:** Developers can semantically search their entire codebase and documentation through a single, fast, local-first API that understands code structure and relationships
 
-## v5.0 Requirements
+## v6.0 Requirements
 
 Requirements for PostgreSQL Backend milestone. Each maps to roadmap phases.
 
@@ -129,23 +129,23 @@ Which phases cover which requirements. Updated during roadmap creation.
 | INFRA-03 | Phase 6 | Done |
 | INFRA-04 | Phase 6 | Done |
 | INFRA-05 | Phase 6 | Done |
-| TEST-01 | Phase 7 | Pending |
-| TEST-02 | Phase 7 | Pending |
-| TEST-03 | Phase 7 | Pending |
-| TEST-04 | Phase 7 | Pending |
-| STOR-05 | Phase 7 | Pending |
-| PLUG-01 | Phase 8 | Pending |
-| PLUG-02 | Phase 8 | Pending |
-| PLUG-03 | Phase 8 | Pending |
-| PLUG-04 | Phase 8 | Pending |
-| PLUG-05 | Phase 8 | Pending |
-| PLUG-06 | Phase 8 | Pending |
-| DOCS-01 | Phase 8 | Pending |
-| DOCS-02 | Phase 8 | Pending |
-| DOCS-03 | Phase 8 | Pending |
+| TEST-01 | Phase 7 | Done |
+| TEST-02 | Phase 7 | Done |
+| TEST-03 | Phase 7 | Done |
+| TEST-04 | Phase 7 | Done |
+| STOR-05 | Phase 7 | Done |
+| PLUG-01 | Phase 8 | Done |
+| PLUG-02 | Phase 8 | Done |
+| PLUG-03 | Phase 8 | Done |
+| PLUG-04 | Phase 8 | Done |
+| PLUG-05 | Phase 8 | Done |
+| PLUG-06 | Phase 8 | Done |
+| DOCS-01 | Phase 8 | Done |
+| DOCS-02 | Phase 8 | Done |
+| DOCS-03 | Phase 8 | Done |
 
 **Coverage:**
-- v5.0 requirements: 34 total
+- v6.0 requirements: 34 total
 - Mapped to phases: 34
 - Unmapped: 0
 - Coverage: 100%

@@ -109,8 +109,8 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 09-01-PLAN.md — Rewire main.py lifespan, graph query validation, health endpoint, plugin docs
-- [ ] 09-02-PLAN.md — Mock-based backend wiring smoke tests and task before-push verification
+- [x] 09-01-PLAN.md — Rewire main.py lifespan, graph query validation, health endpoint, plugin docs
+- [x] 09-02-PLAN.md — Mock-based backend wiring smoke tests and task before-push verification
 
 #### Phase 10: Live PostgreSQL E2E Validation
 **Goal**: Validate end-to-end postgres-backed workflow with real database — index documents, query, verify hybrid search, exercise connection pool
@@ -140,7 +140,7 @@ Phases execute in numeric order: 5 → 6 → 7 → 8 → 9 → 10
 | 6. PostgreSQL Backend | v6.0 | 3/3 | Complete | 2026-02-11 |
 | 7. Testing & CI | v6.0 | 2/2 | Complete | 2026-02-12 |
 | 8. Plugin & Documentation | v6.0 | 2/2 | Complete | 2026-02-12 |
-| 9. Runtime Backend Wiring | v6.0 | 0/0 | Not started | - |
+| 9. Runtime Backend Wiring | v6.0 | 2/2 | Complete | 2026-02-12 |
 | 10. Live PostgreSQL E2E Validation | v6.0 | 0/0 | Not started | - |
 
 ## Future Phases
