@@ -123,7 +123,10 @@ Plans:
   3. Connection pool under load: 50 concurrent queries + background indexing without pool exhaustion
   4. `/health/postgres` returns accurate pool metrics during load
   5. All existing tests pass (`task before-push` clean)
-**Plans**: TBD
+**Plans**: 1 plan
+
+Plans:
+- [ ] 10-01-PLAN.md — Full-stack E2E tests with live PostgreSQL, cross-backend consistency validation, pool metrics verification
 
 ## Progress
 
@@ -141,7 +144,7 @@ Phases execute in numeric order: 5 → 6 → 7 → 8 → 9 → 10
 | 7. Testing & CI | v6.0 | 2/2 | Complete | 2026-02-12 |
 | 8. Plugin & Documentation | v6.0 | 2/2 | Complete | 2026-02-12 |
 | 9. Runtime Backend Wiring | v6.0 | 2/2 | Complete | 2026-02-12 |
-| 10. Live PostgreSQL E2E Validation | v6.0 | 0/0 | Not started | - |
+| 10. Live PostgreSQL E2E Validation | v6.0 | 0/1 | Not started | - |
 
 ## Future Phases
 
@@ -187,4 +190,4 @@ Feature 101: AST-aware code ingestion, code summaries
 
 ---
 *Roadmap created: 2026-02-07*
-*Last updated: 2026-02-12 — Added gap closure phases 9-10 from milestone audit*
+*Last updated: 2026-02-13 — Phase 10 planned (1 plan)*
