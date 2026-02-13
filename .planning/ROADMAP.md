@@ -106,7 +106,11 @@ Plans:
   3. Legacy `vector_store + bm25_manager` creation skipped when using non-chroma backend
   4. Integration test verifies factory-selected backend is the instance used by services
   5. All existing tests pass (`task before-push` clean)
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 09-01-PLAN.md — Rewire main.py lifespan, graph query validation, health endpoint, plugin docs
+- [ ] 09-02-PLAN.md — Mock-based backend wiring smoke tests and task before-push verification
 
 #### Phase 10: Live PostgreSQL E2E Validation
 **Goal**: Validate end-to-end postgres-backed workflow with real database — index documents, query, verify hybrid search, exercise connection pool
