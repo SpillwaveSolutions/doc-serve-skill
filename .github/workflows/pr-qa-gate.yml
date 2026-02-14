@@ -114,9 +114,12 @@ jobs:
       - name: Install CLI with local server dependency
         run: |
           cd agent-brain-cli
-          # Install local server wheel so CLI can resolve dependency
-          pip install ../agent-brain-server/dist/*.whl
+          # agent-brain-rag isn't on PyPI during CI, temporarily use path dependency
+          sed -i 's|agent-brain-rag = "^[0-9]*\.[0-9]*\.[0-9]*"|agent-brain-rag = {path = "../agent-brain-server", develop = false}|' pyproject.toml
+          poetry lock
           poetry install
+          # Restore PyPI dependency for consistency
+          git checkout pyproject.toml
 
       - name: Run linting
         run: task lint
