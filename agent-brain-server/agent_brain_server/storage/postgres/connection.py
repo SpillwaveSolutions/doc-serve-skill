@@ -193,6 +193,6 @@ class PostgresConnectionManager:
             "pool_size": pool.size(),
             "checked_in": pool.checkedin(),
             "checked_out": pool.checkedout(),
-            "overflow": pool.overflow(),
-            "total": pool.size() + pool.overflow(),
+            "overflow": max(0, pool.overflow()),
+            "total": pool.size() + max(0, pool.overflow()),
         }

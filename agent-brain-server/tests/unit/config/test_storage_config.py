@@ -135,8 +135,13 @@ def test_provider_settings_yaml_roundtrip_postgres() -> None:
     assert settings.storage.postgres["port"] == 5432
 
 
-def test_validate_provider_config_postgres_no_config_warning() -> None:
+def test_validate_provider_config_postgres_no_config_warning(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     """Test validate_provider_config warns when postgres backend has no config."""
+    # Ensure DATABASE_URL is not set (CI sets it for postgres tests)
+    monkeypatch.delenv("DATABASE_URL", raising=False)
+
     settings = ProviderSettings(
         storage=StorageConfig(backend="postgres", postgres={}),
     )

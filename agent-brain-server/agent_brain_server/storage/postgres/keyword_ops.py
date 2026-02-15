@@ -82,7 +82,7 @@ class KeywordOps:
                 INSERT INTO documents
                     (chunk_id, document_text, metadata, tsv)
                 VALUES (
-                    :chunk_id, :document_text, :metadata::jsonb,
+                    :chunk_id, :document_text, CAST(:metadata AS jsonb),
                     setweight(to_tsvector(
                         :language, COALESCE(:title, '')
                     ), 'A') ||
