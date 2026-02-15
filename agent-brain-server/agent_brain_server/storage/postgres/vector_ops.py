@@ -62,7 +62,7 @@ class VectorOps:
                     text(
                         """
                         UPDATE documents
-                        SET embedding = :embedding::vector,
+                        SET embedding = CAST(:embedding AS vector),
                             updated_at = NOW()
                         WHERE chunk_id = :chunk_id
                         """
@@ -126,16 +126,16 @@ class VectorOps:
             }
 
             if where:
-                filter_clause = "AND metadata @> :filter::jsonb"
+                filter_clause = "AND metadata @> CAST(:filter AS jsonb)"
                 params["filter"] = json.dumps(where)
 
             sql = f"""
                 SELECT chunk_id, document_text, metadata,
-                       embedding {operator} :query_embedding::vector AS distance
+                       embedding {operator} CAST(:query_embedding AS vector) AS distance
                 FROM documents
                 WHERE embedding IS NOT NULL
                 {filter_clause}
-                ORDER BY embedding {operator} :query_embedding::vector
+                ORDER BY embedding {operator} CAST(:query_embedding AS vector)
                 LIMIT :top_k
             """
 

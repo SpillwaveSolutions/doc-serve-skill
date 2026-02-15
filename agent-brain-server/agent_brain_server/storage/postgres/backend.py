@@ -354,7 +354,7 @@ class PostgresBackend:
             params: dict[str, Any] = {}
             filter_clause = ""
             if where:
-                filter_clause = "WHERE metadata @> :filter::jsonb"
+                filter_clause = "WHERE metadata @> CAST(:filter AS jsonb)"
                 params["filter"] = json.dumps(where)
 
             sql = f"SELECT COUNT(*) FROM documents {filter_clause}"
