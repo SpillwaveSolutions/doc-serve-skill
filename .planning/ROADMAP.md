@@ -7,6 +7,7 @@
 
 - ✅ **v3.0 Advanced RAG** — Phases 1-4 (shipped 2026-02-10)
 - ✅ **v6.0 PostgreSQL Backend** — Phases 5-10 (shipped 2026-02-13)
+- **v6.0.2 Plugin & Install Fixes** — Phase 11 (active)
 
 ## Phases
 
@@ -128,10 +129,31 @@ Plans:
 Plans:
 - [x] 10-01-PLAN.md — Full-stack E2E tests with live PostgreSQL, cross-backend consistency validation, pool metrics verification
 
+### v6.0.2 Plugin & Install Fixes — IN PROGRESS
+
+**Milestone Goal:** Fix install.sh path, add PostgreSQL port auto-discovery to plugin, validate full E2E workflow with local install.
+
+#### Phase 11: Plugin Port Discovery & Install Fix
+**Goal**: Add port auto-discovery to plugin commands, fix install.sh repo path, validate E2E with PostgreSQL backend
+**Depends on**: Phase 10 (v6.0 completed)
+**Requirements**: PLUG-07, PLUG-08, INFRA-06
+**Success Criteria**:
+  1. Plugin setup/config commands auto-discover a free PostgreSQL port (5432-5442 range)
+  2. Discovered port is used in both Docker Compose startup AND config.yaml
+  3. install.sh uses correct REPO_ROOT path (agent-brain, not doc-serve)
+  4. Plugin version bumped to 6.0.2
+  5. Local install works: `agent-brain --version` returns 6.0.2
+  6. PostgreSQL E2E: index 4 directories, all 3 search modes return results
+  7. v6.0.2 released to PyPI
+**Plans**: 1 plan
+
+Plans:
+- [ ] 11-01-PLAN.md — install.sh fix, version bumps, port auto-discovery in plugin commands, local install, E2E validation, release
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 5 → 6 → 7 → 8 → 9 → 10
+Phases execute in numeric order: 5 → 6 → 7 → 8 → 9 → 10 → 11
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -145,6 +167,7 @@ Phases execute in numeric order: 5 → 6 → 7 → 8 → 9 → 10
 | 8. Plugin & Documentation | v6.0 | 2/2 | Complete | 2026-02-12 |
 | 9. Runtime Backend Wiring | v6.0 | 2/2 | Complete | 2026-02-12 |
 | 10. Live PostgreSQL E2E Validation | v6.0 | 1/1 | Complete | 2026-02-12 |
+| 11. Plugin Port Discovery & Install Fix | v6.0.2 | 0/1 | In Progress | — |
 
 ## Future Phases
 
@@ -190,4 +213,4 @@ Feature 101: AST-aware code ingestion, code summaries
 
 ---
 *Roadmap created: 2026-02-07*
-*Last updated: 2026-02-13 — v6.0 milestone completed (all 10 phases shipped)*
+*Last updated: 2026-02-19 — v6.0.2 Plugin & Install Fixes in progress (Phase 11)*

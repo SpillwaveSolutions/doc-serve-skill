@@ -1,24 +1,24 @@
 # Agent Brain — Project State
-**Last Updated:** 2026-02-12
-**Current Milestone:** v6.0 PostgreSQL Backend
-**Status:** MILESTONE COMPLETE — all 10 phases executed
-**Current Phase:** 10
-**Total Phases:** 10
+**Last Updated:** 2026-02-19
+**Current Milestone:** v6.0.2 Plugin & Install Fixes
+**Status:** Phase 11 in progress
+**Current Phase:** 11
+**Total Phases:** 11
 **Current Plan:** 1
 **Total Plans in Phase:** 1
 
 ## Current Position
-Phase: 10 of 10 (Live PostgreSQL E2E Validation) — COMPLETE
-Plan: 1 of 1 (service-level PostgreSQL E2E tests)
-Status: All success criteria verified — v6.0 milestone complete
-Last activity: 2026-02-12 — Completed 10-01-PLAN.md
+Phase: 11 of 11 (Plugin Port Discovery & Install Fix) — IN PROGRESS
+Plan: 1 of 1 (install.sh fix, version bumps, port auto-discovery, E2E validation)
+Status: Executing Phase 11
+Last activity: 2026-02-19 — Starting Phase 11
 
-**Progress:** [██████████] 100%
+**Progress:** [█████████░] 90% (v6.0 complete, v6.0.2 in progress)
 
 ## Project Reference
-See: .planning/PROJECT.md (updated 2026-02-10)
+See: .planning/PROJECT.md (updated 2026-02-19)
 **Core value:** Developers can semantically search their entire codebase and documentation through a single, fast, local-first API that understands code structure and relationships
-**Current focus:** Milestone v6.0 wrap-up
+**Current focus:** v6.0.2 — plugin port discovery, install.sh fix, E2E validation
 
 ## Milestone Summary
 ```
@@ -155,9 +155,9 @@ v6.0 PostgreSQL:       [██████████] Phase 8 complete (Plan 2
 
 ## Session Continuity
 
-**Last Session:** 2026-02-13T03:54:16.966Z
-**Stopped At:** Completed 10-live-postgres-e2e-01-PLAN.md
+**Last Session:** 2026-02-19
+**Stopped At:** Phase 11 — Plugin Port Discovery & Install Fix
 **Resume File:** None
 
 ---
-*State updated: 2026-02-13*
+*State updated: 2026-02-19*

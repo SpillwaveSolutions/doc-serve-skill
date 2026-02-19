@@ -65,6 +65,15 @@ Requirements for PostgreSQL Backend milestone. Each maps to roadmap phases.
 - [ ] **DOCS-02**: Backend selection and configuration reference in provider docs
 - [ ] **DOCS-03**: Performance tradeoffs guide (ChromaDB vs PostgreSQL — when to use which)
 
+## v6.0.2 Requirements
+
+### Plugin Enhancements
+- [ ] **PLUG-07**: /agent-brain-setup and /agent-brain-config auto-discover free PostgreSQL port (scan 5432-5442)
+- [ ] **PLUG-08**: Plugin version bumped to v6.0.2 with updated metadata
+
+### Infrastructure Fix
+- [ ] **INFRA-06**: install.sh REPO_ROOT path corrected (doc-serve → agent-brain)
+
 ## Future Requirements
 
 Deferred to subsequent milestones. Tracked but not in current roadmap.
@@ -144,9 +153,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DOCS-02 | Phase 8 | Done |
 | DOCS-03 | Phase 8 | Done |
 
+| PLUG-07 | Phase 11 | Pending |
+| PLUG-08 | Phase 11 | Pending |
+| INFRA-06 | Phase 11 | Pending |
+
 **Coverage:**
-- v6.0 requirements: 34 total
-- Mapped to phases: 34
+- v6.0 requirements: 34 total (all done)
+- v6.0.2 requirements: 3 total
+- Mapped to phases: 37
 - Unmapped: 0
 - Coverage: 100%
 
@@ -155,7 +169,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 - Phase 6 (PostgreSQL Backend): 13 requirements
 - Phase 7 (Testing & CI): 5 requirements
 - Phase 8 (Plugin & Documentation): 9 requirements
+- Phase 11 (Plugin Port Discovery & Install Fix): 3 requirements
 
 ---
 *Requirements defined: 2026-02-10*
-*Last updated: 2026-02-11 — Phase 6 requirements marked Done (13 requirements)*
+*Last updated: 2026-02-19 — Added v6.0.2 requirements (PLUG-07, PLUG-08, INFRA-06)*

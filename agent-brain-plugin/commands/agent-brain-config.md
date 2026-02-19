@@ -384,16 +384,44 @@ Agent Brain resolves the storage backend in this order:
 2. `storage.backend` in config.yaml
 3. Default: `chroma`
 
+### PostgreSQL Port Auto-Discovery
+
+When the user selects PostgreSQL, automatically find an available port before writing config:
+
+```bash
+# Scan for a free port in the PostgreSQL range
+POSTGRES_PORT=""
+for port in $(seq 5432 5442); do
+  if ! lsof -i :$port -sTCP:LISTEN >/dev/null 2>&1; then
+    POSTGRES_PORT=$port
+    echo "Found available port: $port"
+    break
+  else
+    echo "Port $port in use, trying next..."
+  fi
+done
+
+if [ -z "$POSTGRES_PORT" ]; then
+  echo "ERROR: No available ports in range 5432-5442"
+  echo "Free a port or configure storage.postgres.port manually."
+  exit 1
+fi
+echo "PostgreSQL will use port: $POSTGRES_PORT"
+```
+
+Use this discovered port in BOTH the Docker Compose command AND config.yaml.
+
 ### YAML Configuration (PostgreSQL Example)
 
-If the user selects PostgreSQL, add the `storage.backend` selection plus a full `storage.postgres` block:
+If the user selects PostgreSQL, add the `storage.backend` selection plus a full `storage.postgres` block.
+**Use the auto-discovered port from the scan above** (not a hardcoded 5432):
 
 ```yaml
 storage:
   backend: "postgres"  # or "chroma"
   postgres:
     host: "localhost"
-    port: 5432
+    port: <DISCOVERED_PORT>  # e.g., 5433 if 5432 was in use
     database: "agent_brain"
     user: "agent_brain"
     password: "agent_brain_dev"
@@ -405,9 +433,16 @@ storage:
     debug: false
 ```
 
+Start the PostgreSQL container on the same discovered port:
+
+```bash
+POSTGRES_PORT=$POSTGRES_PORT docker compose -f <plugin_path>/templates/docker-compose.postgres.yml up -d
+```
+
 **Important notes:**
 - `DATABASE_URL` overrides only the PostgreSQL connection string. Pool sizing and HNSW tuning still come from `storage.postgres`.
 - There is no automatic migration between backends. Switching backends requires re-indexing your documents.
+- The port auto-discovery ensures no conflicts with existing PostgreSQL instances on the host.
 
 If the user selects ChromaDB, you can omit `storage.postgres` entirely and leave `storage.backend` as `chroma` (or omit it to use the default).
 

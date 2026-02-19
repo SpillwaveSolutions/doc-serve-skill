@@ -44,7 +44,7 @@ if [[ $USE_PATH_DEPS -eq 1 && $RESTORE_PYPI -eq 1 ]]; then
   exit 1
 fi
 
-REPO_ROOT="/Users/richardhightower/clients/spillwave/src/doc-serve"
+REPO_ROOT="${HOME}/clients/spillwave/src/agent-brain"
 PLUGIN_CACHE="$HOME/.claude/plugins/agent-brain"
 UV_TOOL_CLI="$HOME/.local/share/uv/tools/agent-brain-cli"
 UV_TOOL_SERVER="$HOME/.local/share/uv/tools/agent-brain-server"

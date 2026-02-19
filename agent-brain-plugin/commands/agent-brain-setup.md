@@ -77,20 +77,51 @@ docker --version
 docker compose version
 ```
 
-If Docker is available, offer to start the provided pgvector template:
-
-```bash
-docker compose -f agent-brain-plugin/templates/docker-compose.postgres.yml up -d
-```
-
-Verify PostgreSQL is ready:
-
-```bash
-docker compose -f agent-brain-plugin/templates/docker-compose.postgres.yml ps
-docker compose -f agent-brain-plugin/templates/docker-compose.postgres.yml exec -T postgres pg_isready -U agent_brain
-```
-
 If Docker is not available, pause and explain the user must install Docker or point `storage.postgres` to an existing PostgreSQL instance.
+
+#### 4a: Check for existing agent-brain-postgres container
+
+```bash
+docker ps --filter name=agent-brain-postgres --format '{{.Ports}}' 2>/dev/null
+```
+
+If already running, extract the mapped port and skip to step 4e.
+
+#### 4b: Find available port
+
+```bash
+POSTGRES_PORT=""
+for port in $(seq 5432 5442); do
+  if ! lsof -i :$port -sTCP:LISTEN >/dev/null 2>&1; then
+    POSTGRES_PORT=$port
+    echo "Found available port: $port"
+    break
+  else
+    echo "Port $port in use, trying next..."
+  fi
+done
+
+if [ -z "$POSTGRES_PORT" ]; then
+  echo "ERROR: No available ports in range 5432-5442"
+  exit 1
+fi
+```
+
+#### 4c: Start Docker Compose with discovered port
+
+```bash
+POSTGRES_PORT=$POSTGRES_PORT docker compose -f <plugin_path>/templates/docker-compose.postgres.yml up -d
+```
+
+#### 4d: Update config.yaml with discovered port
+
+Write or update `storage.postgres.port` in the active config.yaml to use the discovered port. This ensures the server connects to the correct port automatically.
+
+#### 4e: Verify PostgreSQL is ready
+
+```bash
+docker exec agent-brain-postgres pg_isready -U agent_brain -d agent_brain
+```
 
 ### Step 5: Start Server
 

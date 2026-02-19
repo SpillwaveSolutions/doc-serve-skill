@@ -93,7 +93,7 @@ Agent Brain is a local-first RAG (Retrieval-Augmented Generation) service that i
 
 ### Active
 
-No active milestone. Next: v7.0+ (AWS Bedrock / Vertex AI providers).
+v6.0.2 Plugin & Install Fixes — Phase 11 (Plugin Port Discovery & Install Fix)
 
 ### Out of Scope
 
@@ -163,4 +163,4 @@ No active milestone. Next: v7.0+ (AWS Bedrock / Vertex AI providers).
 | Conditional ChromaDB init in main.py lifespan | PostgreSQL backend skips ChromaDB setup entirely | ✓ Good |
 
 ---
-*Last updated: 2026-02-13 after v6.0 milestone completed*
+*Last updated: 2026-02-19 — v6.0.2 Plugin & Install Fixes in progress*
