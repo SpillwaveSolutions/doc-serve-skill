@@ -154,12 +154,7 @@ v6.0 PostgreSQL:       [██████████] Phase 8 complete (Plan 2
 - Documentation must clarify no auto-migration tool (users rebuild from source)
 
 ### Pending Todos
-- [ ] **CRITICAL** Fix job verification to use active storage backend instead of ChromaDB (area: api)
-- [ ] **MEDIUM** Make asyncpg and sqlalchemy non-optional for PostgreSQL support (area: general)
-- [ ] **LOW** Add docx2txt dependency or graceful skip for docx files (area: api)
-- [ ] **LOW** Fix postgres get_count to count chunks not documents (area: api)
-- [ ] **LOW** Surface clear error when indexing from state directory (area: api)
-- [ ] **COSMETIC** Config not hot-reloaded after yaml changes (area: api)
+All 6 PostgreSQL integration testing bugs resolved in v6.0.3.
 
 ## Session Continuity
 
