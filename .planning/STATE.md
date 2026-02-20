@@ -153,11 +153,14 @@ v6.0 PostgreSQL:       [██████████] Phase 8 complete (Plan 2
 - Plugin must guide users through backend selection without overwhelming with complexity
 - Documentation must clarify no auto-migration tool (users rebuild from source)
 
+### Pending Todos
+- [ ] Make asyncpg and sqlalchemy non-optional for PostgreSQL support (area: general)
+
 ## Session Continuity
 
-**Last Session:** 2026-02-19
+**Last Session:** 2026-02-20
 **Stopped At:** Phase 11 — Plugin Port Discovery & Install Fix
 **Resume File:** None
 
 ---
-*State updated: 2026-02-19*
+*State updated: 2026-02-20*
